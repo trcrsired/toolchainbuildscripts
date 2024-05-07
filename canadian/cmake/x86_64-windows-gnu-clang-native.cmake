@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_HOST_SYSTEM_NAME "Windows")
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(HAVE_CLANG_REPL_SUPPORT off)
+
+unset(linux)
+unset(unix)
+unset(Linux)
+unset(Unix)
+set(MINGW 1)
+set(WIN32 1)
+
+set(LLVM_ENABLE_PROJECTS "clang;lld")
+
+set(BUILD_SHARED_LIBS On)
+
+set(LLVM_ENABLE_RUNTIMES "")
