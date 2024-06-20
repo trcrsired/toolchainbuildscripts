@@ -79,9 +79,9 @@ BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TARGETTRIPLE}"
 
-if [ ${TARGETTRIPLE_CPU} == "x86_64" ]; then
+if [[ ${TARGETTRIPLE_CPU} == "x86_64" ]]; then
 MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --enable-lib64 --prefix=${SYSROOTPATH}"
-elif [ ${TARGETTRIPLE_CPU} == "aarch64" ]; then
+elif [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
 MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64 --prefix=${SYSROOTPATH}"
 fi
 
