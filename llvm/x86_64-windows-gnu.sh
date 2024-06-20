@@ -199,7 +199,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -lc++abi -lunwind" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" \
 	-DCMAKE_SYSTEM_NAME=Windows \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE
 ninja
