@@ -106,7 +106,7 @@ CURRENTTRIPLEPATH=${currentpath}
 if [ ! -f "${BUILTINSINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
-cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
+cmake $LLVMPROJECTPATH/compiler-rt \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
