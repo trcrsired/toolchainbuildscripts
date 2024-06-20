@@ -16,7 +16,12 @@ mkdir -p $TOOLCHAINSPATH
 TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
 mkdir -p $TOOLCHAINS_LLVMPATH
 
-TARGETTRIPLE_CPU=aarch64
+
+if [ -z ${ARCH+x} ]; then
+ARCH=aarch64
+fi
+
+TARGETTRIPLE_CPU=${ARCH}
 TARGETTRIPLE=${TARGETTRIPLE_CPU}-windows-gnu
 TARGETMINGWTRIPLE=${TARGETTRIPLE_CPU}-w64-mingw32
 TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/sysroots/${TARGETTRIPLE}"
@@ -71,9 +76,14 @@ cd "$TOOLCHAINS_BUILD/zlib"
 git pull --quiet
 
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
+COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TARGETTRIPLE}"
 
-MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --enable-libarm64 --disable-lib32 --disable-lib64 --disable-libarm32 --prefix=${SYSROOTPATH}"
+if [ ${TARGETTRIPLE_CPU} == "x86_64" ]; then
+MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --enable-lib64 --prefix=${SYSROOTPATH}"
+elif [ ${TARGETTRIPLE_CPU} == "aarch64" ]; then
+MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64 --prefix=${SYSROOTPATH}"
+fi
 
 MINGWW64COMMONENV="CC=\"clang --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" CXX=\"clang++ --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" LD=lld NM=llvm-nm RANLIB=llvm-ranlib AR=llvm-ar DLLTOOL=llvm-dlltool AS=llvm-as STRIP=llvm-strip OBJDUMP=llvm-objdump WINDRES=llvm-windres"
 
@@ -104,9 +114,9 @@ fi
 CURRENTTRIPLEPATH=${currentpath}
 
 if [ ! -f "${BUILTINSINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
-mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
-cd $CURRENTTRIPLEPATH/compiler-rt
-cmake $LLVMPROJECTPATH/compiler-rt \
+mkdir -p "$CURRENTTRIPLEPATH/builtins"
+cd $CURRENTTRIPLEPATH/builtins
+cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
@@ -178,6 +188,23 @@ cmake $LLVMPROJECTPATH/runtimes \
 ninja
 ninja install/strip
 
+fi
+
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
+cd $CURRENTTRIPLEPATH/compiler-rt
+cmake $LLVMPROJECTPATH/compiler-rt/lib \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" \
+	-DCMAKE_SYSTEM_NAME=Windows \
+	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE
+ninja
+ninja install/strip
+${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
 if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
