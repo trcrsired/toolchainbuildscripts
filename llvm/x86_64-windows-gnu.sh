@@ -174,9 +174,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBUNWIND_C_FLAGS="-fuse-ld=lld" -DLIBUNWIND_CXX_FLAGS="-fuse-ld=lld" -DLIBUNWIND_ASM_FLAGS="-fuse-ld=lld" -DLIBUNWIND_LINK_FLAGS="-fuse-ld=lld" \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt" \
-	-DLIBCXX_ADDITIONAL_LINK_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DLIBCXXABI_ADDITIONAL_LINK_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DLIBUNWIND_ADDITIONAL_LINK_FLAGS="-fuse-ld=lld -rtlib=compiler-rt" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -184,29 +183,35 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBUNWIND_USE_COMPILER_RT=On \
 	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
 	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
-	-DCMAKE_CROSSCOMPILING=On
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+ninja -C . cxx_static
 ninja
 ninja install/strip
-
 fi
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
-cmake $LLVMPROJECTPATH/compiler-rt/lib \
+cmake $LLVMPROJECTPATH/compiler-rt \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -lc++abi -lunwind" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++" \
+	-DCOMPILER_RT_USE_LIBCXX=On \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Windows \
-	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE
+	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On
 ninja
 ninja install/strip
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
+
 
 if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
@@ -260,7 +265,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libzlibstatic.a \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 ninja
 ninja install/strip
 fi
