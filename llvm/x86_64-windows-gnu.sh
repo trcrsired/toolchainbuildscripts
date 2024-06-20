@@ -17,7 +17,7 @@ TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
 mkdir -p $TOOLCHAINS_LLVMPATH
 
 
-if [ ! -z ${ARCH+x} ]; then
+if [ -z ${ARCH+x} ]; then
 ARCH=x86_64
 fi
 

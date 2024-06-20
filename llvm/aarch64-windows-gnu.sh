@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -z ${ARCH+x} ]; then
+if [ -z ${ARCH+x} ]; then
 ARCH=aarch64
 fi
 
