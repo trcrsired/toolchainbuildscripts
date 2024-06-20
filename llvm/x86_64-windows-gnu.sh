@@ -75,7 +75,7 @@ SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TARGETTRIPLE}"
 
 MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --enable-lib64 --prefix=${SYSROOTPATH}"
 
-MINGWW64COMMONENV="CC=\"clang --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" CXX=\"clang++ --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" LD=lld NM=llvm-nm RANLIB=llvm-ranlib AR=llvm-ar DLLTOOL=llvm-dlltool WINDRES=llvm-windres"
+MINGWW64COMMONENV="CC=\"clang --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" CXX=\"clang++ --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" LD=lld NM=llvm-nm RANLIB=llvm-ranlib AR=llvm-ar DLLTOOL=llvm-dlltool AS=llvm-as WINDRES=llvm-windres"
 
 mkdir -p ${currentpath}
 
