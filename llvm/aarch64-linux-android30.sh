@@ -148,7 +148,7 @@ THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 ENABLE_EH=On
 
-if [ ! -d "${SYSROOTPATH}/runtimes/lib" ]; then
+if [ ! -d "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib" ]; then
 
 mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cd $CURRENTTRIPLEPATH/runtimes
