@@ -291,9 +291,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
 	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libzlibstatic.a \
