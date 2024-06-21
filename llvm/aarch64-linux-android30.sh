@@ -91,7 +91,7 @@ unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
 cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${TARGETTRIPLENOVERSION}/${ANDROIDAPIVERSION} ${SYSROOTPATH}/lib
 cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${SYSROOTPATH}/
 fi
-<<COMMENT
+
 CURRENTTRIPLEPATH=${currentpath}
 
 if [ ! -f "${BUILTINSINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
@@ -138,7 +138,7 @@ cd $CURRENTTRIPLEPATH/runtimes
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${SYSROOTPATH} \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -173,6 +173,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 ninja -C . cxx_static
 ninja
 ninja install/strip
+cp -r --preserve=links "${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
@@ -270,4 +271,3 @@ if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	chmod 755 ${TARGETTRIPLE}.tar.xz
 fi
 fi
-COMMENT
