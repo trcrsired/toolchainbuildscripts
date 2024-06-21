@@ -186,8 +186,13 @@ cmake $LLVMPROJECTPATH/runtimes \
 ninja -C . cxx_static
 ninja
 ninja install/strip
+cd ${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib
+rm libc++.so
+ln -s libc++.so.1 libc++.so
 cp -r --preserve=links "${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
+
+<<COMMENT1
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
@@ -290,3 +295,4 @@ if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	chmod 755 ${TARGETTRIPLE}.tar.xz
 fi
 fi
+COMMENT1
