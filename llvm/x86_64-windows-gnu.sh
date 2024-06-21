@@ -92,7 +92,7 @@ elif [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
 MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64 --prefix=${SYSROOTPATH}"
 fi
 
-MINGWW64COMMONENV="CC=\"clang --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" CXX=\"clang++ --target=\${TARGETTRIPLE} -fuse-ld=lld --sysroot=\${SYSROOTPATH}\" LD=lld NM=llvm-nm RANLIB=llvm-ranlib AR=llvm-ar DLLTOOL=llvm-dlltool AS=llvm-as STRIP=llvm-strip OBJDUMP=llvm-objdump WINDRES=llvm-windres"
+MINGWW64COMMONENV="CC=\"clang --target=\${TARGETTRIPLE} -fuse-ld=lld -flto=thin --sysroot=\${SYSROOTPATH}\" CXX=\"clang++ --target=\${TARGETTRIPLE} -fuse-ld=lld -flto=thin --sysroot=\${SYSROOTPATH}\" LD=lld NM=llvm-nm RANLIB=llvm-ranlib AR=llvm-ar DLLTOOL=llvm-dlltool AS=llvm-as STRIP=llvm-strip OBJDUMP=llvm-objdump WINDRES=llvm-windres"
 
 mkdir -p ${currentpath}
 
@@ -130,7 +130,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU -DCOMPILER_RT_BAREMETAL_BUILD=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -fuse-ld=lld" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -fuse-ld=lld" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -fuse-ld=lld" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" \
 	-DCMAKE_SYSTEM_NAME=Windows \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DLLVM_ENABLE_LTO=thin \
@@ -183,8 +183,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -195,10 +195,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
-	-DLLVM_ENABLE_LTO=thin \
-	-DLLVM_ENABLE_LLD=On
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
 ninja -C . cxx_static
 ninja
 ninja install/strip
@@ -215,7 +212,7 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCOMPILER_RT_USE_LIBCXX=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Windows \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
@@ -242,9 +239,9 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++abi" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -flto=thin -lc++abi" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
 
@@ -264,9 +261,9 @@ cmake -GNinja $TOOLCHAINS_BUILD/cppwinrt -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument"
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument"
 	ninja
 	ninja install/strip
 fi
@@ -293,9 +290,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
 	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libzlibstatic.a \
