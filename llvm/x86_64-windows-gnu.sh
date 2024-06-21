@@ -1,9 +1,12 @@
 #!/bin/bash
-currentpath=$(realpath .)/.artifacts
+TARGETTRIPLE_CPU=${ARCH}
+TARGETTRIPLE=${TARGETTRIPLE_CPU}-windows-gnu
+currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 if [ ! -d ${currentpath} ]; then
 	mkdir -p ${currentpath}
 	cd ${currentpath}
 fi
+
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$currentpath/toolchains_build
 fi
@@ -21,8 +24,6 @@ if [ -z ${ARCH+x} ]; then
 ARCH=x86_64
 fi
 
-TARGETTRIPLE_CPU=${ARCH}
-TARGETTRIPLE=${TARGETTRIPLE_CPU}-windows-gnu
 TARGETMINGWTRIPLE=${TARGETTRIPLE_CPU}-w64-mingw32
 TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/${TARGETTRIPLE}"
 
