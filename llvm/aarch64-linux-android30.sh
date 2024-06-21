@@ -107,7 +107,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
-	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+		-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS -DCOMPILER_RT_BAREMETAL_BUILD=On \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" \
@@ -122,10 +122,8 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
 ninja
 ninja install/strip
-cd ${BUILTINSINSTALLPATH}
-mv clang_rt.crtbegin-aarch64.o clang_rt.crtbegin-aarch64-android.o
-mv clang_rt.crtend-aarch64.o clang_rt.crtend-aarch64-android.o
-mv libclang_rt.builtins-aarch64.a libclang_rt.builtins-aarch64-android.a
+cd ${BUILTINSINSTALLPATH}/lib
+mv linux ${TARGETTRIPLE}
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
@@ -215,10 +213,8 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja
 ninja install/strip
-cd ${COMPILERRTINSTALLPATH}
-mv clang_rt.crtbegin-aarch64.o clang_rt.crtbegin-aarch64-android.o
-mv clang_rt.crtend-aarch64.o clang_rt.crtend-aarch64-android.o
-mv libclang_rt.builtins-aarch64.a libclang_rt.builtins-aarch64-android.a
+cd ${COMPILERRTINSTALLPATH}/lib
+mv linux ${TARGETTRIPLE}
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 <<COMMENT
