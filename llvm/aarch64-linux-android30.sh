@@ -222,7 +222,7 @@ ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuilt
 fi
 
 COMMENT
-if [ ! -f "${SYSROOTPATH}/lib/libzlibstatic.a" ]; then
+if [ ! -f "${SYSROOTPATH}/lib/libz.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
@@ -274,7 +274,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
-	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libzlibstatic.a \
+	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libz.a \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
