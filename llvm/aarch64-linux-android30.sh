@@ -124,6 +124,11 @@ ninja
 ninja install/strip
 cd ${BUILTINSINSTALLPATH}/lib
 mv linux ${TARGETTRIPLE}
+cd ${TARGETTRIPLE}
+for file in *-aarch64*; do
+    new_name="${file//-aarch64/}"
+    mv "$file" "$new_name"
+done
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
@@ -143,7 +148,7 @@ THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 ENABLE_EH=On
 
-if [ ! -d "${SYSROOTPATH}/include/c++/v1" ]; then
+if [ ! -d "${SYSROOTPATH}/runtimes/lib" ]; then
 
 mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cd $CURRENTTRIPLEPATH/runtimes
@@ -211,6 +216,11 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
+cd ${TARGETTRIPLE}
+for file in *-aarch64*; do
+    new_name="${file//-aarch64/}"
+    mv "$file" "$new_name"
+done
 ninja
 ninja install/strip
 cd ${COMPILERRTINSTALLPATH}/lib
