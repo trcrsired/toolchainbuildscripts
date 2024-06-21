@@ -100,7 +100,7 @@ fi
 
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins-${TARGETTRIPLE_CPU}-android.a" ]; then
+if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -199,7 +199,7 @@ ninja install/strip
 cp -r --preserve=links "${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
-if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
