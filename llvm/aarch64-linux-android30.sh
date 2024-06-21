@@ -192,6 +192,7 @@ ln -s libc++.so.1 libc++.so
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 <<COMMENT
+
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
@@ -204,7 +205,7 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
 	-DCOMPILER_RT_DEFAULT_TARGET_ARCH=${TARGETTRIPLE_CPU_ALIAS} \
 	-DCOMPILER_RT_USE_LIBCXX=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -I${SYSROOTPATH}/include/c++/v1 -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
@@ -219,7 +220,6 @@ for file in *-aarch64*; do
     mv "$file" "$new_name"
 done
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
-fi
 
 COMMENT
 if [ ! -f "${SYSROOTPATH}/lib/libz.a" ]; then
@@ -240,7 +240,7 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
 	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -flto=thin -lc++abi" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -flto=thin -lc++abi -I${SYSROOTPATH}/include" \
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
@@ -270,7 +270,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
 	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind -I${SYSROOTPATH}/include/c++/v1" \
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
