@@ -307,7 +307,7 @@ ninja
 ninja install/strip
 fi
 
-if [ ! -d "$LLVMINSTALLPATH" ]; then
+if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
 if [ ! -f "${canadianclangbuiltin}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
