@@ -222,7 +222,7 @@ ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuilt
 fi
 
 COMMENT
-if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
+if [ ! -f "${SYSROOTPATH}/lib/libzlibstatic.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
