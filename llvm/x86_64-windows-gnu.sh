@@ -223,7 +223,7 @@ ninja install/strip
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
-
+if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
@@ -245,9 +245,9 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
+fi
 
-
-if [ ! -d "${SYSROOTPATH}/bin/cppwinrt.exe" ]; then
+if [ ! -f "${SYSROOTPATH}/bin/cppwinrt.exe" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/cppwinrt"
 cd $CURRENTTRIPLEPATH/cppwinrt
 cmake -GNinja $TOOLCHAINS_BUILD/cppwinrt -DCMAKE_BUILD_TYPE=Release \
