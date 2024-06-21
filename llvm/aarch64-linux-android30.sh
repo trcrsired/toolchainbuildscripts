@@ -94,7 +94,7 @@ fi
 
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${BUILTINSINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "${BUILTINSINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}-android.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -116,6 +116,10 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
 ninja
 ninja install/strip
+cd ${BUILTINSINSTALLPATH}
+mv clang_rt.crtbegin-aarch64.o clang_rt.crtbegin-aarch64-android.o
+mv clang_rt.crtend-aarch64.o clang_rt.crtend-aarch64-android.o
+mv libclang_rt.builtins-aarch64.a libclang_rt.builtins-aarch64-android.a
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
@@ -182,7 +186,7 @@ ninja install/strip
 cp -r --preserve=links "${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
-if [ ! -f "${COMPILERRTINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
@@ -200,6 +204,10 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja
 ninja install/strip
+cd ${COMPILERRTINSTALLPATH}
+mv clang_rt.crtbegin-aarch64.o clang_rt.crtbegin-aarch64-android.o
+mv clang_rt.crtend-aarch64.o clang_rt.crtend-aarch64-android.o
+mv libclang_rt.builtins-aarch64.a libclang_rt.builtins-aarch64-android.a
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 <<COMMENT
@@ -267,7 +275,7 @@ fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
-if [ ! -f "${canadianclangbuiltin}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "${canadianclangbuiltin}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
