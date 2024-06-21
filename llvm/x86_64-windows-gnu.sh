@@ -70,7 +70,7 @@ git pull --quiet
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/zlib" ]; then
-git clone git@github.com:madler/zlib.git
+git clone git@github.com:trcrsired/zlib.git
 fi
 cd "$TOOLCHAINS_BUILD/zlib"
 git pull --quiet
@@ -85,7 +85,6 @@ git pull --quiet
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TARGETTRIPLE}"
-CMAKERCFLAGS="--target=${TARGETTRIPLE} -I${SYSROOTPATH}/include"
 
 if [[ ${TARGETTRIPLE_CPU} == "x86_64" ]]; then
 MINGWW64COMMON="--host=${TARGETMINGWTRIPLE} --disable-lib32 --enable-lib64 --prefix=${SYSROOTPATH}"
@@ -221,11 +220,10 @@ ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuilt
 fi
 
 
-if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
-cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang -DCMAKE_RC_COMPILER=llvm-windres \
+cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_INSTALL_PREFIX=${SYSROOTPATH} \
 	-DCMAKE_CROSSCOMPILING=On \
@@ -236,12 +234,13 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
 	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
 	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++abi" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
-	-DCMAKE_RC_FLAGS="$CMAKERCFLAGS"
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld"
 ninja install/strip
-fi
+
 
 if [ ! -d "${SYSROOTPATH}/bin/cppwinrt.exe" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/cppwinrt"
@@ -255,7 +254,8 @@ cmake -GNinja $TOOLCHAINS_BUILD/cppwinrt -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_RC_FLAGS="$CMAKERCFLAGS" \
+	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
 	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
 	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
