@@ -14,6 +14,7 @@ ANDROIDAPIVERSION=30
 fi
 TARGETTRIPLENOVERSION=${TARGETTRIPLE_CPU}-linux-android
 TARGETTRIPLE=${TARGETTRIPLENOVERSION}${ANDROIDAPIVERSION}
+TARGETUNKNOWNTRIPLE=${TARGETTRIPLE_CPU}-unknown-linux-android${ANDROIDAPIVERSION}
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 if [ ! -d ${currentpath} ]; then
 	mkdir -p ${currentpath}
@@ -100,7 +101,7 @@ fi
 
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins.a" ]; then
+if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -123,8 +124,8 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 ninja
 ninja install/strip
 cd ${BUILTINSINSTALLPATH}/lib
-mv linux ${TARGETTRIPLE}
-cd ${TARGETTRIPLE}
+mv linux ${TARGETUNKNOWNTRIPLE}
+cd ${TARGETUNKNOWNTRIPLE}
 for file in *-aarch64*; do
     new_name="${file//-aarch64/}"
     mv "$file" "$new_name"
@@ -166,8 +167,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -188,7 +189,7 @@ ninja install/strip
 cp -r --preserve=links "${$TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
-if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETTRIPLE}/libclang_rt.builtins.a" ]; then
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
@@ -205,15 +206,13 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
-cd ${TARGETTRIPLE}
+cd ${COMPILERRTINSTALLPATH}/lib
+mv linux ${TARGETUNKNOWNTRIPLE}
+cd ${TARGETUNKNOWNTRIPLE}
 for file in *-aarch64*; do
     new_name="${file//-aarch64/}"
     mv "$file" "$new_name"
 done
-ninja
-ninja install/strip
-cd ${COMPILERRTINSTALLPATH}/lib
-mv linux ${TARGETTRIPLE}
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 <<COMMENT
