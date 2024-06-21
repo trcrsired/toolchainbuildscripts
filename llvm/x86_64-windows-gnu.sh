@@ -24,7 +24,7 @@ fi
 TARGETTRIPLE_CPU=${ARCH}
 TARGETTRIPLE=${TARGETTRIPLE_CPU}-windows-gnu
 TARGETMINGWTRIPLE=${TARGETTRIPLE_CPU}-w64-mingw32
-TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/sysroots/${TARGETTRIPLE}"
+TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/${TARGETTRIPLE}"
 
 mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 
@@ -37,7 +37,7 @@ clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
 clang_major_version="${clang_version%%.*}"
 llvm_install_directory="$clang_directory/.."
 clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
-LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm/${TARGETTRIPLE}
+LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
 
 if [[ ${NEEDSUDOCOMMAND} == "yes" ]]; then
 sudocommand="sudo "
@@ -130,9 +130,11 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU -DCOMPILER_RT_BAREMETAL_BUILD=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld" -DCMAKE_CXX_FLAGS="-fuse-ld=lld" -DCMAKE_ASM_FLAGS="-fuse-ld=lld" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -fuse-ld=lld" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -fuse-ld=lld" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -fuse-ld=lld" \
 	-DCMAKE_SYSTEM_NAME=Windows \
-	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE
+	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DLLVM_ENABLE_LTO=thin \
+	-DLLVM_ENABLE_LLD=On
 ninja
 ninja install/strip
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
@@ -193,7 +195,10 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+	-DLLVM_ENABLE_LTO=thin \
+	-DLLVM_ENABLE_LLD=On
 ninja -C . cxx_static
 ninja
 ninja install/strip
@@ -213,7 +218,8 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Windows \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
-	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja
 ninja install/strip
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
@@ -238,7 +244,8 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
 	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
 	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++abi" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld"
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld" \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
 
 
@@ -305,7 +312,7 @@ ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadiancl
 fi
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
-	cd $TOOLCHAINS_LLVMPATH/sysroots
+	cd $TOOLCHAINS_LLVMPATH
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
 	chmod 755 ${TARGETTRIPLE}.tar.xz
 fi
