@@ -112,6 +112,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -fuse-ld=lld -flto=thin" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	-DLLVM_ENABLE_LTO=thin \
 	-DLLVM_ENABLE_LLD=On \
 	-DCMAKE_CROSSCOMPILING=On \
