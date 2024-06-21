@@ -95,6 +95,7 @@ chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
 unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
 cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${TARGETTRIPLENOVERSION}/${ANDROIDAPIVERSION} ${SYSROOTPATH}/lib
 cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${SYSROOTPATH}/
+mv ${SYSROOTPATH}/include/${TARGETTRIPLENOVERSION}/asm ${SYSROOTPATH}/
 fi
 
 CURRENTTRIPLEPATH=${currentpath}
