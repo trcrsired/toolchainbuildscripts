@@ -306,6 +306,7 @@ ninja
 ninja install/strip
 fi
 
+if [ ! -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
 if [ ! -f "${canadianclangbuiltin}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
@@ -315,4 +316,5 @@ if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	cd $TOOLCHAINS_LLVMPATH
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
 	chmod 755 ${TARGETTRIPLE}.tar.xz
+fi
 fi
