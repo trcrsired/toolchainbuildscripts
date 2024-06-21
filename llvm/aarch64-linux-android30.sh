@@ -26,6 +26,7 @@ fi
 if [ -z ${ANDROIDNDKVERSION+x} ]; then
 ANDROIDNDKVERSION=r27-beta2
 fi
+ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
 ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
 
 
@@ -87,8 +88,8 @@ cd ${currentpath}/bionic
 wget https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
 chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
 unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
-cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONFULLNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${TARGETTRIPLENOVERSION}/${ANDROIDAPIVERSION} ${SYSROOTPATH}/lib
-cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONFULLNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/includ} ${SYSROOTPATH}/
+cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${TARGETTRIPLENOVERSION}/${ANDROIDAPIVERSION} ${SYSROOTPATH}/lib
+cp -r --preserve=links ${currentpath}/bionic/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${SYSROOTPATH}/
 fi
 <<COMMENT
 CURRENTTRIPLEPATH=${currentpath}
