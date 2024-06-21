@@ -221,6 +221,7 @@ done
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
+COMMENT
 if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
@@ -244,7 +245,6 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
 fi
-COMMENT
 
 if [ ! -d "$LLVMINSTALLPATH" ]; then
 if [ ! -d "$CURRENTTRIPLEPATH/llvm" ]; then
