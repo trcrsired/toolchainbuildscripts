@@ -74,6 +74,12 @@ if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
 
+if [ ! -d "$LLVMPROJECTPATH" ]; then
+git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+fi
+cd "$LLVMPROJECTPATH"
+git pull --quiet
+
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/zlib" ]; then
 git clone git@github.com:trcrsired/zlib.git

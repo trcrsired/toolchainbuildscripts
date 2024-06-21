@@ -58,6 +58,12 @@ if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
 
+if [ ! -d "$LLVMPROJECTPATH" ]; then
+git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+fi
+cd "$LLVMPROJECTPATH"
+git pull --quiet
+
 if [ -z ${MINGWW64PATH+x} ]; then
 MINGWW64PATH=$TOOLCHAINS_BUILD/mingw-w64
 fi
