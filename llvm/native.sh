@@ -60,12 +60,8 @@ cd ${currentpath}/llvm
 cmake -GNinja $LLVMPROJECTPATH/llvm \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -rtlib=compiler-rt --unwindlib=libunwind -lc++ -lc++abi -lunwind -Wno-unused-command-line-argument" \
-	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMINSTALLPATH} \
 	-DBUILD_SHARED_LIBS=On \
-	-DLLVM_ENABLE_LIBCXX=On \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;compiler-rt" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
 	-DLIBCXXABI_SILENT_TERMINATE=On \
 	-DLIBCXX_CXX_ABI=libcxxabi \
