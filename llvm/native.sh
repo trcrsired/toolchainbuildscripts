@@ -62,7 +62,7 @@ cmake -GNinja $LLVMPROJECTPATH/llvm \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMINSTALLPATH} \
 	-DBUILD_SHARED_LIBS=On \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;compiler-rt" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;compiler-rt" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;" \
 	-DLIBCXXABI_SILENT_TERMINATE=On \
 	-DLIBCXX_CXX_ABI=libcxxabi \
 	-DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
