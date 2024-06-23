@@ -38,6 +38,13 @@ else
 sudocommand=
 fi
 
+if [[ $1 == "restart" ]]; then
+	echo "restarting"
+	rm -rf "${currentpath}"
+	rm "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
+	echo "restart done"
+fi
+
 if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
