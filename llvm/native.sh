@@ -74,8 +74,12 @@ cmake -GNinja $LLVMPROJECTPATH/llvm \
 	-DLIBUNWIND_USE_COMPILER_RT=On
 fi
 
-cd ${currentpath}/llvm
+cd "${currentpath}/llvm"
 ninja install/strip
+
+cd "${LLVMINSTALLPATH}/lib"
+rm libc++.so
+ln -s libc++.so.1 libc++.so
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	cd $TOOLCHAINS_LLVMPATH
