@@ -2,10 +2,9 @@
 
 TARGETTRIPLE=$(clang -print-target-triple)
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
-if [ ! -d ${currentpath} ]; then
-	mkdir -p ${currentpath}
-	cd ${currentpath}
-fi
+
+mkdir -p ${currentpath}
+cd ${currentpath}
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$currentpath/toolchains_build
