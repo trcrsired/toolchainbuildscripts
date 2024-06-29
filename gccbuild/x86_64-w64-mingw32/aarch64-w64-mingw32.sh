@@ -39,6 +39,7 @@ fi
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+MINGWW64FLAGS="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
@@ -107,7 +108,7 @@ cd ${currentpath}/build
 mkdir -p mingw-w64-headers
 cd mingw-w64-headers
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-headers --disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64
+$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-headers ${MINGWW64FLAGS}
 fi
 make -j16
 make install-strip -j
@@ -119,7 +120,7 @@ cd ${currentpath}/build
 mkdir -p mingw-w64-crt
 cd mingw-w64-crt
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-crt --disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64
+$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-crt ${MINGWW64FLAGS}
 fi
 make -j8 2>err.txt
 make install-strip -j8 2>err.txt
