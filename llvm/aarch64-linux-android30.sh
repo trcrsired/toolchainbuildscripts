@@ -294,8 +294,8 @@ fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
-if [ ! -f "${canadianclangbuiltin}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
-${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
+if [ ! -f "${canadianclangbuiltin}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
