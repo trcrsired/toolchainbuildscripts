@@ -56,9 +56,16 @@ CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 CANADIANCROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIANHOST --target=$HOST"
 MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+
+if [ -z ${GLIBCVERSION+x} ]; then
 GLIBCVERSION="2.31"
+fi
+if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="release/$GLIBCVERSION/master"
+fi
+if [ -z ${GLIBCREPOPATH+x} ]; then
 GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
+fi
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then

@@ -26,6 +26,16 @@ PREFIXTARGET=$PREFIX/$TARGET
 
 export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$PATH
 
+if [ -z ${GLIBCVERSION+x} ]; then
+GLIBCVERSION="2.31"
+fi
+if [ -z ${GLIBCBRANCH+x} ]; then
+GLIBCBRANCH="release/$GLIBCVERSION/master"
+fi
+if [ -z ${GLIBCREPOPATH+x} ]; then
+GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
+fi
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
