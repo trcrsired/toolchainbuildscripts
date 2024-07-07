@@ -58,7 +58,7 @@ MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
 if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.35"
+GLIBCVERSION="2.31"
 fi
 if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="release/$GLIBCVERSION/master"
@@ -188,7 +188,7 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 			host=x86_64-linux-gnu
 		fi
 		if [ ! -f Makefile ]; then
-			LD_LIBRARY_PATH= CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host
+			(export -n LD_LIBRARY_PATH; CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host )
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			make -j16

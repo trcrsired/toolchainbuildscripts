@@ -33,7 +33,7 @@ CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
 
 if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.35"
+GLIBCVERSION="2.31"
 fi
 if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="release/$GLIBCVERSION/master"
@@ -183,7 +183,7 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 		cd ${currentpath}/build/glibc/$item
 		host=aarch64-linux-gnu
 		if [ ! -f Makefile ]; then
-			LD_LIBRARY_PATH= $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
+			(export -n LD_LIBRARY_PATH; $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST )
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			make -j16

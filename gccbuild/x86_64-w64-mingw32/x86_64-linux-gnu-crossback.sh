@@ -27,7 +27,7 @@ PREFIXTARGET=$PREFIX/$TARGET
 export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$PATH
 
 if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.35"
+GLIBCVERSION="2.31"
 fi
 if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="release/$GLIBCVERSION/master"
@@ -134,7 +134,7 @@ for item in "${multilibs[@]}"; do
 		host=x86_64-linux-gnu
 	fi
 	if [ ! -f Makefile ]; then
-		LD_LIBRARY_PATH= CC="gcc -${item}" CXX="g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host}
+		(export -n LD_LIBRARY_PATH; CC="gcc -${item}" CXX="g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host} )
 	fi
 	if [[ ! -d $currentpath/build/install/${item} ]]; then
 		make -j16
