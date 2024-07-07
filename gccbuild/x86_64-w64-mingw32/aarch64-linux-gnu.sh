@@ -34,6 +34,10 @@ export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
 
+GLIBCVERSION="2.31"
+GLIBCBRANCH="release/$GLIBCVERSION/master"
+GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
+
 if [[ ${BUILD} == ${HOST} ]]; then
 	echo "Native compilation not supported"
 	exit 1
@@ -93,6 +97,13 @@ fi
 cd "$TOOLCHAINS_BUILD/mingw-w64"
 git pull --quiet
 
+if [ ! -d "$GLIBCREPOPATH" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone -b $GLIBCBRANCH git://sourceware.org/git/glibc.git "$GLIBCREPOPATH"
+fi
+cd "$GLIBCREPOPATH"
+git pull --quiet
+
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
@@ -150,7 +161,7 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 		cd ${currentpath}/build/glibc/$item
 		host=aarch64-linux-gnu
 		if [ ! -f Makefile ]; then
-			LD_LIBRARY_PATH= $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
+			LD_LIBRARY_PATH= $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			make -j16
