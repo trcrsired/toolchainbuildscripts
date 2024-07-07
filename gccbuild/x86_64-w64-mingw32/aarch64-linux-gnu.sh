@@ -17,7 +17,7 @@ if [ -z ${CANDADIANHOST+x} ]; then
 fi
 
 if [ -z ${GCCVERSIONSTR} ]; then
-	GCCVERSIONSTR="14.0.0"
+	GCCVERSIONSTR="15.0.0"
 fi
 
 BUILD=$(gcc -dumpmachine)
@@ -125,6 +125,7 @@ make all-gcc -j16
 make all-target-libgcc -j16
 make install-strip-gcc -j
 make install-strip-target-libgcc -j
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 
 cd ${currentpath}
@@ -201,10 +202,10 @@ if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	fi
 	make -j16
 	make install-strip -j
-	cp "$relpath/limits.h" "$PREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/"
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 
-
+GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 mkdir -p ${currentpath}/hostbuild
 mkdir -p ${currentpath}/hostbuild/$HOST
@@ -229,7 +230,7 @@ fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cp "$relpath/limits.h" "$HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/"
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
 if [ ! -f $HOSTPREFIX/include/stdio.h ]; then
@@ -270,7 +271,7 @@ fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cp "$relpath/limits.h" "$CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include"
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include
 fi
 
 if [ ! -f $CANADIANHOSTPREFIXTARGET/include/stdio.h ]; then
