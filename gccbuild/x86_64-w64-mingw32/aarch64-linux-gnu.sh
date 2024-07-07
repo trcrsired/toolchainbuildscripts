@@ -12,12 +12,8 @@ fi
 if [ -z ${HOST+x} ]; then
 	HOST=aarch64-linux-gnu
 fi
-if [ -z ${CANDADIANHOST+x} ]; then
-	CANDADIANHOST=x86_64-w64-mingw32
-fi
-
-if [ -z ${GCCVERSIONSTR} ]; then
-	GCCVERSIONSTR="15.0.0"
+if [ -z ${CANADIANHOST+x} ]; then
+	CANADIANHOST=x86_64-w64-mingw32
 fi
 
 BUILD=$(gcc -dumpmachine)
@@ -136,7 +132,6 @@ make all-gcc -j16
 make all-target-libgcc -j16
 make install-strip-gcc -j
 make install-strip-target-libgcc -j
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 
 cd ${currentpath}
@@ -257,7 +252,11 @@ if [ ! -f $HOST.tar.xz ]; then
 	chmod 755 $HOST.tar.xz
 fi
 
-
+if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
+then
+        echo "${CANADIANHOST}-g++ not found. we won't build canadian cross toolchain"
+        exit 0
+fi
 
 mkdir -p ${currentpath}/canadianbuild
 mkdir -p ${currentpath}/canadianbuild/$HOST

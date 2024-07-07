@@ -12,12 +12,8 @@ fi
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-generic-linux-gnu
 fi
-if [ -z ${CANDADIANHOST+x} ]; then
-	CANDADIANHOST=x86_64-w64-mingw32
-fi
-
-if [ -z ${GCCVERSIONSTR} ]; then
-	GCCVERSIONSTR="15.0.0"
+if [ -z ${CANADIANHOST+x} ]; then
+	CANADIANHOST=x86_64-w64-mingw32
 fi
 
 BUILD=$(gcc -dumpmachine)
@@ -62,7 +58,7 @@ MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 GLIBCVERSION="2.31"
 GLIBCBRANCH="release/$GLIBCVERSION/master"
-GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc$GLIBCBRANCH"
+GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
@@ -245,9 +241,11 @@ if [ -d $PREFIXTARGET/lib32 ]; then
 	find $PREFIXTARGET/lib/ -mmin +0.5 -exec rm -rf {} \;
 	mv ${currentpath}/install/crossldscripts/ldscripts $PREFIXTARGET/lib/
 	cp -r --preserve=links ${currentpath}/install/glibc/canadian/* $PREFIXTARGET/
-	cp "$relpath/limits.h" "$PREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/"
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 fi
+
+GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 mkdir -p ${currentpath}/hostbuild
 mkdir -p ${currentpath}/hostbuild/$HOST
@@ -272,7 +270,7 @@ fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cp "$relpath/limits.h" "$HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/"
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
 if [ ! -f $HOSTPREFIX/include/stdio.h ]; then
@@ -288,7 +286,11 @@ if [ ! -f $HOST.tar.xz ]; then
 	chmod 755 $HOST.tar.xz
 fi
 
-
+if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
+then
+        echo "${CANADIANHOST}-g++ not found. we won't build canadian cross toolchain"
+        exit 0
+fi
 
 mkdir -p ${currentpath}/canadianbuild
 mkdir -p ${currentpath}/canadianbuild/$HOST
@@ -313,7 +315,7 @@ fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cp "$relpath/limits.h" "$CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include"
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
 if [ ! -f $CANADIANHOSTPREFIXTARGET/include/stdio.h ]; then

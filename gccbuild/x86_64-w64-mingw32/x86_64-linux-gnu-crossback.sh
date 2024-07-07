@@ -53,10 +53,11 @@ fi
 cd "$TOOLCHAINS_BUILD/gcc"
 git pull --quiet
 
-if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
+if [ ! -d "$GLIBCREPOPATH" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone git://sourceware.org/git/glibc.git
+git clone -b $GLIBCBRANCH git://sourceware.org/git/glibc.git "$GLIBCREPOPATH"
 fi
+cd "$GLIBCREPOPATH"
 git pull --quiet
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
@@ -85,7 +86,7 @@ for item in "${multilibs[@]}"; do
 		host=x86_64-linux-gnu
 	fi
 	if [ ! -f Makefile ]; then
-		LD_LIBRARY_PATH= CC="gcc -${item}" CXX="g++ -${item}" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host}
+		LD_LIBRARY_PATH= CC="gcc -${item}" CXX="g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host}
 	fi
 	if [[ ! -d $currentpath/build/install/${item} ]]; then
 		make -j16
@@ -156,6 +157,7 @@ fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIXTARGET/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 cd $PREFIXTARGET
 if [[ ${HOST} != ${BUILD} ]]; then
