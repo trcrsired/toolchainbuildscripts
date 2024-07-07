@@ -342,7 +342,7 @@ fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
 if [ ! -f $CANADIANHOSTPREFIXTARGET/include/stdio.h ]; then

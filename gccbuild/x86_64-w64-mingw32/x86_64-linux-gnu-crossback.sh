@@ -26,16 +26,13 @@ PREFIXTARGET=$PREFIX/$TARGET
 
 export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$PATH
 export -n LD_LIBRARY_PATH
-if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.31"
-fi
 if [ -z ${GLIBCBRANCH+x} ]; then
-GLIBCBRANCH="release/$GLIBCVERSION/master"
+GLIBCBRANCH="master"
 fi
 if [ -z ${GLIBCREPOPATH+x} ]; then
 GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
 fi
-
+GCCVERSIONSTR=$(${TARGET}-gcc -dumpversion)
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
@@ -205,7 +202,7 @@ fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIXTARGET/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIXTARGET/lib/gcc/$TARGET/$GCCVERSIONSTR/include/limits.h
 fi
 cd $PREFIXTARGET
 if [[ ${HOST} != ${BUILD} ]]; then
