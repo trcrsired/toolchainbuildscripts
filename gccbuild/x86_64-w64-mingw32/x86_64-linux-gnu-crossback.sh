@@ -202,7 +202,7 @@ fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j16
 make install-strip -j
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIXTARGET/lib/gcc/$TARGET/$GCCVERSIONSTR/include/limits.h
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIX/lib/gcc/$TARGET/$GCCVERSIONSTR/include/limits.h
 fi
 cd $PREFIXTARGET
 if [[ ${HOST} != ${BUILD} ]]; then
