@@ -70,8 +70,8 @@ if [ ! -d $linuxkernelheaders/include/linux ]; then
 make headers_install ARCH=x86_64 -j INSTALL_HDR_PATH=$linuxkernelheaders
 fi
 cd $currentpath/build/build
-multilibs=(m32 m64)
-multilibsdir=(lib lib64)
+multilibs=(m64)
+multilibsdir=(lib64)
 glibcfiles=(libm.a libm.so libc.so)
 
 for item in "${multilibs[@]}"; do
@@ -85,7 +85,7 @@ for item in "${multilibs[@]}"; do
 		host=x86_64-linux-gnu
 	fi
 	if [ ! -f Makefile ]; then
-		CC="gcc -${item}" CXX="g++ -${item}" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host}
+		LD_LIBRARY_PATH= CC="gcc -${item}" CXX="g++ -${item}" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host}
 	fi
 	if [[ ! -d $currentpath/build/install/${item} ]]; then
 		make -j16
@@ -151,7 +151,7 @@ cd ..
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-multilib-list=m64,m32 --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $TRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
+$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-multilib-list=m64 --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $TRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j16
