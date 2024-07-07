@@ -240,6 +240,7 @@ if [ ! -d ${currentpath}/install/glibc/cross ]; then
 	cp -r --preserve=links lib64 lib
 	cd ${currentpath}/install/glibc/cross/lib
 	ln -s ../lib32 32
+	ln -s ../libx32 x32
 	cd ${currentpath}/install/glibc/cross
 fi
 
