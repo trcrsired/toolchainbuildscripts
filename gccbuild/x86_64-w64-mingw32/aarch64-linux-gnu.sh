@@ -150,7 +150,7 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 		cd ${currentpath}/build/glibc/$item
 		host=aarch64-linux-gnu
 		if [ ! -f Makefile ]; then
-			$TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
+			LD_LIBRARY_PATH= $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			make -j16

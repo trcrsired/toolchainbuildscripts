@@ -58,10 +58,10 @@ fi
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 CANADIANCROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIANHOST --target=$HOST"
-MULTILIBLISTS="--with-multilib-list=m32,m64"
+MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
-GLIBCVERSION="2.17"
-GLIBCBRANCH="2.17-moderngccfix"
+GLIBCVERSION="2.31"
+GLIBCBRANCH="release/$GLIBCVERSION/master"
 GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc$GLIBCBRANCH"
 
 cd "$TOOLCHAINS_BUILD"
@@ -99,7 +99,7 @@ git pull --quiet
 
 if [ ! -d "$GLIBCREPOPATH" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone -b $GLIBCBRANCH git@github.com:trcrsired/glibc.git "$GLIBCREPOPATH"
+git clone -b $GLIBCBRANCH git://sourceware.org/git/glibc.git "$GLIBCREPOPATH"
 fi
 cd "$GLIBCREPOPATH"
 git pull --quiet
@@ -141,8 +141,8 @@ fi
 cd ${currentpath}
 mkdir -p build
 if [ ! -d "${currentpath}/install/glibc" ]; then
-	multilibs=(m64 m32)
-	multilibsdir=(lib lib32)
+	multilibs=(m64 m32 mx32)
+	multilibsdir=(lib lib32 libx32)
 	glibcfiles=(libm.a libm.so libc.so)
 
 	linuxkernelheaders=${currentpath}/install/linux
@@ -166,7 +166,7 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 			host=x86_64-linux-gnu
 		fi
 		if [ ! -f Makefile ]; then
-			CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host
+			LD_LIBRARY_PATH= CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			make -j16
