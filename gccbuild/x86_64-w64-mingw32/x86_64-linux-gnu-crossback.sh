@@ -151,7 +151,7 @@ cd ..
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-multilib-list=m64 --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $TRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
+$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-multilib-list=m64 --without-multilib-list=m32,mx32 --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $TRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j16
