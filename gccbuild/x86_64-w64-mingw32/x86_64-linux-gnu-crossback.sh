@@ -137,8 +137,8 @@ for item in "${multilibs[@]}"; do
 		(export -n LD_LIBRARY_PATH; CC="gcc -${item}" CXX="g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host} )
 	fi
 	if [[ ! -d $currentpath/build/install/${item} ]]; then
-		make -j16
-		make install -j16
+		(export -n LD_LIBRARY_PATH; make -j16)
+		(export -n LD_LIBRARY_PATH; make install -j16)
 	fi
 	cd ..
 done

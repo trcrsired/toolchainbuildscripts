@@ -191,8 +191,8 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 			(export -n LD_LIBRARY_PATH; CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host )
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
-			make -j16
-			make install -j16
+			(export -n LD_LIBRARY_PATH; make -j16)
+			(export -n LD_LIBRARY_PATH; make install -j16)
 		fi
 	done
 
