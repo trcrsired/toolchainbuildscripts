@@ -374,7 +374,7 @@ cd ${currentpath}/canadian2build/$HOST
 mkdir -p ${currentpath}/canadian2build/$HOST/binutils-gdb
 cd ${currentpath}/canadian2build/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX --disable-gprofng
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX
 fi
 
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/bfd-plugins ]; then
