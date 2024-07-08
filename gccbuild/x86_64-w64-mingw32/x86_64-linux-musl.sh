@@ -175,7 +175,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p ${currentpath}/hostbuild/$HOST/binutils-gdb
 cd ${currentpath}/hostbuild/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+CC="${HOST}-gcc --static" CXX="${HOST}-g++ --static" $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
@@ -187,8 +187,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p ${currentpath}/hostbuild/$HOST/gcc
 cd ${currentpath}/hostbuild/$HOST/gcc
 if [ ! -f Makefile ]; then
-# musl cross should disable shared so that the compiler could run correctly
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+CC="${HOST}-gcc --static" CXX="${HOST}-g++ --static" $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
 make -j16

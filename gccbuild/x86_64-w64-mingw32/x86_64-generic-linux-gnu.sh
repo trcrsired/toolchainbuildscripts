@@ -374,7 +374,7 @@ cd ${currentpath}/canadian2build/$HOST
 mkdir -p ${currentpath}/canadian2build/$HOST/binutils-gdb
 cd ${currentpath}/canadian2build/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX
+CC="${CANADIAN2HOST}-gcc --static" CXX="${CANADIAN2HOST}-g++ --static" $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX
 fi
 
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/bfd-plugins ]; then
@@ -386,7 +386,7 @@ cd ${currentpath}/canadian2build/$HOST
 mkdir -p ${currentpath}/canadian2build/$HOST/gcc
 cd ${currentpath}/canadian2build/$HOST/gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+CC="${CANADIAN2HOST}-gcc --static" CXX="${CANADIAN2HOST}-g++ --static" $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/gcc ]; then
 make -j16
