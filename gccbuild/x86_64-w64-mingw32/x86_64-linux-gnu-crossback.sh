@@ -1,15 +1,17 @@
 #!/bin/bash
-currentpath=$(realpath .)/artifacts
+BUILD=$(gcc -dumpmachine)
+currentpath=$relpath/.gnuartifacts/$BUILD
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
 	cd ${currentpath}
 fi
+
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
 mkdir -p $currentpath/build
@@ -19,7 +21,7 @@ linuxkernelheaders=$currentpath/build/install/headers
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
-BUILD=$(gcc -dumpmachine)
+
 TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH/$HOST/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
@@ -40,7 +42,7 @@ if [[ $1 == "restart" ]]; then
 	rm -f "$PREFIXTARGET.tar.xz"
 	echo "restart done"
 fi
-
+mkdir -p ${currentpath}
 if [[ ${HOST} == ${BUILD} ]]; then
 	PREFIXTARGET=$PREFIX
 fi

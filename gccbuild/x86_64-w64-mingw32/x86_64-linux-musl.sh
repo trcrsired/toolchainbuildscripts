@@ -1,16 +1,15 @@
 #!/bin/bash
 relpath=$(realpath .)
-currentpath=$relpath/artifacts
+if [ -z ${HOST+x} ]; then
+	HOST=x86_64-linux-musl
+fi
+currentpath=$relpath/.gnuartifacts/$HOST
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
-fi
-
-if [ -z ${HOST+x} ]; then
-	HOST=x86_64-linux-musl
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
@@ -25,7 +24,6 @@ export PATH=$PREFIX/bin:$PATH
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
-CANADIANHOST=x86_64-w64-mingw32
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
@@ -46,10 +44,7 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
-if [ ! -d ${currentpath} ]; then
-	mkdir ${currentpath}
-	cd ${currentpath}
-fi
+mkdir -p ${currentpath}
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
@@ -257,8 +252,9 @@ if [ ! -f ${HOST}.tar.xz ]; then
 fi
 
 
-
-CANADIAN2HOST=x86_64-generic-linux-gnu
+if [ -z ${CANADIAN2HOST+x} ]; then
+	CANADIAN2HOST=x86_64-generic-linux-gnu
+fi
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIAN2HOST/bin:$PATH
 CANADIAN2HOSTPREFIX=$TOOLCHAINSPATH/$CANADIAN2HOST/$HOST
 CANADIAN2HOSTPREFIXTARGET=$CANADIAN2HOSTPREFIX/$HOST

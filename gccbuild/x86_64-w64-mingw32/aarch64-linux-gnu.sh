@@ -1,21 +1,22 @@
 #!/bin/bash
 relpath=$(realpath .)
-currentpath=$relpath/artifacts
-if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
-fi
-
-if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
-fi
-
 if [ -z ${HOST+x} ]; then
 	HOST=aarch64-linux-gnu
 fi
+currentpath=$relpath/.gnuartifacts/$HOST
+mkdir -p ${currentpath}
+if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
+fi
+
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+	TOOLCHAINSPATH=$HOME/toolchains
+fi
+
+
 if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
 fi
-
 
 
 BUILD=$(gcc -dumpmachine)
@@ -27,7 +28,6 @@ export -n LD_LIBRARY_PATH
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
-CANADIANHOST=x86_64-w64-mingw32
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
