@@ -175,7 +175,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p ${currentpath}/hostbuild/$HOST/binutils-gdb
 cd ${currentpath}/hostbuild/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
@@ -220,7 +220,7 @@ cd ${currentpath}/canadianbuild/$HOST
 mkdir -p ${currentpath}/canadianbuild/$HOST/binutils-gdb
 cd ${currentpath}/canadianbuild/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANCROSSTRIPLETTRIPLETS --prefix=$CANADIANHOSTPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANCROSSTRIPLETTRIPLETS --prefix=$CANADIANHOSTPREFIX
 fi
 
 if [ ! -d $CANADIANHOSTPREFIX/lib/bfd-plugins ]; then
@@ -273,7 +273,7 @@ cd ${currentpath}/canadian2build/$HOST
 mkdir -p ${currentpath}/canadian2build/$HOST/binutils-gdb
 cd ${currentpath}/canadian2build/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIAN2CROSSTRIPLETTRIPLETS --prefix=$CANADIAN2HOSTPREFIX
 fi
 
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/bfd-plugins ]; then
