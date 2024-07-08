@@ -10,7 +10,7 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 fi
 
 if [ -z ${HOST+x} ]; then
-	HOST=x86_64-generic-linux-gnu
+	HOST=x86_64-linux-musl
 fi
 if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
@@ -21,7 +21,7 @@ TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH/$BUILD/$HOST
 PREFIXTARGET=$PREFIX/$HOST
 export PATH=$PREFIX/bin:$PATH
-export -n LD_LIBRARY_PATH
+
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
@@ -54,26 +54,13 @@ fi
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 CANADIANCROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIANHOST --target=$HOST"
-MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
+MULTILIBLISTS="--with-multilib-list=m64"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
-
-if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.31"
-fi
-if [ -z ${GLIBCBRANCH+x} ]; then
-GLIBCBRANCH="release/$GLIBCVERSION/master"
-fi
-if [ -z ${GLIBCREPOPATH+x} ]; then
-GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
-fi
+MUSLREPOPATH="$TOOLCHAINS_BUILD/musl"
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
 git clone git://sourceware.org/git/binutils-gdb.git
-if [ $? -ne 0 ]; then
-echo "binutils-gdb clone failed"
-exit 1
-fi
 fi
 cd "$TOOLCHAINS_BUILD/binutils-gdb"
 git pull --quiet
@@ -81,10 +68,6 @@ git pull --quiet
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
 git clone git://gcc.gnu.org/git/gcc.git
-if [ $? -ne 0 ]; then
-echo "gcc clone failed"
-exit 1
-fi
 fi
 cd "$TOOLCHAINS_BUILD/gcc"
 git pull --quiet
@@ -104,31 +87,20 @@ fi
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
 git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
-if [ $? -ne 0 ]; then
-echo "mingw-w64 clone failed"
-fi
 fi
 cd "$TOOLCHAINS_BUILD/mingw-w64"
 git pull --quiet
 
-if [ ! -d "$GLIBCREPOPATH" ]; then
+if [ ! -d "$MUSLREPOPATH" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone -b $GLIBCBRANCH git://sourceware.org/git/glibc.git "$GLIBCREPOPATH"
-if [ $? -ne 0 ]; then
-echo "glibc clone failed"
-exit 1
+git clone git://git.etalabs.net/musl "$MUSLREPOPATH"
 fi
-fi
-cd "$GLIBCREPOPATH"
+cd "$MUSLREPOPATH"
 git pull --quiet
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-if [ $? -ne 0 ]; then
-echo "linux clone failed"
-exit 1
-fi
 fi
 cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
@@ -151,9 +123,6 @@ mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
-fi
-
-if [ ! -d $PREFIX/lib/gcc ]; then
 make all-gcc -j16
 make all-target-libgcc -j16
 make install-strip-gcc -j
@@ -162,11 +131,7 @@ fi
 
 cd ${currentpath}
 mkdir -p build
-if [ ! -d "${currentpath}/install/glibc" ]; then
-	multilibs=(m64 m32 mx32)
-	multilibsdir=(lib lib32 libx32)
-	glibcfiles=(libm.a libm.so libc.so)
-
+if [ ! -d "${currentpath}/install/musl" ]; then
 	linuxkernelheaders=${currentpath}/install/linux
 
 	if [ ! -d $linuxkernelheaders ]; then
@@ -174,80 +139,21 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 		make headers_install ARCH=x86_64 -j INSTALL_HDR_PATH=$linuxkernelheaders
 	fi
 
-	mkdir -p ${currentpath}/build/glibc
-	mkdir -p ${currentpath}/install/glibc
+	mkdir -p ${currentpath}/build/musl
+	cd ${currentpath}/build/musl
+	if [ ! -f Makefile ]; then
+		CC="${HOST}-gcc" CXX="${HOST}-g++" $MUSLREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
+		make -j
+		make install -j
+		${HOST}-strip --strip-unneeded $currentpath/install/musl/*
+	fi
 
-	for item in "${multilibs[@]}"; do
-		mkdir -p ${currentpath}/build/glibc/$item
-		cd ${currentpath}/build/glibc/$item
-		if [[ "$item" == "m32" ]]; then
-			host=i686-linux-gnu
-		elif [[ "$item" == "mx32" ]]; then
-			host=x86_64-linux-gnux32
-		else
-			host=x86_64-linux-gnu
-		fi
-		if [ ! -f Makefile ]; then
-			(export -n LD_LIBRARY_PATH; CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host )
-		fi
-		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
-			(export -n LD_LIBRARY_PATH; make -j16)
-			(export -n LD_LIBRARY_PATH; make install -j16)
-		fi
-	done
-
-	mkdir -p ${currentpath}/install/glibc
-	cd ${currentpath}/install/glibc
-	mkdir -p ${currentpath}/install/glibc/canadian
-	mkdir -p ${currentpath}/install/glibc/.canadiantemp
-	for item in "${multilibs[@]}"; do
-		if [[ "$item" == "m32" ]]; then
-			glibclibname=lib
-		elif [[ "$item" == "mx32" ]]; then
-			glibclibname=libx32
-		else
-			glibclibname=lib64
-		fi
-		cd ${currentpath}/install/glibc
-		cp -r $item/include canadian/
-		cp -r $item/lib .canadiantemp/
-		mv .canadiantemp/lib .canadiantemp/$glibclibname
-		mv .canadiantemp/$glibclibname canadian/
-		strip --strip-unneeded canadian/$glibclibname/* canadian/$glibclibname/audit/* canadian/$glibclibname/gconv/*
-		canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
-
-		for file in canadian/$glibclibname/*; do
-			if [[ ! -d "$file" ]]; then
-				getfilesize=$(wc -c <"$file")
-				if [ $getfilesize -lt 1024 ]; then
-					for file2 in "${glibcfiles[@]}"; do
-						if [[ $file == "canadian/$glibclibname/$file2" ]]; then
-							sed -i "s%${canadianreplacedstring}%%g" $file
-							break
-						fi
-					done
-				fi
-				unset getfilesize
-			fi
-		done
-	done
+	if [ ! -f $PREFIXTARGET/include/stdio.h ]; then
+		cp -r ${currentpath}/install/linux/* $PREFIXTARGET/
+		cp -r ${currentpath}/install/musl/* $PREFIXTARGET/
+	fi
 fi
 
-if [ ! -d ${currentpath}/install/glibc/cross ]; then
-	cp -r --preserve=links ${currentpath}/install/glibc/canadian ${currentpath}/install/glibc/cross
-	cd ${currentpath}/install/glibc/cross
-	mv lib lib32
-	cp -r --preserve=links lib64 lib
-	cd ${currentpath}/install/glibc/cross/lib
-	ln -s ../lib32 32
-	ln -s ../libx32 x32
-	cd ${currentpath}/install/glibc/cross
-fi
-
-if [ ! -f $PREFIXTARGET/include/stdio.h ]; then
-	cp -r ${currentpath}/install/linux/* $PREFIXTARGET/
-	cp -r ${currentpath}/install/glibc/cross/* $PREFIXTARGET/
-fi
 
 if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc
@@ -257,22 +163,16 @@ if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	fi
 	make -j16
 	make install-strip -j
-fi
-
-if [ -d $PREFIXTARGET/include/c++ ]; then
-if [ -d $PREFIXTARGET/lib32 ]; then
-	rm $PREFIXTARGET/lib/32
-	rm -rf $PREFIXTARGET/lib32
-	mkdir -p ${currentpath}/install/crossldscripts
-	mv $PREFIXTARGET/lib/ldscripts ${currentpath}/install/crossldscripts/
-	find $PREFIXTARGET/lib/ -mmin +0.5 -exec rm -rf {} \;
-	mv ${currentpath}/install/crossldscripts/ldscripts $PREFIXTARGET/lib/
-	cp -r --preserve=links ${currentpath}/install/glibc/canadian/* $PREFIXTARGET/
 	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
-fi
 fi
 
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
+
+if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
+then
+        echo "${CANADIANHOST}-g++ not found. we won't build canadian cross toolchain"
+        exit 0
+fi
 
 mkdir -p ${currentpath}/hostbuild
 mkdir -p ${currentpath}/hostbuild/$HOST
@@ -302,9 +202,9 @@ fi
 
 if [ ! -f $HOSTPREFIX/include/stdio.h ]; then
 	cp -r ${currentpath}/install/linux/* $HOSTPREFIX/
-	cp -r ${currentpath}/install/glibc/canadian/include $HOSTPREFIX/
+	cp -r ${currentpath}/install/musl/include $HOSTPREFIX/
 	mkdir -p $HOSTPREFIX/runtimes
-	cp -r ${currentpath}/install/glibc/canadian/* $HOSTPREFIX/runtimes/
+	cp -r ${currentpath}/install/musl/* $HOSTPREFIX/runtimes/
 fi
 
 cd $TOOLCHAINSPATH/$HOST
@@ -347,7 +247,7 @@ fi
 
 if [ ! -f $CANADIANHOSTPREFIXTARGET/include/stdio.h ]; then
 	cp -r ${currentpath}/install/linux/* $CANADIANHOSTPREFIXTARGET/
-	cp -r ${currentpath}/install/glibc/canadian/* $CANADIANHOSTPREFIXTARGET/
+	cp -r ${currentpath}/install/musl/* $CANADIANHOSTPREFIXTARGET/
 fi
 
 cd ${CANADIANHOSTPREFIX}/..
@@ -357,11 +257,13 @@ if [ ! -f ${HOST}.tar.xz ]; then
 fi
 
 
-CANADIAN2HOST=x86_64-linux-musl
+
+CANADIAN2HOST=x86_64-generic-linux-gnu
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIAN2HOST/bin:$PATH
 CANADIAN2HOSTPREFIX=$TOOLCHAINSPATH/$CANADIAN2HOST/$HOST
 CANADIAN2HOSTPREFIXTARGET=$CANADIAN2HOSTPREFIX/$HOST
 CANADIAN2CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIAN2HOST --target=$HOST"
+
 
 if ! [ -x "$(command -v ${CANADIAN2HOST}-g++)" ];
 then
@@ -397,7 +299,7 @@ fi
 
 if [ ! -f $CANADIAN2HOSTPREFIXTARGET/include/stdio.h ]; then
 	cp -r ${currentpath}/install/linux/* $CANADIAN2HOSTPREFIXTARGET/
-	cp -r ${currentpath}/install/glibc/canadian/* $CANADIAN2HOSTPREFIXTARGET/
+	cp -r ${currentpath}/install/musl/* $CANADIAN2HOSTPREFIXTARGET/
 fi
 
 cd ${CANADIAN2HOSTPREFIX}/..
