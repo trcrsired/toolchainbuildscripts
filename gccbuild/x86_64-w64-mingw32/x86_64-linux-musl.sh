@@ -187,7 +187,8 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p ${currentpath}/hostbuild/$HOST/gcc
 cd ${currentpath}/hostbuild/$HOST/gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+# musl cross should disable shared so that the compiler could run correctly
+$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON --disable-shared
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
 make -j16
@@ -232,7 +233,7 @@ cd ${currentpath}/canadianbuild/$HOST
 mkdir -p ${currentpath}/canadianbuild/$HOST/gcc
 cd ${currentpath}/canadianbuild/$HOST/gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON --enable-shared
 fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
 make -j16
@@ -285,7 +286,7 @@ cd ${currentpath}/canadian2build/$HOST
 mkdir -p ${currentpath}/canadian2build/$HOST/gcc
 cd ${currentpath}/canadian2build/$HOST/gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON --enable-shared
 fi
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/gcc ]; then
 make -j16
