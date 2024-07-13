@@ -133,6 +133,6 @@ fi
 if [ ! -f "$clang_directory/clang.cfg" ]; then
 gcc_path=`which g++`
 gcc_bin_directory=$(dirname "$gcc_path")
-gcc_directory==$(dirname "$gcc_bin_directory")
+gcc_directory=$(dirname "$gcc_bin_directory")
 echo "--gcc-toolchain=$gcc_directory" > "$clang_directory/clang.cfg"
 fi
