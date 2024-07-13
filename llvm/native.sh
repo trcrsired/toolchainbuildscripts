@@ -1,6 +1,12 @@
 #!/bin/bash
 
-TARGETTRIPLE=$(clang -print-target-triple)
+if ! [ -x "$(command -v g++)" ];
+then
+        echo "g++ not found. build failure"
+        exit 1
+fi
+
+TARGETTRIPLE=$(g++ -dumpmachine)
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 
 mkdir -p ${currentpath}
@@ -45,11 +51,6 @@ fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
 
-if ! [ -x "$(command -v g++)" ];
-then
-        echo "g++ not found. build failure"
-        exit 1
-fi
 
 if [ ! -d "${currentpath}/llvm" ]; then
 mkdir -p ${currentpath}/llvm
