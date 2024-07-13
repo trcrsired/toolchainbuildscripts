@@ -30,6 +30,7 @@ clang_major_version="${clang_version%%.*}"
 llvm_install_directory="$clang_directory/.."
 clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_runtimes
 
 if [[ ${NEEDSUDOCOMMAND} == "yes" ]]; then
 sudocommand="sudo "
@@ -59,17 +60,29 @@ mkdir -p ${currentpath}/llvm
 cd ${currentpath}/llvm
 cmake -GNinja $LLVMPROJECTPATH/llvm \
 	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_ASM_COMPILER=gcc \
 	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMINSTALLPATH} \
 	-DBUILD_SHARED_LIBS=On \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
 fi
 
 cd "${currentpath}/llvm"
 ninja install/strip
 
-cd "${LLVMINSTALLPATH}/lib"
+export PATH=$LLVMINSTALLPATH/bin:$PATH
+
+if [ ! -d "${currentpath}/llvm_runtimes" ]; then
+mkdir -p ${currentpath}/runtimes
+cd ${currentpath}/llvm_runtimes
+cmake -GNinja $LLVMPROJECTPATH/runtimes \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMRUNTIMESINSTALLPATH} \
+	-DBUILD_SHARED_LIBS=On \
+	-DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
+fi
+
+cd "${LLVMRUNTIMESINSTALLPATH}/lib"
 rm libc++.so
 ln -s libc++.so.1 libc++.so
 
