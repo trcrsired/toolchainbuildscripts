@@ -135,4 +135,5 @@ gcc_path=`which g++`
 gcc_bin_directory=$(dirname "$gcc_path")
 gcc_directory=$(dirname "$gcc_bin_directory")
 echo "--gcc-toolchain=$gcc_directory" > "$clang_directory/clang.cfg"
+cp -r --preserve=links "${LLVMRUNTIMESINSTALLPATH}"/* "${gcc_directory}/"
 fi
