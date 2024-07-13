@@ -109,9 +109,16 @@ cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DLIBCXXABI_SILENT_TERMINATE=On
 fi
 
+if [ ! -d "${LLVMRUNTIMESINSTALLPATH}" ]; then
+cd ${currentpath}/runtimes
+ninja install/strip
+fi
+
+if [ -d "${LLVMRUNTIMESINSTALLPATH}" ]; then
 cd "${LLVMRUNTIMESINSTALLPATH}/lib"
 rm libc++.so
 ln -s libc++.so.1 libc++.so
+fi
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	cd $TOOLCHAINS_LLVMPATH
