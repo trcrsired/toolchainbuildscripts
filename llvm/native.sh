@@ -13,11 +13,11 @@ mkdir -p ${currentpath}
 cd ${currentpath}
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
 mkdir -p $TOOLCHAINSPATH
@@ -51,6 +51,12 @@ fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
 
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
+git clone git://sourceware.org/git/binutils-gdb.git
+fi
+cd "$TOOLCHAINS_BUILD/binutils-gdb"
+git pull --quiet
 
 if [ ! -d "${currentpath}/llvm" ]; then
 mkdir -p ${currentpath}/llvm
@@ -60,7 +66,8 @@ cmake -GNinja $LLVMPROJECTPATH/llvm \
 	-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_ASM_COMPILER=gcc \
 	-DCMAKE_INSTALL_PREFIX=${LLVMINSTALLPATH} \
 	-DBUILD_SHARED_LIBS=On \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb"
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
+	-DLLVM_BINUTILS_INCDIR="$TOOLCHAINS_BUILD/binutils-gdb/include"
 fi
 
 if [ ! -d "${LLVMINSTALLPATH}" ]; then
