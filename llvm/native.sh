@@ -70,18 +70,18 @@ fi
 
 export PATH=$LLVMINSTALLPATH/bin:$PATH
 
+if ! [ -x "$(command -v clang)" ];
+then
+        echo "clang not found. we won't build runtimes"
+        exit 0
+fi
+
 clang_path=`which clang`
 clang_directory=$(dirname "$clang_path")
 clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
 clang_major_version="${clang_version%%.*}"
 llvm_install_directory="$clang_directory/.."
 clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
-
-if ! [ -x "$(command -v clang)" ];
-then
-        echo "clang not found. we won't build runtimes"
-        exit 0
-fi
 
 if [ ! -d "${currentpath}/compiler-rt" ]; then
 mkdir -p ${currentpath}/compiler-rt
@@ -121,7 +121,18 @@ ln -s libc++.so.1 libc++.so
 fi
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
+	if [ -f "$clang_directory/clang.cfg" ]; then
+		rm "$clang_directory/clang.cfg"
+	fi
 	cd $TOOLCHAINS_LLVMPATH
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
 	chmod 755 ${TARGETTRIPLE}.tar.xz
+fi
+
+
+if [ ! -f "$clang_directory/clang.cfg" ]; then
+gcc_path=`which g++`
+gcc_bin_directory=$(dirname "$gcc_path")
+gcc_directory==$(dirname "$gcc_bin_directory")
+echo "--gcc-toolchain=$gcc_directory" > "$clang_directory/clang.cfg"
 fi
