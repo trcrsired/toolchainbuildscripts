@@ -163,17 +163,19 @@ fi
 
 cd ${currentpath}
 mkdir -p build
+
+linuxkernelheaders=${currentpath}/install/linux
+
+if [ ! -d $linuxkernelheaders ]; then
+	cd "$TOOLCHAINS_BUILD/linux"
+	make headers_install ARCH=arm64 -j INSTALL_HDR_PATH=$linuxkernelheaders
+fi
+
 if [ ! -d "${currentpath}/install/glibc" ]; then
 	multilibs=(m64)
 	multilibsdir=(lib)
 	glibcfiles=(libm.a libm.so libc.so)
 
-	linuxkernelheaders=${currentpath}/install/linux
-
-	if [ ! -d $linuxkernelheaders ]; then
-		cd "$TOOLCHAINS_BUILD/linux"
-		make headers_install ARCH=arm64 -j INSTALL_HDR_PATH=$linuxkernelheaders
-	fi
 
 	mkdir -p ${currentpath}/build/glibc
 	mkdir -p ${currentpath}/install/glibc
