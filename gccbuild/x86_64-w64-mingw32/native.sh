@@ -48,7 +48,7 @@ mkdir -p ${currentpath}/gcc
 
 if [ ! -f ${currentpath}/gcc/Makefile ]; then
 cd ${currentpath}/gcc
-$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --disable-libstdcxx-verbose $TRIPLETTRIPLETS --prefix=$PREFIX --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --with-multilib-list=m64 --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
+$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --disable-libstdcxx-verbose --enable-languages=c,c++ $TRIPLETTRIPLETS --prefix=$PREFIX --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --with-multilib-list=m64 --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
 if [ $? -ne 0 ]; then
 echo "gcc configure failure"
 exit 1
@@ -94,4 +94,10 @@ $HOST-strip --strip-unneeded $PREFIX/bin
 $HOST-strip --strip-unneeded $PREFIXTARGET/bin
 $HOST-strip --strip-unneeded $PREFIX/lib
 fi
+fi
+
+if [ ! -f ${PREFIX}.tar.xz ]; then
+cd ${PREFIX}/..
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+chmod 755 $HOST.tar.xz
 fi
