@@ -110,16 +110,16 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-gold $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
-make all-gcc -j16
-make all-target-libgcc -j16
+make all-gcc -j$(nproc)
+make all-target-libgcc -j$(nproc)
 make install-strip-gcc -j
 make install-strip-target-libgcc -j
 fi
@@ -138,8 +138,8 @@ if [ ! -d "${currentpath}/install/musl" ]; then
 	cd ${currentpath}/build/musl
 	if [ ! -f Makefile ]; then
 		CC="${HOST}-gcc" CXX="${HOST}-g++" $MUSLREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST
-		make -j
-		make install -j
+		make -j$(nproc)
+		make install -j$(nproc)
 		${HOST}-strip --strip-unneeded $currentpath/install/musl/*
 	fi
 
@@ -156,8 +156,8 @@ if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	if [ ! -f Makefile ]; then
 		$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
 	fi
-	make -j16
-	make install-strip -j
+	make -j$(nproc)
+	make install-strip -j$(nproc)
 	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 
@@ -179,8 +179,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ${currentpath}/hostbuild/$HOST
 
@@ -190,8 +190,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
@@ -224,7 +224,7 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $CANADIANHOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
+make -j$(nproc)
 make install-strip
 fi
 cd ${currentpath}/canadianbuild/$HOST
@@ -235,8 +235,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
@@ -277,7 +277,7 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
+make -j$(nproc)
 make install-strip
 fi
 cd ${currentpath}/canadian2build/$HOST
@@ -288,8 +288,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIAN2HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 

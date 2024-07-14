@@ -110,8 +110,8 @@ cd mingw-w64-headers
 if [ ! -f Makefile ]; then
 eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
 fi
-make -j
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 if [ ! -f ${SYSROOTPATH}/lib/libntdll.a ]; then
@@ -121,8 +121,8 @@ cd mingw-w64-crt
 if [ ! -f Makefile ]; then
 eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
 fi
-make -j
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 CURRENTTRIPLEPATH=${currentpath}

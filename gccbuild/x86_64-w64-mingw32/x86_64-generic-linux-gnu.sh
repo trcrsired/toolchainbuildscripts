@@ -146,8 +146,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-gold $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
@@ -157,8 +157,8 @@ $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/incl
 fi
 
 if [ ! -d $PREFIX/lib/gcc ]; then
-make all-gcc -j16
-make all-target-libgcc -j16
+make all-gcc -j$(nproc)
+make all-target-libgcc -j$(nproc)
 make install-strip-gcc -j
 make install-strip-target-libgcc -j
 fi
@@ -194,8 +194,8 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 			(export -n LD_LIBRARY_PATH; CC="${HOST}-gcc -${item}" CXX="${HOST}-g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$HOST --with-headers=$linuxkernelheaders/include --without-selinux --host=$host )
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
-			(export -n LD_LIBRARY_PATH; make -j16)
-			(export -n LD_LIBRARY_PATH; make install -j16)
+			(export -n LD_LIBRARY_PATH; make -j$(nproc))
+			(export -n LD_LIBRARY_PATH; make install -j$(nproc)16)
 		fi
 	done
 
@@ -258,8 +258,8 @@ if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	if [ ! -f Makefile ]; then
 		$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
 	fi
-	make -j16
-	make install-strip -j
+	make -j$(nproc)
+	make install-strip -j$(nproc)
 fi
 
 if [ -d $PREFIXTARGET/include/c++ ]; then
@@ -287,8 +287,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ${currentpath}/hostbuild/$HOST
 
@@ -298,8 +298,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
@@ -332,7 +332,7 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $CANADIANHOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
+make -j$(nproc)
 make install-strip
 fi
 cd ${currentpath}/canadianbuild/$HOST
@@ -343,8 +343,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 
@@ -384,7 +384,7 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
+make -j$(nproc)
 make install-strip
 fi
 cd ${currentpath}/canadian2build/$HOST
@@ -395,8 +395,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIAN2HOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIAN2HOSTPREFIX $CANADIAN2CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIAN2HOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIAN2HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 fi
 

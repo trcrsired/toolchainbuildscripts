@@ -10,8 +10,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable
 fi
 
 if [ ! -d $CANADIANHOSTPREFIX/lib/bfd-plugins ]; then
-make -j
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ${currentpath}/hostbuild/$HOST
 
@@ -21,8 +21,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIX/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
-make -j
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 if [ ! -f $CANADIANHOSTPREFIX/include/stdio.h ]; then

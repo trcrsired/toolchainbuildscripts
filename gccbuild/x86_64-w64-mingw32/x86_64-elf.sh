@@ -65,8 +65,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-p
 fi
 
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 cd ${currentpath}/targetbuild/$TARGET
@@ -76,8 +76,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure $GCCCONFIGURE $CROSSTRIPLETTRIPLETS --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 if [ ! -f $PREFIX/bin/${TARGET}-cc ]; then
@@ -95,8 +95,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIA
 fi
 
 if [ ! -d $CANADIANPREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 cd ${currentpath}/hostbuild/$HOST
@@ -106,8 +106,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure $GCCCONFIGURE $CANADIANTRIPLETTRIPLETS --with-gxx-libcxx-include-dir=$CANADIANPREFIXTARGET/include/c++/v1 --prefix=$CANADIANPREFIX
 fi
 if [ ! -d $CANADIANPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 cd $CANADIANPREFIX/..

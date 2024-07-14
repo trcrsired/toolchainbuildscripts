@@ -85,8 +85,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ..
 
@@ -97,7 +97,7 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
-make all-gcc -j16
+make all-gcc -j$(nproc)
 make install-strip-gcc -j
 fi
 
@@ -111,8 +111,8 @@ cd mingw-w64-headers
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-headers
 fi
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cp -r ${currentpath}/installs/mingw-w64-headers/* $PREFIXTARGET/
 fi
 
@@ -123,8 +123,8 @@ cd mingw-w64-crt
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-crt
 fi
-make -j8 2>err.txt
-make install-strip -j8 2>err.txt
+make -j$(nproc) 2>err.txt
+make install-strip -j$(nproc)8 2>err.txt
 cp -r ${currentpath}/installs/mingw-w64-crt/* $PREFIXTARGET/
 cd $PREFIXTARGET/lib
 ln -s ../lib32 32
@@ -137,8 +137,8 @@ cd mingw-w64-winpthreads
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-libraries/winpthreads/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-winpthreads
 fi
-make -j8 2>err.txt
-make install-strip -j8 2>err.txt
+make -j$(nproc) 2>err.txt
+make install-strip -j$(nproc)8 2>err.txt
 cp -r ${currentpath}/installs/mingw-w64-winpthreads/* $PREFIXTARGET/
 fi
 
@@ -146,8 +146,8 @@ cd ${currentpath}/targetbuild/$HOST
 
 if [ ! -d $PREFIXTARGET/include/c++ ]; then
 cd gcc
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 mkdir -p ${currentpath}/hostbuild
@@ -160,8 +160,8 @@ $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIA
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ${currentpath}/hostbuild/$HOST
 
@@ -171,8 +171,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 
 if [ ! -f $HOSTPREFIXTARGET/include/stdio.h ]; then

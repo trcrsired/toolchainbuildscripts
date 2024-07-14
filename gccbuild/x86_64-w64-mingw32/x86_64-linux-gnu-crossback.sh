@@ -143,8 +143,8 @@ for item in "${multilibs[@]}"; do
 		(export -n LD_LIBRARY_PATH; CC="gcc -${item}" CXX="g++ -${item}" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/build/install/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=${host} )
 	fi
 	if [[ ! -d $currentpath/build/install/${item} ]]; then
-		(export -n LD_LIBRARY_PATH; make -j16)
-		(export -n LD_LIBRARY_PATH; make install -j16)
+		(export -n LD_LIBRARY_PATH; make -j$(nproc))
+		(export -n LD_LIBRARY_PATH; make install -j$(nproc)16)
 	fi
 	cd ..
 done
@@ -199,8 +199,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $TRIPLETTRIPLETS --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 fi
 cd ..
 mkdir -p gcc
@@ -209,8 +209,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-multilib-list=m64 --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $TRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --enable-libstdcxx-backtrace
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
-make -j16
-make install-strip -j
+make -j$(nproc)
+make install-strip -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $PREFIX/lib/gcc/$TARGET/$GCCVERSIONSTR/include/limits.h
 fi
 cd $PREFIXTARGET

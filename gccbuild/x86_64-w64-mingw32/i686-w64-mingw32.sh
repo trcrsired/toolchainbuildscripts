@@ -25,7 +25,7 @@ PREFIXTARGET=$PREFIX/$TARGET
 export PATH=$PREFIX/bin:$TOOLCHAINSPATH/$BUILD/$HOST/bin:$PATH
 
 if [ -z ${THREADSNUMMAKE} ]; then
-THREADSNUMMAKE=-j16
+THREADSNUMMAKE=-j$(nproc)
 fi
 
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$TARGET
@@ -98,7 +98,7 @@ fi
 
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
 make $THREADSNUMMAKE
-make install-strip -j
+make install-strip -j$(nproc)
 fi
 
 mkdir -p ${currentpath}/$BUILD/$TARGET/gcc
@@ -122,7 +122,7 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$TARGET --prefix=$LIBRARIESCROSSPATH/installs/mingw-w64-headers --with-default-msvcrt=msvcrt
 fi
 make $THREADSNUMMAKE
-make install-strip -j
+make install-strip -j$(nproc)
 cp -r $LIBRARIESCROSSPATH/installs/mingw-w64-headers/* $PREFIXTARGET/
 fi
 
@@ -133,15 +133,15 @@ cd mingw-w64-crt
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$TARGET --prefix=$LIBRARIESCROSSPATH/installs/mingw-w64-crt --with-default-msvcrt=msvcrt
 fi
-make -j8 2>err.txt
-make install-strip -j8 2>err.txt
+make -j$(nproc) 2>err.txt
+make install-strip -j$(nproc)8 2>err.txt
 cp -r $LIBRARIESCROSSPATH/installs/mingw-w64-crt/* $PREFIXTARGET/
 fi
 
 if [ ! -d $PREFIXTARGET/include/c++ ]; then
 cd ${currentpath}/$BUILD/$TARGET/gcc
 make $THREADSNUMMAKE
-make install-strip -j
+make install-strip -j$(nproc)
 fi
 
 mkdir -p ${currentpath}/$HOST
@@ -155,7 +155,7 @@ fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
 make $THREADSNUMMAKE
-make install-strip -j
+make install-strip -j$(nproc)
 fi
 cd ${currentpath}/$HOST/$TARGET
 
@@ -166,7 +166,7 @@ $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
 make $THREADSNUMMAKE
-make install-strip -j
+make install-strip -j$(nproc)
 fi
 
 if [ ! -f $HOSTPREFIXTARGET/include/stdio.h ]; then
