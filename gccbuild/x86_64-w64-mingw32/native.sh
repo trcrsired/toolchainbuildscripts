@@ -8,6 +8,7 @@ fi
 BUILD=$(gcc -dumpmachine)
 HOST=$BUILD
 TARGET=$BUILD
+relpath=$(realpath .)
 currentpath=$relpath/.gnuartifacts/$BUILD/$HOST
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
