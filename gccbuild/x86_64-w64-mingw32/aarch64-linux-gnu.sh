@@ -253,7 +253,12 @@ fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
 make -j16
+make install -j
 make install-strip -j
+${HOST}-strip --strip-unneeded $HOSTPREFIX/bin/*
+${HOST}-strip --strip-unneeded $HOSTPREFIX/lib/*
+${HOST}-strip --strip-unneeded $HOSTPREFIX/lib64/*
+${HOST}-strip --strip-unneeded $HOSTPREFIX/$HOST/bin/*
 fi
 cd ${currentpath}/hostbuild/$HOST
 
