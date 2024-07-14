@@ -1,4 +1,10 @@
 #!/bin/bash
+
+./dependencycheck.sh
+if [ $? -ne 0 ]; then
+exit 1
+fi
+
 currentpath=$(realpath .)/artifacts
 if [ ! -d ${currentpath} ]; then
         mkdir ${currentpath}
