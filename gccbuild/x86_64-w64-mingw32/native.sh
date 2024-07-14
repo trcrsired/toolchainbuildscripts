@@ -31,7 +31,6 @@ export -n LD_LIBRARY_PATH
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
-    rm -rf ${PREFIX}
 	rm -f $PREFIX.tar.xz
 	echo "restart done"
 fi
@@ -54,13 +53,18 @@ echo "gcc configure failure"
 exit 1
 fi
 fi
-if [ ! -d $PREFIX/include/c++ ]; then
+if [ ! -f ${currentpath}/gcc/.buildsuccess ]; then
 cd ${currentpath}/gcc
 make -j16
 if [ $? -ne 0 ]; then
 echo "gcc build failure"
 exit 1
 fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/gcc/.buildsuccess
+fi
+
+if [ ! -f ${currentpath}/gcc/.installsuccess ]; then
+cd ${currentpath}/gcc
 make install-strip -j
 if [ $? -ne 0 ]; then
 make install -j
@@ -68,6 +72,7 @@ $HOST-strip --strip-unneeded $PREFIX/bin
 $HOST-strip --strip-unneeded $PREFIXTARGET/bin
 $HOST-strip --strip-unneeded $PREFIX/lib
 fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/gcc/.installsuccess
 fi
 
 mkdir -p ${currentpath}/binutils-gdb
@@ -80,13 +85,18 @@ echo "binutils-gdb configure failure"
 exit 1
 fi
 fi
-if [ ! -d $PREFIX/lib/bfd-plugins ]; then
+if [ ! -d ${currentpath}/binutils-gdb/.buildsuccess ]; then
 cd ${currentpath}/binutils-gdb
 make -j16
 if [ $? -ne 0 ]; then
 echo "binutils-gdb build failure"
 exit 1
 fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/binutils-gdb/.buildsuccess
+fi
+
+if [ ! -d ${currentpath}/binutils-gdb/.installsuccess ]; then
+cd ${currentpath}/binutils-gdb
 make install-strip -j
 if [ $? -ne 0 ]; then
 make install -j
@@ -94,6 +104,7 @@ $HOST-strip --strip-unneeded $PREFIX/bin
 $HOST-strip --strip-unneeded $PREFIXTARGET/bin
 $HOST-strip --strip-unneeded $PREFIX/lib
 fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/binutils-gdb/.installsuccess
 fi
 
 if [ ! -f ${PREFIX}.tar.xz ]; then
