@@ -10,10 +10,6 @@ HOST=$BUILD
 TARGET=$BUILD
 relpath=$(realpath .)
 currentpath=$relpath/.gnuartifacts/$BUILD/$HOST
-if [ ! -d ${currentpath} ]; then
-	mkdir ${currentpath}
-	cd ${currentpath}
-fi
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
