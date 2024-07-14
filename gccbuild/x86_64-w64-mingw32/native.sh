@@ -52,7 +52,7 @@ fi
 fi
 if [ ! -f ${currentpath}/gcc/.buildsuccess ]; then
 cd ${currentpath}/gcc
-make -j16
+make -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc build failure"
 exit 1
@@ -62,9 +62,9 @@ fi
 
 if [ ! -f ${currentpath}/gcc/.installsuccess ]; then
 cd ${currentpath}/gcc
-make install-strip -j
+make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
-make install -j
+make install -j$(nproc)
 $HOST-strip --strip-unneeded $PREFIX/bin
 $HOST-strip --strip-unneeded $PREFIXTARGET/bin
 $HOST-strip --strip-unneeded $PREFIX/lib
@@ -84,7 +84,7 @@ fi
 fi
 if [ ! -d ${currentpath}/binutils-gdb/.buildsuccess ]; then
 cd ${currentpath}/binutils-gdb
-make -j16
+make -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "binutils-gdb build failure"
 exit 1
@@ -94,9 +94,9 @@ fi
 
 if [ ! -d ${currentpath}/binutils-gdb/.installsuccess ]; then
 cd ${currentpath}/binutils-gdb
-make install-strip -j
+make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
-make install -j
+make install -j$(nproc)
 $HOST-strip --strip-unneeded $PREFIX/bin
 $HOST-strip --strip-unneeded $PREFIXTARGET/bin
 $HOST-strip --strip-unneeded $PREFIX/lib
