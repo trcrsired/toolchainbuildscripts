@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Array of commands to check
-commands=("gcc" "g++" "rsync" "bison" "flex" "autoconf" "makeinfo" "make" "wget" "git" "tar")
+commands=("gcc" "g++" "rsync" "bison" "flex" "autoconf" "makeinfo" "make" "wget" "git" "tar" "which" "python3" "xz")
 
 # Variable to track if any command is missing
 missing_commands=false
