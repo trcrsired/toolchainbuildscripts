@@ -79,6 +79,11 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/gcc/.installsuccess
 fi
 
+if [ ! -L "$PREFIXTARGET/bin/cc" ]; then
+cd $PREFIXTARGET/bin
+ln -s gcc cc
+fi
+
 mkdir -p ${currentpath}/binutils-gdb
 
 if [ ! -f ${currentpath}/binutils-gdb/Makefile ]; then
