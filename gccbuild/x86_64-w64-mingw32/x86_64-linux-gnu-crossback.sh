@@ -6,11 +6,7 @@ exit 1
 fi
 
 BUILD=$(gcc -dumpmachine)
-currentpath=$relpath/.gnuartifacts/$BUILD
-if [ ! -d ${currentpath} ]; then
-	mkdir ${currentpath}
-	cd ${currentpath}
-fi
+currentpath=$(realpath .)/.gnuartifacts/$BUILD
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
@@ -37,7 +33,7 @@ TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH/$HOST/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
 
-export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$PATH
+export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$TOOLCHAINSPATH/$HOST/$TARGET/bin:$PATH
 export -n LD_LIBRARY_PATH
 if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="master"
