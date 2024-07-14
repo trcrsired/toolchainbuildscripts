@@ -25,6 +25,14 @@ PREFIXTARGET=$PREFIX/$TARGET
 export PATH=$PREFIX/bin:$PATH
 export -n LD_LIBRARY_PATH
 
+if [[ $1 == "clean" ]]; then
+	echo "cleaning"
+	rm -rf ${currentpath}
+	rm -f $PREFIX.tar.xz
+	echo "cleaning done"
+    exit 0
+fi
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
