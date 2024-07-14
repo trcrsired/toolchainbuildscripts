@@ -1,4 +1,10 @@
 #!/bin/bash
+
+./dependencycheck.sh
+if [ $? -ne 0 ]; then
+exit 1
+fi
+
 BUILD=$(gcc -dumpmachine)
 currentpath=$relpath/.gnuartifacts/$BUILD
 if [ ! -d ${currentpath} ]; then
@@ -20,6 +26,11 @@ mkdir -p $currentpath/build/install
 linuxkernelheaders=$currentpath/build/install/headers
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
+fi
+
+if ! command -v "$HOST-g++" &> /dev/null; then
+	echo "$HOST-g++ is not installed. Please first run $HOST.sh"
+	exit 1  # Exit with status code 1 indicating failure
 fi
 
 TARGET=$BUILD
