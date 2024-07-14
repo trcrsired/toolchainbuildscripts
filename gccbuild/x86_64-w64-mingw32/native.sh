@@ -82,7 +82,7 @@ echo "binutils-gdb configure failure"
 exit 1
 fi
 fi
-if [ ! -d ${currentpath}/binutils-gdb/.buildsuccess ]; then
+if [ ! -f ${currentpath}/binutils-gdb/.buildsuccess ]; then
 cd ${currentpath}/binutils-gdb
 make -j$(nproc)
 if [ $? -ne 0 ]; then
@@ -92,7 +92,7 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/binutils-gdb/.buildsuccess
 fi
 
-if [ ! -d ${currentpath}/binutils-gdb/.installsuccess ]; then
+if [ ! -f ${currentpath}/binutils-gdb/.installsuccess ]; then
 cd ${currentpath}/binutils-gdb
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
