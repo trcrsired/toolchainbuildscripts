@@ -1,4 +1,10 @@
 #!/bin/bash
+
+./dependencycheck.sh
+if [ $? -ne 0 ]; then
+exit 1
+fi
+
 relpath=$(realpath .)
 if [ -z ${HOST+x} ]; then
 	HOST=aarch64-linux-gnu
