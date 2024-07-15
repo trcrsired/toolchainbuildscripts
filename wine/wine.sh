@@ -121,7 +121,7 @@ fi
 
 if [ ! -f ${currentwinepath}/.installsuccess ]; then
 cd ${currentwinepath}
-make -j$(nproc)
+make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "wine install failure"
 exit 1
@@ -132,7 +132,7 @@ echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.installsuccess
 fi
 
 if [ ! -f $SOFTWARESPATH/wine-$HOST.tar.xz ]; then
-cd ${$SOFTWARESPATH}
+cd ${SOFTWARESPATH}
 XZ_OPT=-e9T0 tar cJf wine-$HOST.tar.xz $HOST
 chmod 755 wine-$HOST.tar.xz
 fi
