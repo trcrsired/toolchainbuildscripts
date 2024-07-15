@@ -12,6 +12,14 @@ if [ -z ${SOFTWARESPATH+x} ]; then
 	SOFTWARESPATH=$HOME/softwares
 fi
 
+if [ -z ${CC_FOR_BUILD+x} ]; then
+    CC_FOR_BUILD=gcc
+fi
+
+if [ -z ${CXX_FOR_BUILD+x} ]; then
+    CXX_FOR_BUILD=g++
+fi
+
 if [ -z ${CC+x} ]; then
     CC=gcc
 fi
@@ -28,48 +36,59 @@ if [ -z ${CLANGXX+x} ]; then
     CLANGXX=clang++
 fi
 
+HOST=$(${CC} -dumpmachine)
+
 if [ -z ${STRIP+x} ]; then
-    STRIP=llvm-strip
+	if ! command -v "llvm-strip" &> /dev/null; then
+		STRIP=$HOST-strip
+	else
+	    STRIP=llvm-strip
+	fi
 fi
 
+# Array of commands to check
+commands=("CC_FOR_BUILD" "CXX_FOR_BUILD" "CC" "CXX" "CLANG" "CLANGXX" "STRIP")
+
+# Variable to track if any command is missing
+missing_commands=false
+
+# Loop through each command and check if it's installed
+for cmd in "${commands[@]}"; do
+    if ! command -v "${!cmd}" &> /dev/null; then
+        echo "$cmd uninstalled or set incorrectly. Your value: ${!cmd}"
+        missing_commands=true
+	else
+		echo "$cmd=${!cmd}"
+    fi
+done
+
+# Check if any command is missing and decide whether to continue
+if [ "$missing_commands" = true ]; then
+    echo "Some commands are not installed. Please install all required commands before proceeding."
+    exit 1  # Exit with status code 1 indicating failure
+fi
+
+BUILD=$(${CC_FOR_BUILD} -dumpmachine)
+PREFIX=$SOFTWARESPATH/$HOST
+currentpath=$(realpath .)/.wineartifacts/$HOST
+currentwinepath=${currentpath}/wine
+
 if [ -z ${ARCH} ]; then
-    ARCH=x86_64
+    ARCH=${HOST%%-*}
 fi
 
 if [ -z ${ENABLEDARCHS} ]; then
 if [[ ${ARCH} == "aarch64" ]]; then
 ENABLEDARCHS=arm64
-else
+elif [[ ${ARCH} == "x86_64" ]]; then
 ENABLEDARCHS=i386,x86_64
 fi
 fi
 
-if ! command -v "$CC" &> /dev/null; then
-	echo "$CC is not installed"
-	exit 1
-fi
-
-if ! command -v "$CXX" &> /dev/null; then
-	echo "$CXX is not installed"
-	exit 1
-fi
-
-if ! command -v "$CLANG" &> /dev/null; then
-	echo "$CLANG is not installed"
-	exit 1
-fi
-
-if ! command -v "$CLANGXX" &> /dev/null; then
-	echo "$CLANGXX is not installed"
-	exit 1
-fi
-
-PREFIX=$SOFTWARESPATH/$HOST
-BUILD=$($CC -dumpmachine)
-HOST=$BUILD
-TARGET=$BUILD
-currentpath=$(realpath .)/.wineartifacts/$HOST
-currentwinepath=${currentpath}/wine
+echo "ARCH=$ARCH"
+echo "--build=$BUILD"
+echo "--host=$HOST"
+echo "--enable-archs=$ENABLEDARCHS"
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
