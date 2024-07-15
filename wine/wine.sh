@@ -30,6 +30,11 @@ else
 ENABLEDARCHS=i386,x86_64
 fi
 
+if ! command -v "$CC" &> /dev/null; then
+	echo "$CC is not installed"
+	exit 1
+fi
+
 PREFIX=$SOFTWARESPATH/$HOST
 BUILD=$(CC -dumpmachine)
 HOST=$BUILD
