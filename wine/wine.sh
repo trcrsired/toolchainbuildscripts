@@ -1,26 +1,26 @@
 #!/bin/bash
 
-if [ ! -z ${TOOLCHAINS_BUILD+x} ]; then
+if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
-if [ ! -z ${TOOLCHAINSPATH+x} ]; then
+if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
-if [ ! -z ${SOFTWARESPATH+x} ]; then
+if [ -z ${SOFTWARESPATH+x} ]; then
 	SOFTWARESPATH=$HOME/softwares
 fi
 
-if [ ! -z ${CC+x} ]; then
+if [ -z ${CC+x} ]; then
     CC=gcc
 fi
 
-if [ ! -z ${CXX+x} ]; then
+if [ -z ${CXX+x} ]; then
     CXX=g++
 fi
 
-if [ ! -z ${ARCH} ]; then
+if [ -z ${ARCH} ]; then
     ARCH=x86_64
 fi
 
@@ -36,7 +36,7 @@ if ! command -v "$CC" &> /dev/null; then
 fi
 
 PREFIX=$SOFTWARESPATH/$HOST
-BUILD=$(CC -dumpmachine)
+BUILD=$($CC -dumpmachine)
 HOST=$BUILD
 TARGET=$BUILD
 currentpath=$(realpath .)/.wineartifacts/$HOST
