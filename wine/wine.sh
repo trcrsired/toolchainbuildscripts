@@ -20,18 +20,47 @@ if [ -z ${CXX+x} ]; then
     CXX=g++
 fi
 
+if [ -z ${CLANG+x} ]; then
+    CLANG=clang
+fi
+
+if [ -z ${CLANGXX+x} ]; then
+    CLANGXX=clang++
+fi
+
+if [ -z ${STRIP+x} ]; then
+    STRIP=llvm-strip
+fi
+
 if [ -z ${ARCH} ]; then
     ARCH=x86_64
 fi
 
+if [ -z ${ENABLEDARCHS} ]; then
 if [[ ${ARCH} == "aarch64" ]]; then
 ENABLEDARCHS=arm64
 else
 ENABLEDARCHS=i386,x86_64
 fi
+fi
 
 if ! command -v "$CC" &> /dev/null; then
 	echo "$CC is not installed"
+	exit 1
+fi
+
+if ! command -v "$CXX" &> /dev/null; then
+	echo "$CXX is not installed"
+	exit 1
+fi
+
+if ! command -v "$CLANG" &> /dev/null; then
+	echo "$CLANG is not installed"
+	exit 1
+fi
+
+if ! command -v "$CLANGXX" &> /dev/null; then
+	echo "$CLANGXX is not installed"
 	exit 1
 fi
 
@@ -73,7 +102,7 @@ mkdir -p ${currentwinepath}
 
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
-$TOOLCHAINS_BUILD/wine/configure --disable-nls --disable-werror --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+CC=$CC CXX=$CXX x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --disable-nls --disable-werror --build=$BUILD --host=$HOST --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
