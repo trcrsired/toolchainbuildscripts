@@ -85,6 +85,12 @@ ENABLEDARCHS=i386,x86_64
 fi
 fi
 
+if [[ ${BUILD} != ${HOST} ]]; then
+CROSSSETTIGNS="--with-wine-tools=SOFTWARESPATH"
+else
+CROSSSETTIGNS=
+fi
+
 echo "ARCH=$ARCH"
 echo "--build=$BUILD"
 echo "--host=$HOST"
@@ -121,7 +127,7 @@ mkdir -p ${currentwinepath}
 
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
-CC=$CC CXX=$CXX x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --disable-nls --disable-werror --build=$BUILD --host=$HOST --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+CC=$CC CXX=$CXX x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror  --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
