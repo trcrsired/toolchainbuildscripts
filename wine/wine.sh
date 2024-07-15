@@ -86,7 +86,7 @@ fi
 fi
 
 if [[ ${BUILD} != ${HOST} ]]; then
-CROSSSETTIGNS="--with-wine-tools=SOFTWARESPATH"
+CROSSSETTIGNS="--with-wine-tools=$SOFTWARESPATH/$BUILD/wine"
 else
 CROSSSETTIGNS=
 fi
@@ -142,6 +142,16 @@ echo "wine build failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.buildsuccess
+fi
+
+if [ ! -f ${currentwinepath}/.nlsbuildsuccess ]; then
+cd ${currentwinepath}/nls
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "wine build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.nlsbuildsuccess
 fi
 
 if [ ! -f ${currentwinepath}/.installsuccess ]; then
