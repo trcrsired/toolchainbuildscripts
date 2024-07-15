@@ -99,7 +99,7 @@ echo "--enable-archs=$ENABLEDARCHS"
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
 	rm -rf ${currentpath}
-	rm -f $SOFTWARESPATH/wine-$HOST.tar.xz
+	rm -f $SOFTWARESPATH/$HOST/wine-$HOST.tar.xz
 	echo "cleaning done"
     exit 0
 fi
@@ -107,7 +107,7 @@ fi
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
-	rm -f $SOFTWARESPATH/wine-$HOST.tar.xz
+	rm -f $SOFTWARESPATH/$HOST/wine-$HOST.tar.xz
 	echo "restart done"
 fi
 
