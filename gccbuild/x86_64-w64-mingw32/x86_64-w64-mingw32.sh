@@ -1,20 +1,19 @@
 #!/bin/bash
-currentpath=$(realpath .)/artifacts
-if [ ! -d ${currentpath} ]; then
-	mkdir -p ${currentpath}
-	cd ${currentpath}
-fi
+
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
+currentpath=$(realpath .)/.gnuartifacts/$HOST
+mkdir -p $currentpath
+cd $currentpath
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH/$BUILD/$HOST

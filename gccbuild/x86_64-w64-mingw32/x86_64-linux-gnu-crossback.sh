@@ -124,6 +124,7 @@ git pull --quiet
 if [ ! -d $linuxkernelheaders/include/linux ]; then
 make headers_install ARCH=x86_64 -j INSTALL_HDR_PATH=$linuxkernelheaders
 fi
+mkdir -p $currentpath/build/build
 cd $currentpath/build/build
 multilibs=(m64)
 multilibsdir=(lib64)
