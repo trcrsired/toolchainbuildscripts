@@ -104,14 +104,14 @@ if [[ $TARGETTRIPLE_THREADS == "threads" ]]; then
 MYWASICOMMAND="$MYWASICOMMAND THREAD_MODEL=posix"
 fi
 
-MYWASICOMMAND="$MYWASICOMMAND WASI_SNAPSHOT=${TARGETTRIPLE_ABI:4}"
+MYWASICOMMAND="$MYWASICOMMAND WASI_SNAPSHOT=${TARGETTRIPLE_ABI:4} LTO=yes"
 
 mkdir -p "$CURRENTTRIPLEPATH"
 
 if [ ! -d "$CURRENTTRIPLEPATH/install/wasi-libc/sysroot" ]; then
 cd "$WASILIBCPATH"
 rm -rf sysroot
-make -j ${MYWASICOMMAND}
+make -j$(nproc) ${MYWASICOMMAND}
 fi
 
 mkdir -p "$CURRENTTRIPLEPATH/install/wasi-libc"
@@ -247,4 +247,3 @@ if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf wasm-sysroots.tar.xz wasm-sysroots
 	chmod 755 wasm-sysroots.tar.xz
 fi
-
