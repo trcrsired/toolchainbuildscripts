@@ -224,9 +224,9 @@ mkdir -p "$currentpath/$x11pjname"
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
 mkdir -p $currentpath/$x11pjname
 cd $currentpath/$x11pjname
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/$x11pjname/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/$x11pjname/config.cache --enable-malloc0returnsnull 
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/$x11pjname/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --enable-malloc0returnsnull 
 if [ $? -ne 0 ]; then
-echo "$x11pjname configuresuccess failed"
+echo "$x11pjname configure failed"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/$x11pjname/.configuresuccess
@@ -269,7 +269,7 @@ handlebuild "libxau" "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
 handlebuild "libxcb" "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
 handlebuild "libx11" "https://gitlab.freedesktop.org/xorg/lib/libx11"
 handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
-handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
+#handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
 #handlebuild "mesa" "https://gitlab.freedesktop.org/mesa/mesa.git"
 #handlebuild "Vulkan-Loader" "git@github.com:KhronosGroup/Vulkan-Loader.git"
 
