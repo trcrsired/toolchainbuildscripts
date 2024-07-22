@@ -181,6 +181,51 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.installsuccess
 fi
 
+
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/bzip2" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.com/federicomenaquintero/bzip2
+if [ $? -ne 0 ]; then
+echo "bzip2 clone failed"
+exit 1
+fi
+fi
+
+cd "$TOOLCHAINS_BUILD/bzip2"
+git pull --quiet
+
+mkdir -p $currentpath/bzip2
+if [ ! -f $currentpath/bzip2/.cmakeconfiguresuccess ]; then
+cd $currentpath/bzip2
+cmake ${TOOLCHAINS_BUILD}/bzip2 -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "bzip2 autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.cmakeconfiguresuccess
+fi
+
+if [ ! -f $currentpath/bzip2/.buildsuccess ]; then
+cd $currentpath/bzip2
+ninja
+if [ $? -ne 0 ]; then
+echo "ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.buildsuccess
+fi
+
+if [ ! -f $currentpath/bzip2/.installsuccess ]; then
+cd $currentpath/bzip2
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "install failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.installsuccess
+fi
+
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 cd "$TOOLCHAINS_BUILD"
