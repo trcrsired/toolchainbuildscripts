@@ -9,7 +9,7 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 fi
 
 if [ -z ${SOFTWARESPATH+x} ]; then
-	SOFTWARESPATH=$HOME/softwares
+	SOFTWARESPATH=$HOME/softwares/wine
 fi
 
 if [ -z ${CC_FOR_BUILD+x} ]; then
@@ -340,8 +340,8 @@ cp -r --preserve=links ${currentwinepath}/nls $PREFIX/wine/share/wine/
 echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.installsuccess
 fi
 
-if [ ! -f $SOFTWARESPATH/$HOST/wine-$HOST.tar.xz ]; then
-cd ${SOFTWARESPATH}/$HOST
-XZ_OPT=-e9T0 tar cJf wine-$HOST.tar.xz wine
-chmod 755 wine-$HOST.tar.xz
+if [ ! -f $SOFTWARESPATH/$HOST.tar.xz ]; then
+cd ${SOFTWARESPATH}
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz wine
+chmod 755 $HOST.tar.xz
 fi
