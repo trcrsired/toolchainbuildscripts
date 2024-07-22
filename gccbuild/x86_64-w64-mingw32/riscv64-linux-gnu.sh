@@ -298,11 +298,12 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			for file in "${glibcfiles[@]}"; do
 				getfilesize=$(wc -c <"$currentpath/install/glibc/${item}/$file")
 				echo $getfilesize
-				exit 1
 				if [ $getfilesize -lt 1024 ]; then
+					echo "here: $currentpath/install/glibc/${item}/$file"
 					sed -i "s%${canadianreplacedstring}%%g" $currentpath/install/glibc/${item}/$file
 				fi
 			done
+			exit 1
 			unset canadianreplacedstring
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
 		fi
