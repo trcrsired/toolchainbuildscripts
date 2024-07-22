@@ -123,17 +123,6 @@ fi
 cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
 
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/libX11" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone https://gitlab.freedesktop.org/xorg/lib/libx11
-if [ $? -ne 0 ]; then
-echo "x11 clone failed"
-exit 1
-fi
-fi
-cd "$TOOLCHAINS_BUILD/libX11"
-git pull --quiet
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/FreeType" ]; then
@@ -144,8 +133,107 @@ echo "freetype clone failed"
 exit 1
 fi
 fi
-cd "$TOOLCHAINS_BUILD/FreeType"
+
+cd "$TOOLCHAINS_BUILD/freetype"
 git pull --quiet
+if [ ! -f $TOOLCHAINS_BUILD/freetype/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/freetype
+cd $TOOLCHAINS_BUILD/freetype
+./autogen.sh
+if [ $? -ne 0 ]; then
+echo "freetype autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/freetype/.autogensuccess
+fi
+
+mkdir -p ${currentpath}/freetype
+
+if [ ! -f $currentpath/freetype/.configuresuccess ]; then
+cd ${currentpath}/freetype
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/freetype/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "freetype configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.configuresuccess
+fi
+
+if [ ! -f $currentpath/freetype/.buildsuccess ]; then
+cd ${currentpath}/freetype
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/freetype/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "freetype build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.buildsuccess
+fi
+
+if [ ! -f $currentpath/freetype/.installsuccess ]; then
+make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "freetype install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.installsuccess
+fi
+
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/libx11" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.freedesktop.org/xorg/lib/libx11
+if [ $? -ne 0 ]; then
+echo "x11 clone failed"
+exit 1
+fi
+fi
+
+cd "$TOOLCHAINS_BUILD/libx11"
+git pull --quiet
+
+if [ ! -f $TOOLCHAINS_BUILD/libx11/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/libx11
+cd $TOOLCHAINS_BUILD/libx11
+./autogen.sh
+if [ $? -ne 0 ]; then
+echo "libx11 autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libx11/.autogensuccess
+fi
+
+mkdir -p ${currentpath}/libx11
+
+if [ ! -f $currentpath/libx11/.configuresuccess ]; then
+cd ${currentpath}/libx11
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "libx11 configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.configuresuccess
+fi
+
+if [ ! -f $currentpath/libx11/.buildsuccess ]; then
+cd ${currentpath}/libx11
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libx11 build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.buildsuccess
+fi
+
+if [ ! -f $currentpath/libx11/.installsuccess ]; then
+make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libx11 install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.installsuccess
+fi
 
 if [ ! -d "$TOOLCHAINS_BUILD/Vulkan-Loader" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -155,8 +243,37 @@ echo "Vulkan Loader clone failed"
 exit 1
 fi
 fi
+
 cd "$TOOLCHAINS_BUILD/Vulkan-Loader"
 git pull --quiet
+
+
+if [ ! -f $currentpath/Vulkan-Loader/.cmakeconfiguresuccess ]; then
+${TOOLCHAINS_BUILD}/Vulkan-Loader/cmake -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "Vulkan-Loader autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.cmakeconfiguresuccess
+fi
+
+if [ ! -f $currentpath/Vulkan-Loader/.buildsuccess ]; then
+ninja
+if [ $? -ne 0 ]; then
+echo "ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.buildsuccess
+fi
+
+if [ ! -f $currentpath/Vulkan-Loader/.installsuccess ]; then
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "install failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.installsuccess
+fi
 
 if [[ ${BUILD} != ${HOST} ]]; then
 BUILDWINEDIR="$WINEARTIFACTSDIR/$BUILD/wine"
