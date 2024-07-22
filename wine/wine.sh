@@ -379,7 +379,7 @@ function handlex11deps
 {
 x11pjname=$1
 x11pjrepo=$2
-mkdir -p "$currentpath"
+
 mkdir -p "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/$x11pjname" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -389,8 +389,10 @@ echo "$x11pjname clone failed"
 exit 1
 fi
 fi
-cd "$currentpath/$x11pjname"
+cd "$TOOLCHAINS_BUILD/$x11pjname"
 git pull --quiet
+
+mkdir -p "$currentpath/$x11pjname"
 
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
 mkdir -p $currentpath/$x11pjname
