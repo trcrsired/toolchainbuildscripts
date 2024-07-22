@@ -137,6 +137,43 @@ fi
 
 if [ "$BUILDDEPENDENCIES" == "yes" ]; then
 
+
+cd "$TOOLCHAINS_BUILD/brotli"
+git pull --quiet
+
+mkdir -p $currentpath/brotli
+if [ ! -f $currentpath/brotli/.cmakeconfiguresuccess ]; then
+cd $currentpath/brotli
+${TOOLCHAINS_BUILD}/brotli/cmake -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "brotli autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.cmakeconfiguresuccess
+fi
+
+if [ ! -f $currentpath/brotli/.buildsuccess ]; then
+cd $currentpath/brotli
+ninja
+if [ $? -ne 0 ]; then
+echo "ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.buildsuccess
+fi
+
+if [ ! -f $currentpath/brotli/.installsuccess ]; then
+cd $currentpath/brotli
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "install failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.installsuccess
+fi
+
+cp -r --preserve=links $SYSROOT/install/* $SYSROOT/
+
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
 cd "$TOOLCHAINS_BUILD"
