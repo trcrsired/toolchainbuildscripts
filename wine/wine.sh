@@ -492,6 +492,65 @@ fi
 echo "$(date --iso-8601=seconds)" > $currentpath/xorgproto/.installsuccess
 fi
 
+
+
+mkdir -p "$currentpath"
+git pull --quiet
+if [ ! -d "$TOOLCHAINS_BUILD/xauth" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.freedesktop.org/xorg/app/xauth.git
+if [ $? -ne 0 ]; then
+echo "x11 clone failed"
+exit 1
+fi
+fi
+
+if [ ! -f $TOOLCHAINS_BUILD/xauth/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/xauth
+cd $TOOLCHAINS_BUILD/xauth
+NOCONFIGURE=1 ./autogen.sh
+if [ $? -ne 0 ]; then
+echo "xauth autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/xauth/.autogensuccess
+fi
+
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
+
+if [ ! -f $currentpath/xauth/.configuresuccess ]; then
+mkdir -p $currentpath/xauth
+cd $currentpath/xauth
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/xauth/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/xauth/config.cache --enable-malloc0returnsnull 
+if [ $? -ne 0 ]; then
+echo "xauth configuresuccess failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/xauth/.configuresuccess
+fi
+
+if [ ! -f $currentpath/xauth/.buildsuccess ]; then
+mkdir -p $currentpath/xauth
+cd ${currentpath}/xauth
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "xauth build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/xauth/.buildsuccess
+fi
+
+if [ ! -f $currentpath/xauth/.installsuccess ]; then
+cd ${currentpath}/xauth
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "xauth install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/xauth/.installsuccess
+fi
+
+
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 mkdir -p "$currentpath"
