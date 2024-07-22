@@ -226,6 +226,94 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.installsuccess
 fi
 
+
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/harfbuzz" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:harfbuzz/harfbuzz.git
+if [ $? -ne 0 ]; then
+echo "harfbuzz clone failed"
+exit 1
+fi
+fi
+
+cd "$TOOLCHAINS_BUILD/harfbuzz"
+git pull --quiet
+
+mkdir -p $currentpath/harfbuzz
+if [ ! -f $currentpath/harfbuzz/.cmakeconfiguresuccess ]; then
+cd $currentpath/harfbuzz
+cmake ${TOOLCHAINS_BUILD}/harfbuzz -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "harfbuzz autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.cmakeconfiguresuccess
+fi
+
+if [ ! -f $currentpath/harfbuzz/.buildsuccess ]; then
+cd $currentpath/harfbuzz
+ninja
+if [ $? -ne 0 ]; then
+echo "ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.buildsuccess
+fi
+
+if [ ! -f $currentpath/harfbuzz/.installsuccess ]; then
+cd $currentpath/harfbuzz
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "install failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.installsuccess
+fi
+
+
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/libpng" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:pnggroup/libpng.git
+if [ $? -ne 0 ]; then
+echo "libpng clone failed"
+exit 1
+fi
+fi
+
+mkdir -p ${currentpath}/libpng
+
+if [ ! -f $currentpath/libpng/.configuresuccess ]; then
+cd ${currentpath}/libpng
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libpng/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "libpng configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.configuresuccess
+fi
+
+if [ ! -f $currentpath/libpng/.buildsuccess ]; then
+cd ${currentpath}/libpng
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libpng build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.buildsuccess
+fi
+
+if [ ! -f $currentpath/libpng/.installsuccess ]; then
+cd ${currentpath}/libpng
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libpng install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.installsuccess
+fi
+
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 cd "$TOOLCHAINS_BUILD"
@@ -265,7 +353,6 @@ fi
 
 if [ ! -f $currentpath/freetype/.buildsuccess ]; then
 cd ${currentpath}/freetype
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/freetype/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
 make -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "freetype build failure"
@@ -310,7 +397,6 @@ fi
 
 if [ ! -f $currentpath/libx11/.buildsuccess ]; then
 cd ${currentpath}/libx11
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
 make -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "libx11 build failure"
@@ -328,6 +414,7 @@ exit 1
 fi
 echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.installsuccess
 fi
+
 
 if [ ! -d "$TOOLCHAINS_BUILD/Vulkan-Loader" ]; then
 cd "$TOOLCHAINS_BUILD"
