@@ -387,7 +387,8 @@ fi
 if [ ! -f $currentpath/libx11/.autogensuccess ]; then
 mkdir -p $currentpath/libx11
 cd $currentpath/libx11
-./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --disable-tests
+echo "ac_cv_func_malloc_0_nonnull=yes" > config.cache
+./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=config.cache
 if [ $? -ne 0 ]; then
 echo "libx11 autogen failed"
 exit 1
