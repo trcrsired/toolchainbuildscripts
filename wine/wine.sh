@@ -181,7 +181,7 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.installsuccess
 fi
 
-cp -r --preserve=links $SYSROOT/install/* $SYSROOT/
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
@@ -327,7 +327,7 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.installsuccess
 fi
 
-cp -r --preserve=links $SYSROOT/install/* $SYSROOT/
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 fi
 
