@@ -281,6 +281,8 @@ echo "libpng clone failed"
 exit 1
 fi
 fi
+cd "$currentpath/libpng"
+git pull --quiet
 
 mkdir -p ${currentpath}/libpng
 
@@ -325,6 +327,8 @@ echo "freetype clone failed"
 exit 1
 fi
 fi
+cd "$currentpath/freetype"
+git pull --quiet
 
 cd "$TOOLCHAINS_BUILD/freetype"
 git pull --quiet
@@ -382,6 +386,9 @@ echo "xorgproto clone failed"
 exit 1
 fi
 fi
+cd "$currentpath/xorgproto"
+git pull --quiet
+
 
 if [ ! -f $TOOLCHAINS_BUILD/xorgproto/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/xorgproto
@@ -439,6 +446,9 @@ echo "x11 clone failed"
 exit 1
 fi
 fi
+
+cd "$currentpath/x11"
+git pull --quiet
 
 if [ ! -f $TOOLCHAINS_BUILD/libx11/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/libx11
