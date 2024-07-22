@@ -65,7 +65,12 @@ fi
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 CANADIANCROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIANHOST --target=$HOST"
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+if [[ ${ARCH} == "x86_64" ]]; then
+MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
+else
+MULTILIBLISTS=
+fi
+GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
@@ -249,11 +254,16 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32i -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
 		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
+	elif [[ ${ARCH} == "x86_64" ]]; then
+		multilibs=(m64 m32 mx32)
+		multilibsoptions=(" -m64" " -m32" " -mx32")
+		multilibsdir=("lib64" "lib32" "libx32")
+		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
 	else
 		multilibs=(default)
 		multilibsoptions=("")
 		multilibsdir=("lib64")
-		multilibshost=($HOST)
+		multilibshost=("$HOST")
 	fi
 	glibcfiles=(libm.a libm.so libc.so)
 
