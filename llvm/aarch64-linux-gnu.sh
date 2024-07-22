@@ -63,6 +63,7 @@ git pull --quiet
 
 
 if ! command -v "$TARGETTRIPLE-gcc" &> /dev/null
+then
     echo "$TARGETTRIPLE-gcc not exists"
     exit 1
 fi
