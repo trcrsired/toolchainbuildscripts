@@ -177,7 +177,7 @@ linuxkernelheaders=${currentpath}/install/linux
 
 if [ ! -d $linuxkernelheaders ]; then
 	cd "$TOOLCHAINS_BUILD/linux"
-	make headers_install ARCH=riscv64 -j INSTALL_HDR_PATH=$linuxkernelheaders
+	make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=$linuxkernelheaders
 if [ $? -ne 0 ]; then
 echo "linux kernel headers install failure"
 exit 1
