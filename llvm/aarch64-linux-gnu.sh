@@ -74,7 +74,7 @@ SYSROOTPATH=$(dirname "$gccbinpath")
 SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
+if [ ! -f "${SYSROOTTRIPLEPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
