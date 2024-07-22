@@ -393,7 +393,7 @@ cd "$TOOLCHAINS_BUILD/$x11pjname"
 git pull --quiet
 
 
-if [ ! -f $TOOLCHAINS_BUILD/libxcb/.autogensuccess ]; then
+if [ ! -f $TOOLCHAINS_BUILD/$x11pjname/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/$x11pjname
 cd $TOOLCHAINS_BUILD/$x11pjname
 NOCONFIGURE=1 ./autogen.sh
