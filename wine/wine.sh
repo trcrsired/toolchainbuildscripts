@@ -113,7 +113,7 @@ fi
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/wine" ]; then
-git clone git@gitlab.winehq.org:wine/wine.git
+git clone https://gitlab.winehq.org/wine/wine.git
 if [ $? -ne 0 ]; then
 echo "wine clone failed"
 exit 1
