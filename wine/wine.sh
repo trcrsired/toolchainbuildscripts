@@ -91,6 +91,15 @@ else
 CROSSSETTIGNS=
 fi
 
+if [ -z ${ARCH} ]; then
+    ARCH=${HOST%%-*}
+fi
+
+if [ "$MINIMUMBUILD" == "yes" ]; then
+echo "MINIMUMBUILD is set to yes. We build wine without GUI support."
+CROSSSETTIGNS="$CROSSSETTIGNS --without-x --without-freetype"
+fi
+
 echo "ARCH=$ARCH"
 echo "--build=$BUILD"
 echo "--host=$HOST"
