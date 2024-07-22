@@ -296,7 +296,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
 			canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
 			for file in "${glibcfiles[@]}"; do
-				filepath=$currentpath/install/glibc/${item}/$file
+				filepath=$canadianreplacedstring/$file
 				echo "line300 $filepath"
 				if [ -f "$filepath" ]; then
 					getfilesize=$(wc -c <"$filepath")
