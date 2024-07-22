@@ -182,9 +182,12 @@ fi
 echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.installsuccess
 fi
 
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/libx11" ]; then
-cd "$TOOLCHAINS_BUILD"
+
+
+mkdir -p "$currentpath/libx11"
+git pull --quiet
+if [ ! -d "$currentpath/libx11" ]; then
+cd "$currentpath"
 git clone https://gitlab.freedesktop.org/xorg/lib/libx11
 if [ $? -ne 0 ]; then
 echo "x11 clone failed"
@@ -192,30 +195,15 @@ exit 1
 fi
 fi
 
-cd "$TOOLCHAINS_BUILD/libx11"
-git pull --quiet
-
-if [ ! -f $TOOLCHAINS_BUILD/libx11/.autogensuccess ]; then
-mkdir -p $TOOLCHAINS_BUILD/libx11
-cd $TOOLCHAINS_BUILD/libx11
-./autogen.sh
+if [ ! -f $currentpath/libx11/.autogensuccess ]; then
+mkdir -p $currentpath/libx11
+cd $currentpath/libx11
+./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
 if [ $? -ne 0 ]; then
 echo "libx11 autogen failed"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libx11/.autogensuccess
-fi
-
-mkdir -p ${currentpath}/libx11
-
-if [ ! -f $currentpath/libx11/.configuresuccess ]; then
-cd ${currentpath}/libx11
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "libx11 configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.configuresuccess
 fi
 
 if [ ! -f $currentpath/libx11/.buildsuccess ]; then
