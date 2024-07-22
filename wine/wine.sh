@@ -387,7 +387,7 @@ fi
 if [ ! -f $currentpath/libx11/.autogensuccess ]; then
 mkdir -p $currentpath/libx11
 cd $currentpath/libx11
-./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
+./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --disable-tests
 if [ $? -ne 0 ]; then
 echo "libx11 autogen failed"
 exit 1
