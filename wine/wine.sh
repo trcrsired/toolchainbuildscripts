@@ -375,8 +375,8 @@ fi
 
 mkdir -p "$currentpath"
 git pull --quiet
-if [ ! -d "$currentpath/libx11" ]; then
-cd "$currentpath"
+if [ ! -d "$TOOLCHAINS_BUILD/libx11" ]; then
+cd "$TOOLCHAINS_BUILD"
 git clone https://gitlab.freedesktop.org/xorg/lib/libx11
 if [ $? -ne 0 ]; then
 echo "x11 clone failed"
@@ -387,8 +387,7 @@ fi
 if [ ! -f $currentpath/libx11/.autogensuccess ]; then
 mkdir -p $currentpath/libx11
 cd $currentpath/libx11
-echo "ac_cv_func_malloc_0_nonnull=yes" > config.cache
-./autogen.sh --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=config.cache
+NOCONFIGURE=1 ./autogen.sh
 if [ $? -ne 0 ]; then
 echo "libx11 autogen failed"
 exit 1
@@ -396,7 +395,21 @@ fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libx11/.autogensuccess
 fi
 
+
+if [ ! -f $currentpath/libx11/.configuresuccess ]; then
+mkdir -p $currentpath/libx11
+cd $currentpath/libx11
+echo "ac_cv_func_malloc_0_nonnull=yes" > config.cache
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=config.cache
+if [ $? -ne 0 ]; then
+echo "libx11 configuresuccess failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libx11/.configuresuccess
+fi
+
 if [ ! -f $currentpath/libx11/.buildsuccess ]; then
+mkdir -p $currentpath/libx11
 cd ${currentpath}/libx11
 make -j$(nproc)
 if [ $? -ne 0 ]; then
