@@ -9,6 +9,9 @@ relpath=$(realpath .)
 if [ -z ${HOST+x} ]; then
 	HOST=riscv64-linux-gnu
 fi
+if [ -z ${ARCH+x} ]; then
+	ARCH=riscv64
+fi
 currentpath=$relpath/.gnuartifacts/$HOST
 mkdir -p ${currentpath}
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
