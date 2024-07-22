@@ -373,7 +373,7 @@ fi
 
 
 
-mkdir -p "$currentpath/libx11"
+mkdir -p "$currentpath"
 git pull --quiet
 if [ ! -d "$currentpath/libx11" ]; then
 cd "$currentpath"
