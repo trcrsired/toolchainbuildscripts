@@ -71,6 +71,7 @@ gccpath=$(command -v "$TARGETTRIPLE-gcc")
 gccbinpath=$(dirname "$gccpath")
 SYSROOTPATH=$(dirname "$gccbinpath")
 SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
+CURRENTTRIPLEPATH=${currentpath}
 
 if [ ! -f "${SYSROOTPATH}/include/zlib.h" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
