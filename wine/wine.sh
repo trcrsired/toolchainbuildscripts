@@ -147,6 +147,17 @@ fi
 cd "$TOOLCHAINS_BUILD/FreeType"
 git pull --quiet
 
+if [ ! -d "$TOOLCHAINS_BUILD/Vulkan-Loader" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:KhronosGroup/Vulkan-Loader.git
+if [ $? -ne 0 ]; then
+echo "Vulkan Loader clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/Vulkan-Loader"
+git pull --quiet
+
 if [[ ${BUILD} != ${HOST} ]]; then
 BUILDWINEDIR="$WINEARTIFACTSDIR/$BUILD/wine"
 if [ ! -d "$BUILDWINEDIR" ]; then
@@ -162,6 +173,7 @@ if [ "$MINIMUMBUILD" == "yes" ]; then
 echo "MINIMUMBUILD is set to yes. We build wine without GUI support."
 CROSSSETTIGNS="$CROSSSETTIGNS --without-x --without-freetype"
 fi
+
 
 mkdir -p ${currentwinepath}
 
