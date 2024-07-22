@@ -259,9 +259,21 @@ if [ ! -d $PREFIXTARGET/include/c++ ]; then
 	cd ${currentpath}/targetbuild/$HOST/gcc
 	if [ ! -f Makefile ]; then
 		$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
+		if [ $? -ne 0 ]; then
+			echo "gcc configure failure"
+			exit 1
+		fi
 	fi
 	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "gcc build failure"
+		exit 1
+	fi
 	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "gcc install-strip failure"
+		exit 1
+	fi
 	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
 fi
 
@@ -273,13 +285,29 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p ${currentpath}/hostbuild/$HOST/binutils-gdb
 cd ${currentpath}/hostbuild/$HOST/binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+STRIP=$HOST-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+if [ $? -ne 0 ]; then
+	echo "binutils configure failure"
+	exit 1
+fi
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+	echo "gcc build failure"
+	exit 1
+fi
 make install -j$(nproc)
+if [ $? -ne 0 ]; then
+	echo "gcc install failure"
+	exit 1
+fi
 make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+	echo "gcc install-strip failure"
+	exit 1
+fi
 ${HOST}-strip --strip-unneeded $HOSTPREFIX/bin/*
 ${HOST}-strip --strip-unneeded $HOSTPREFIX/lib/*
 ${HOST}-strip --strip-unneeded $HOSTPREFIX/lib64/*
