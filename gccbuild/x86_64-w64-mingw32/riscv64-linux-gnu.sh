@@ -295,9 +295,11 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 
 		if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
 			canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
-			for file2 in "${glibcfiles[@]}"; do
-				sed -i "s%${canadianreplacedstring}%%g" $currentpath/install/glibc/${item}/$file2
-				break
+			for file in "${glibcfiles[@]}"; do
+				getfilesize=$(wc -c <"$currentpath/install/glibc/${item}/$file")
+				if [ $getfilesize -lt 1024 ]; then
+					sed -i "s%${canadianreplacedstring}%%g" $currentpath/install/glibc/${item}/$file
+				fi
 			done
 			unset canadianreplacedstring
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
