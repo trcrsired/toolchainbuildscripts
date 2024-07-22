@@ -113,6 +113,7 @@ fi
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/wine" ]; then
+cd "$TOOLCHAINS_BUILD"
 git clone https://gitlab.winehq.org/wine/wine.git
 if [ $? -ne 0 ]; then
 echo "wine clone failed"
@@ -122,6 +123,29 @@ fi
 cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
 
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/libX11" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.freedesktop.org/xorg/lib/libx11
+if [ $? -ne 0 ]; then
+echo "x11 clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/libX11"
+git pull --quiet
+
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/FreeType" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.freedesktop.org/freetype/freetype.git
+if [ $? -ne 0 ]; then
+echo "freetype clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/FreeType"
+git pull --quiet
 
 if [[ ${BUILD} != ${HOST} ]]; then
 BUILDWINEDIR="$WINEARTIFACTSDIR/$BUILD/wine"
