@@ -247,7 +247,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	if [[ ${ARCH} == "riscv" ]]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
 		multilibsoptions=("" " -march=lp64" " -march=lp64d" " -march=ilp32" " -march=ilp32d")
-		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+		multilibsdir=("lib" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
 	else
 		multilibs=(default)
@@ -262,10 +262,10 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	mkdir -p ${currentpath}/install/sysroot
 
 	for i in "${!multilibs[@]}"; do
-		local item=${multilibs[$i]}
-		local marchitem=${multilibsoptions[$i]}
-		local libdir=${multilibsdir[$i]}
-		local host=${multilibshost[$i]}
+		item=${multilibs[$i]}
+		marchitem=${multilibsoptions[$i]}
+		libdir=${multilibsdir[$i]}
+		host=${multilibshost[$i]}
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
 		
@@ -304,10 +304,6 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 
 		if [ ! -f ${currentpath}/build/glibc/$item/.stripsuccess ]; then
 			$HOST-strip --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
-			if [ $? -ne 0 ]; then
-				echo "glibc ($item) strip failure"
-				exit 1
-			fi
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
@@ -316,6 +312,10 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			cp -r --preserve=links ${currentpath}/build/glibc/$item/lib $SYSROOT/$libdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 		fi
+		unset item
+		unset marchitem
+		unset libdir
+		unset host
 	done
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
