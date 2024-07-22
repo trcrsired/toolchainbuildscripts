@@ -123,8 +123,8 @@ git pull --quiet
 
 if [[ ${BUILD} != ${HOST} ]]; then
 BUILDWINEDIR="$(realpath .)/.wineartifacts/$BUILD/wine"
-if [ ! -d "$DIR" ]; then
-echo "$DIR not exists. Cannot cross compile"
+if [ ! -d "$BUILDWINEDIR" ]; then
+echo "$BUILDWINEDIR not exists. Cannot cross compile"
 exit 1
 fi
 CROSSSETTIGNS="--with-wine-tools=$BUILDWINEDIR"
