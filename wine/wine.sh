@@ -76,7 +76,7 @@ currentpath=$WINEARTIFACTSDIR/$HOST
 currentwinepath=${currentpath}/wine
 
 if [ -z ${SYSROOT+x} ]; then
-gccpath=$(command -v "$TARGETTRIPLE-gcc")
+gccpath=$(command -v "$HOST-gcc")
 gccbinpath=$(dirname "$gccpath")
 SYSROOTPATH=$(dirname "$gccbinpath")
 SYSROOT=$SYSROOTPATH/$HOST
