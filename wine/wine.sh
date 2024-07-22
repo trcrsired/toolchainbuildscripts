@@ -196,7 +196,7 @@ fi
 
 else
 
-if [ ! -f $TOOLCHAINS_BUILD/$x11pjname/autogen.sh ]; then
+if [ -f $TOOLCHAINS_BUILD/$x11pjname/autogen.sh ]; then
 if [ ! -f $TOOLCHAINS_BUILD/$x11pjname/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/$x11pjname
 cd $TOOLCHAINS_BUILD/$x11pjname
