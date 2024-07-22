@@ -392,6 +392,18 @@ fi
 cd "$TOOLCHAINS_BUILD/$x11pjname"
 git pull --quiet
 
+
+if [ ! -f $TOOLCHAINS_BUILD/libxcb/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/$x11pjname
+cd $TOOLCHAINS_BUILD/$x11pjname
+NOCONFIGURE=1 ./autogen.sh
+if [ $? -ne 0 ]; then
+echo "$x11pjname autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/$x11pjname/.autogensuccess
+fi
+
 mkdir -p "$currentpath/$x11pjname"
 
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
