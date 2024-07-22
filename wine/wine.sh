@@ -137,248 +137,11 @@ fi
 
 if [ "$BUILDDEPENDENCIES" == "yes" ]; then
 
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/brotli" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone git@github.com:google/brotli.git
-if [ $? -ne 0 ]; then
-echo "brotli clone failed"
-exit 1
-fi
-fi
 
-cd "$TOOLCHAINS_BUILD/brotli"
-git pull --quiet
-
-mkdir -p $currentpath/brotli
-if [ ! -f $currentpath/brotli/.cmakeconfiguresuccess ]; then
-cd $currentpath/brotli
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/brotli -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "brotli autogen failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.cmakeconfiguresuccess
-fi
-
-if [ ! -f $currentpath/brotli/.buildsuccess ]; then
-cd $currentpath/brotli
-ninja
-if [ $? -ne 0 ]; then
-echo "ninja failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.buildsuccess
-fi
-
-if [ ! -f $currentpath/brotli/.installsuccess ]; then
-cd $currentpath/brotli
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "install failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/brotli/.installsuccess
-fi
-
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/bzip2" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone https://gitlab.com/federicomenaquintero/bzip2
-if [ $? -ne 0 ]; then
-echo "bzip2 clone failed"
-exit 1
-fi
-fi
-
-cd "$TOOLCHAINS_BUILD/bzip2"
-git pull --quiet
-
-mkdir -p $currentpath/bzip2
-if [ ! -f $currentpath/bzip2/.cmakeconfiguresuccess ]; then
-cd $currentpath/bzip2
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/bzip2 -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "bzip2 autogen failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.cmakeconfiguresuccess
-fi
-
-if [ ! -f $currentpath/bzip2/.buildsuccess ]; then
-cd $currentpath/bzip2
-ninja
-if [ $? -ne 0 ]; then
-echo "ninja failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.buildsuccess
-fi
-
-if [ ! -f $currentpath/bzip2/.installsuccess ]; then
-cd $currentpath/bzip2
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "install failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/bzip2/.installsuccess
-fi
-
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/harfbuzz" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone git@github.com:harfbuzz/harfbuzz.git
-if [ $? -ne 0 ]; then
-echo "harfbuzz clone failed"
-exit 1
-fi
-fi
-
-cd "$TOOLCHAINS_BUILD/harfbuzz"
-git pull --quiet
-
-mkdir -p $currentpath/harfbuzz
-if [ ! -f $currentpath/harfbuzz/.cmakeconfiguresuccess ]; then
-cd $currentpath/harfbuzz
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/harfbuzz -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "harfbuzz autogen failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.cmakeconfiguresuccess
-fi
-
-if [ ! -f $currentpath/harfbuzz/.buildsuccess ]; then
-cd $currentpath/harfbuzz
-ninja
-if [ $? -ne 0 ]; then
-echo "ninja failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.buildsuccess
-fi
-
-if [ ! -f $currentpath/harfbuzz/.installsuccess ]; then
-cd $currentpath/harfbuzz
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "install failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/harfbuzz/.installsuccess
-fi
-
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/libpng" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone git@github.com:pnggroup/libpng.git
-if [ $? -ne 0 ]; then
-echo "libpng clone failed"
-exit 1
-fi
-fi
-cd "$currentpath/libpng"
-git pull --quiet
-
-mkdir -p ${currentpath}/libpng
-
-if [ ! -f $currentpath/libpng/.configuresuccess ]; then
-cd ${currentpath}/libpng
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libpng/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "libpng configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.configuresuccess
-fi
-
-if [ ! -f $currentpath/libpng/.buildsuccess ]; then
-cd ${currentpath}/libpng
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "libpng build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.buildsuccess
-fi
-
-if [ ! -f $currentpath/libpng/.installsuccess ]; then
-cd ${currentpath}/libpng
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "libpng install failure"
-exit 1
-fi
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
-echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.installsuccess
-fi
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone https://gitlab.freedesktop.org/freetype/freetype.git
-if [ $? -ne 0 ]; then
-echo "freetype clone failed"
-exit 1
-fi
-fi
-cd "$currentpath/freetype"
-git pull --quiet
-
-cd "$TOOLCHAINS_BUILD/freetype"
-git pull --quiet
-if [ ! -f $TOOLCHAINS_BUILD/freetype/.autogensuccess ]; then
-mkdir -p $TOOLCHAINS_BUILD/freetype
-cd $TOOLCHAINS_BUILD/freetype
-./autogen.sh
-if [ $? -ne 0 ]; then
-echo "freetype autogen failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/freetype/.autogensuccess
-fi
-
-mkdir -p ${currentpath}/freetype
-
-if [ ! -f $currentpath/freetype/.configuresuccess ]; then
-cd ${currentpath}/freetype
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/freetype/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "freetype configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.configuresuccess
-fi
-
-if [ ! -f $currentpath/freetype/.buildsuccess ]; then
-cd ${currentpath}/freetype
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "freetype build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.buildsuccess
-fi
-
-if [ ! -f $currentpath/freetype/.installsuccess ]; then
-cd ${currentpath}/freetype
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "freetype install failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.installsuccess
-fi
-
-
-function handlex11deps
+function handlebuild
 {
-x11pjname=$1
-x11pjrepo=$2
+local x11pjname=$1
+local x11pjrepo=$2
 
 mkdir -p "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/$x11pjname" ]; then
@@ -393,6 +156,47 @@ cd "$TOOLCHAINS_BUILD/$x11pjname"
 git pull --quiet
 
 
+if [ -f "$TOOLCHAINS_BUILD/$x11pjname/CMakeLists.txt" ]; then
+
+cd "$TOOLCHAINS_BUILD/$x11pjname"
+git pull --quiet
+
+mkdir -p $currentpath/$x11pjname
+if [ ! -f $currentpath/$x11pjname/.cmakeconfiguresuccess ]; then
+cd $currentpath/$x11pjname
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/$x11pjname -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+if [ $? -ne 0 ]; then
+echo "$x11pjname autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.cmakeconfiguresuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
+cd $currentpath/$x11pjname
+ninja
+if [ $? -ne 0 ]; then
+echo "$x11pjname ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.buildsuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
+cd $currentpath/$x11pjname
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "$x11pjname install failed"
+exit 1
+fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
+echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.installsuccess
+fi
+
+
+else
+
+if [ ! -f $TOOLCHAINS_BUILD/$x11pjname/autogen.sh ]; then
 if [ ! -f $TOOLCHAINS_BUILD/$x11pjname/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/$x11pjname
 cd $TOOLCHAINS_BUILD/$x11pjname
@@ -402,6 +206,16 @@ echo "$x11pjname autogen failed"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/$x11pjname/.autogensuccess
+fi
+fi
+
+if [ ! -f ${TOOLCHAINS_BUILD}/$x11pjname/configure ]; then
+if [ ! -f ${TOOLCHAINS_BUILD}/$x11pjname/configure.ac ]; then
+echo "$x11pjname not an autotool project"
+exit 1
+fi
+cd $TOOLCHAINS_BUILD/$x11pjname
+autoreconf -i
 fi
 
 mkdir -p "$currentpath/$x11pjname"
@@ -439,60 +253,26 @@ cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
 fi
 
+fi
+
 }
 
-handlex11deps "libxtrans" "https://gitlab.freedesktop.org/xorg/lib/libxtrans.git"
-handlex11deps "xorgproto" "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git"
-handlex11deps "libxau" "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
-handlex11deps "libxcb" "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
-handlex11deps "libx11" "https://gitlab.freedesktop.org/xorg/lib/libx11"
+handlebuild "brotli" "git@github.com:google/brotli.git"
+handlebuild "bzip2" "https://gitlab.com/federicomenaquintero/bzip2"
+handlebuild "harfbuzz" "git@github.com:harfbuzz/harfbuzz.git"
+handlebuild "libpng" "git@github.com:pnggroup/libpng.git"
+handlebuild "freetype" "https://gitlab.freedesktop.org/freetype/freetype.git"
+handlebuild "libxtrans" "https://gitlab.freedesktop.org/xorg/lib/libxtrans.git"
+handlebuild "xorgproto" "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git"
+handlebuild "libxau" "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
+handlebuild "libxcb" "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
+handlebuild "libx11" "https://gitlab.freedesktop.org/xorg/lib/libx11"
+handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
+#handlebuild "mesa" "https://gitlab.freedesktop.org/mesa/mesa.git"
+#handlebuild "Vulkan-Loader" "git@github.com:KhronosGroup/Vulkan-Loader.git"
 
-
-if [ ! -d "$TOOLCHAINS_BUILD/Vulkan-Loader" ]; then
-cd "$TOOLCHAINS_BUILD"
-git clone git@github.com:KhronosGroup/Vulkan-Loader.git
-if [ $? -ne 0 ]; then
-echo "Vulkan Loader clone failed"
-exit 1
-fi
-fi
-
-cd "$TOOLCHAINS_BUILD/Vulkan-Loader"
-git pull --quiet
-
-mkdir -p $currentpath/Vulkan-Loader
-if [ ! -f $currentpath/Vulkan-Loader/.cmakeconfiguresuccess ]; then
-cd $currentpath/Vulkan-Loader
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/Vulkan-Loader -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
-if [ $? -ne 0 ]; then
-echo "Vulkan-Loader autogen failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.cmakeconfiguresuccess
-fi
-
-if [ ! -f $currentpath/Vulkan-Loader/.buildsuccess ]; then
-cd $currentpath/Vulkan-Loader
-ninja
-if [ $? -ne 0 ]; then
-echo "ninja failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.buildsuccess
-fi
-
-if [ ! -f $currentpath/Vulkan-Loader/.installsuccess ]; then
-cd $currentpath/Vulkan-Loader
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "install failed"
-exit 1
-fi
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
-echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.installsuccess
-fi
-
-
+mkdir -p $PREFIX/dependencies
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/dependencies/
 fi
 
 if [[ ${BUILD} != ${HOST} ]]; then
