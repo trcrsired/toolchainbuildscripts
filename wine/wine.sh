@@ -399,8 +399,7 @@ fi
 if [ ! -f $currentpath/libx11/.configuresuccess ]; then
 mkdir -p $currentpath/libx11
 cd $currentpath/libx11
-echo "ac_cv_func_malloc_0_nonnull=yes" > $currentpath/libx11/config.cache
-CONFIG_SITE=$currentpath/libx11/config.cache STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/libx11/config.cache --enable-malloc0returnsnull 
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libx11/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/libx11/config.cache --enable-malloc0returnsnull 
 if [ $? -ne 0 ]; then
 echo "libx11 configuresuccess failed"
 exit 1
