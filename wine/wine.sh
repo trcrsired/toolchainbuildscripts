@@ -377,7 +377,65 @@ fi
 
 
 mkdir -p "$currentpath"
+if [ ! -d "$TOOLCHAINS_BUILD/libxtrans" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://gitlab.freedesktop.org/xorg/lib/libxtrans.git
+if [ $? -ne 0 ]; then
+echo "libxtrans clone failed"
+exit 1
+fi
+fi
+cd "$currentpath/libxtrans"
 git pull --quiet
+
+
+if [ ! -f $TOOLCHAINS_BUILD/libxtrans/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/libxtrans
+cd $TOOLCHAINS_BUILD/libxtrans
+NOCONFIGURE=1 ./autogen.sh
+if [ $? -ne 0 ]; then
+echo "libxtrans autogen failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libxtrans/.autogensuccess
+fi
+
+
+if [ ! -f $currentpath/libxtrans/.configuresuccess ]; then
+mkdir -p $currentpath/libxtrans
+cd $currentpath/libxtrans
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/libxtrans/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/libxtrans/config.cache --enable-malloc0returnsnull 
+if [ $? -ne 0 ]; then
+echo "libxtrans configuresuccess failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/libxtrans/.configuresuccess
+fi
+
+if [ ! -f $currentpath/libxtrans/.buildsuccess ]; then
+mkdir -p $currentpath/libxtrans
+cd ${currentpath}/libxtrans
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libxtrans build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libxtrans/.buildsuccess
+fi
+
+if [ ! -f $currentpath/libxtrans/.installsuccess ]; then
+cd ${currentpath}/libxtrans
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "libxtrans install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/libxtrans/.installsuccess
+fi
+
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
+
+mkdir -p "$currentpath"
 if [ ! -d "$TOOLCHAINS_BUILD/xorgproto" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://gitlab.freedesktop.org/xorg/proto/xorgproto.git
