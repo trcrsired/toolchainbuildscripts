@@ -171,7 +171,7 @@ echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.buildsuccess
 fi
 
 if [ ! -f $currentpath/freetype/.installsuccess ]; then
-make install-strip -j$(nproc)
+make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "freetype install failure"
 exit 1
@@ -227,7 +227,7 @@ echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.buildsuccess
 fi
 
 if [ ! -f $currentpath/libx11/.installsuccess ]; then
-make install-strip -j$(nproc)
+make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "libx11 install failure"
 exit 1
