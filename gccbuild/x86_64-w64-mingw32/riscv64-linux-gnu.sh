@@ -268,7 +268,6 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		host=${multilibshost[$i]}
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
-		
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
 			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-gcc$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$HOST )
 			if [ $? -ne 0 ]; then
