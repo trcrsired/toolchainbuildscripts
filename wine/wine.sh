@@ -70,7 +70,9 @@ fi
 
 BUILD=$(${CC_FOR_BUILD} -dumpmachine)
 PREFIX=$SOFTWARESPATH/$HOST
-currentpath=$(realpath .)/.wineartifacts/$HOST
+
+WINEARTIFACTSDIR=$(realpath .)/.wineartifacts
+currentpath=$WINEARTIFACTSDIR/$HOST
 currentwinepath=${currentpath}/wine
 
 if [ -z ${ARCH} ]; then
@@ -122,7 +124,7 @@ git pull --quiet
 
 
 if [[ ${BUILD} != ${HOST} ]]; then
-BUILDWINEDIR="$(realpath .)/.wineartifacts/$BUILD/wine"
+BUILDWINEDIR="$WINEARTIFACTSDIR/$BUILD/wine"
 if [ ! -d "$BUILDWINEDIR" ]; then
 echo "$BUILDWINEDIR not exists. Cannot cross compile"
 exit 1
