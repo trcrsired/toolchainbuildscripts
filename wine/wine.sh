@@ -171,6 +171,7 @@ echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.buildsuccess
 fi
 
 if [ ! -f $currentpath/freetype/.installsuccess ]; then
+cd ${currentpath}/freetype
 make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "freetype install failure"
@@ -227,6 +228,7 @@ echo "$(date --iso-8601=seconds)" > $currentpath/libx11/.buildsuccess
 fi
 
 if [ ! -f $currentpath/libx11/.installsuccess ]; then
+cd ${currentpath}/libx11
 make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "libx11 install failure"
@@ -247,8 +249,9 @@ fi
 cd "$TOOLCHAINS_BUILD/Vulkan-Loader"
 git pull --quiet
 
-
+mkdir -p $currentpath/Vulkan-Loader
 if [ ! -f $currentpath/Vulkan-Loader/.cmakeconfiguresuccess ]; then
+cd $currentpath/Vulkan-Loader
 ${TOOLCHAINS_BUILD}/Vulkan-Loader/cmake -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
 if [ $? -ne 0 ]; then
 echo "Vulkan-Loader autogen failed"
@@ -258,6 +261,7 @@ echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.cmakeconf
 fi
 
 if [ ! -f $currentpath/Vulkan-Loader/.buildsuccess ]; then
+cd $currentpath/Vulkan-Loader
 ninja
 if [ $? -ne 0 ]; then
 echo "ninja failed"
@@ -267,6 +271,7 @@ echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.buildsucc
 fi
 
 if [ ! -f $currentpath/Vulkan-Loader/.installsuccess ]; then
+cd $currentpath/Vulkan-Loader
 ninja install/strip
 if [ $? -ne 0 ]; then
 echo "install failed"
