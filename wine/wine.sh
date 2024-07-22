@@ -153,7 +153,7 @@ git pull --quiet
 mkdir -p $currentpath/brotli
 if [ ! -f $currentpath/brotli/.cmakeconfiguresuccess ]; then
 cd $currentpath/brotli
-${TOOLCHAINS_BUILD}/brotli/cmake -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+cmake ${TOOLCHAINS_BUILD}/brotli -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
 if [ $? -ne 0 ]; then
 echo "brotli autogen failed"
 exit 1
@@ -299,7 +299,7 @@ git pull --quiet
 mkdir -p $currentpath/Vulkan-Loader
 if [ ! -f $currentpath/Vulkan-Loader/.cmakeconfiguresuccess ]; then
 cd $currentpath/Vulkan-Loader
-${TOOLCHAINS_BUILD}/Vulkan-Loader/cmake -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+cmake ${TOOLCHAINS_BUILD}/Vulkan-Loader -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
 if [ $? -ne 0 ]; then
 echo "Vulkan-Loader autogen failed"
 exit 1
