@@ -124,6 +124,8 @@ cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
 
 
+if [ "$BUILDDEPENDENCIES" == "yes" ]; then
+
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -278,6 +280,8 @@ echo "install failed"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.installsuccess
+fi
+
 fi
 
 if [[ ${BUILD} != ${HOST} ]]; then
