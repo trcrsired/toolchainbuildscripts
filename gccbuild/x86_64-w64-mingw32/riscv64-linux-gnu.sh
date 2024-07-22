@@ -262,13 +262,12 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	mkdir -p ${currentpath}/install/sysroot
 
 	for i in "${!multilibs[@]}"; do
-		local item=${multilibs[$i]}
-		local marchitem=${multilibsoptions[$i]}
-		local libdir=${multilibsdir[$i]}
-		local host=${multilibshost[$i]}
+		item=${multilibs[$i]}
+		marchitem=${multilibsoptions[$i]}
+		libdir=${multilibsdir[$i]}
+		host=${multilibshost[$i]}
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
-		
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
 			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-gcc$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$HOST )
 			if [ $? -ne 0 ]; then
@@ -316,6 +315,10 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			cp -r --preserve=links ${currentpath}/build/glibc/$item/lib $SYSROOT/$libdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 		fi
+		unset item
+		unset marchitem
+		unset libdir
+		unset host
 	done
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
