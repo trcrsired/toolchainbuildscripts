@@ -75,6 +75,13 @@ WINEARTIFACTSDIR=$(realpath .)/.wineartifacts
 currentpath=$WINEARTIFACTSDIR/$HOST
 currentwinepath=${currentpath}/wine
 
+if [ -z ${SYSROOT+x} ]; then
+gccpath=$(command -v "$TARGETTRIPLE-gcc")
+gccbinpath=$(dirname "$gccpath")
+SYSROOTPATH=$(dirname "$gccbinpath")
+SYSROOT=$SYSROOTPATH/$HOST
+fi
+
 if [ -z ${ARCH} ]; then
     ARCH=${HOST%%-*}
 fi
@@ -123,6 +130,10 @@ fi
 cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
 
+
+if [[ ${BUILD} != ${HOST} ]]; then
+BUILDDEPENDENCIES=yes
+fi
 
 if [ "$BUILDDEPENDENCIES" == "yes" ]; then
 
@@ -247,7 +258,7 @@ if [ $? -ne 0 ]; then
 echo "Vulkan-Loader autogen failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.cmakeconfiguresuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.cmakeconfiguresuccess
 fi
 
 if [ ! -f $currentpath/Vulkan-Loader/.buildsuccess ]; then
@@ -257,7 +268,7 @@ if [ $? -ne 0 ]; then
 echo "ninja failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.buildsuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.buildsuccess
 fi
 
 if [ ! -f $currentpath/Vulkan-Loader/.installsuccess ]; then
@@ -267,8 +278,10 @@ if [ $? -ne 0 ]; then
 echo "install failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/Vulkan-Loader/.installsuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.installsuccess
 fi
+
+cp -r --preserve=links $SYSROOT/install/* $SYSROOT/
 
 fi
 
