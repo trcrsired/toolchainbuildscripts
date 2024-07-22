@@ -297,6 +297,8 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
 			for file in "${glibcfiles[@]}"; do
 				getfilesize=$(wc -c <"$currentpath/install/glibc/${item}/$file")
+				echo $getfilesize
+				exit 1
 				if [ $getfilesize -lt 1024 ]; then
 					sed -i "s%${canadianreplacedstring}%%g" $currentpath/install/glibc/${item}/$file
 				fi
