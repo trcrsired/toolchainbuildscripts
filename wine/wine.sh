@@ -122,7 +122,7 @@ git pull --quiet
 
 
 if [[ ${BUILD} != ${HOST} ]]; then
-CROSSSETTIGNS="--with-wine-tools=$TOOLCHAINS_BUILD/wine"
+CROSSSETTIGNS="--with-wine-tools=$(realpath .)/.wineartifacts/$BUILD"
 else
 CROSSSETTIGNS=
 fi
