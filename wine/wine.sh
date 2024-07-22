@@ -137,6 +137,15 @@ fi
 
 if [ "$BUILDDEPENDENCIES" == "yes" ]; then
 
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/brotli" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:google/brotli.git
+if [ $? -ne 0 ]; then
+echo "brotli clone failed"
+exit 1
+fi
+fi
 
 cd "$TOOLCHAINS_BUILD/brotli"
 git pull --quiet
