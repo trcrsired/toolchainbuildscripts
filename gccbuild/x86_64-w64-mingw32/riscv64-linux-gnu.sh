@@ -294,10 +294,12 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		fi
 
 		if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
+			canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
 			for file2 in "${glibcfiles[@]}"; do
-				sed -i "s%${currentpath}/install/glibc/${item}/lib%%g" $currentpath/install/glibc/${item}/$file2
+				sed -i "s%${canadianreplacedstring}%%g" $currentpath/install/glibc/${item}/$file2
 				break
 			done
+			unset canadianreplacedstring
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
 		fi
 
