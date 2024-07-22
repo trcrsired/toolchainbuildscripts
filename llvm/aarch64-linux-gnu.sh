@@ -129,3 +129,9 @@ cd $CURRENTTRIPLEPATH/llvm
 ninja
 ninja install/strip
 fi
+
+if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
+	cd $TOOLCHAINS_LLVMPATH
+	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
+	chmod 755 ${TARGETTRIPLE}.tar.xz
+fi
