@@ -7,7 +7,7 @@ fi
 
 relpath=$(realpath .)
 if [ -z ${HOST+x} ]; then
-	HOST=riscv64-linux-gnu
+	HOST=riscv64-generic-linux-gnu
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=riscv
@@ -40,16 +40,6 @@ HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
-
-if [ -z ${GLIBCVERSION+x} ]; then
-GLIBCVERSION="2.31"
-fi
-if [ -z ${GLIBCBRANCH+x} ]; then
-GLIBCBRANCH="release/$GLIBCVERSION/master"
-fi
-if [ -z ${GLIBCREPOPATH+x} ]; then
-GLIBCREPOPATH="$TOOLCHAINS_BUILD/glibc"
-fi
 
 if [[ ${BUILD} == ${HOST} ]]; then
 	echo "Native compilation not supported"
@@ -121,15 +111,15 @@ fi
 cd "$TOOLCHAINS_BUILD/mingw-w64"
 git pull --quiet
 
-if [ ! -d "$GLIBCREPOPATH" ]; then
+if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone -b $GLIBCBRANCH git://sourceware.org/git/glibc.git "$GLIBCREPOPATH"
+git clone -b stableabi https://github.com/trcrsired/glibc.git
 if [ $? -ne 0 ]; then
 echo "glibc clone failed"
 exit 1
 fi
 fi
-cd "$GLIBCREPOPATH"
+cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
@@ -258,7 +248,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
 		multilibsoptions=("" " -march=lp64" " -march=lp64d" " -march=ilp32" " -march=ilp32d")
 		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu")
+		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
 	else
 		multilibs=(default)
 		multilibsoptions=("")
@@ -280,7 +270,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		cd ${currentpath}/build/glibc/$item
 		
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-gcc$marchitem" $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$HOST )
+			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-gcc$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$HOST )
 			if [ $? -ne 0 ]; then
 				echo "glibc ($item) configure failure"
 				exit 1
@@ -303,6 +293,15 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			fi
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.installsuccess
 		fi
+
+		if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
+			for file2 in "${glibcfiles[@]}"; do
+				sed -i "s%${currentpath}/install/glibc/${item}/lib%%g" $currentpath/install/glibc/${item}/$file2
+				break
+			done
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
+		fi
+
 		if [ ! -f ${currentpath}/build/glibc/$item/.stripsuccess ]; then
 			$HOST-strip --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
 			if [ $? -ne 0 ]; then
