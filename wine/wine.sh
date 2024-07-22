@@ -81,7 +81,7 @@ fi
 
 if [ -z ${ENABLEDARCHS} ]; then
 if [[ ${ARCH} == "aarch64" ]]; then
-ENABLEDARCHS=arm,aarch64
+ENABLEDARCHS=aarch64
 elif [[ ${ARCH} == "x86_64" ]]; then
 ENABLEDARCHS=i386,x86_64
 fi
