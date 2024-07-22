@@ -376,9 +376,9 @@ mkdir -p "$currentpath"
 git pull --quiet
 if [ ! -d "$TOOLCHAINS_BUILD/xorgproto" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone git@gitlab.freedesktop.org:xorg/proto/xorgproto.git
+git clone https://gitlab.freedesktop.org/xorg/proto/xcbproto.git
 if [ $? -ne 0 ]; then
-echo "x11 clone failed"
+echo "xcbproto clone failed"
 exit 1
 fi
 fi
