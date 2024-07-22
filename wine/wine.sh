@@ -384,9 +384,9 @@ exit 1
 fi
 fi
 
-if [ ! -f $currentpath/libx11/.autogensuccess ]; then
-mkdir -p $currentpath/libx11
-cd $currentpath/libx11
+if [ ! -f $TOOLCHAINS_BUILD/libx11/.autogensuccess ]; then
+mkdir -p $TOOLCHAINS_BUILD/libx11
+cd $TOOLCHAINS_BUILD/libx11
 NOCONFIGURE=1 ./autogen.sh
 if [ $? -ne 0 ]; then
 echo "libx11 autogen failed"
