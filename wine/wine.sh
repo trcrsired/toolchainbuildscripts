@@ -85,19 +85,8 @@ ENABLEDARCHS=i386,x86_64
 fi
 fi
 
-if [[ ${BUILD} != ${HOST} ]]; then
-CROSSSETTIGNS="--with-wine-tools=$SOFTWARESPATH/$BUILD/wine"
-else
-CROSSSETTIGNS=
-fi
-
 if [ -z ${ARCH} ]; then
     ARCH=${HOST%%-*}
-fi
-
-if [ "$MINIMUMBUILD" == "yes" ]; then
-echo "MINIMUMBUILD is set to yes. We build wine without GUI support."
-CROSSSETTIGNS="$CROSSSETTIGNS --without-x --without-freetype"
 fi
 
 echo "ARCH=$ARCH"
@@ -131,6 +120,17 @@ fi
 cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
 
+
+if [[ ${BUILD} != ${HOST} ]]; then
+CROSSSETTIGNS="--with-wine-tools=$TOOLCHAINS_BUILD/wine/tools"
+else
+CROSSSETTIGNS=
+fi
+
+if [ "$MINIMUMBUILD" == "yes" ]; then
+echo "MINIMUMBUILD is set to yes. We build wine without GUI support."
+CROSSSETTIGNS="$CROSSSETTIGNS --without-x --without-freetype"
+fi
 
 mkdir -p ${currentwinepath}
 
