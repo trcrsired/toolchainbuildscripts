@@ -125,7 +125,7 @@ git pull --quiet
 
 
 cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/FreeType" ]; then
+if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://gitlab.freedesktop.org/freetype/freetype.git
 if [ $? -ne 0 ]; then
