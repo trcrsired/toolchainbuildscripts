@@ -269,7 +269,7 @@ handlebuild "libxau" "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
 handlebuild "libxcb" "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
 handlebuild "libx11" "https://gitlab.freedesktop.org/xorg/lib/libx11"
 handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
-handlebuild "gnutls" "git@gitlab.com:gnutls/gnutls.git"
+handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
 #handlebuild "mesa" "https://gitlab.freedesktop.org/mesa/mesa.git"
 #handlebuild "Vulkan-Loader" "git@github.com:KhronosGroup/Vulkan-Loader.git"
 
