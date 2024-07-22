@@ -313,10 +313,9 @@ if [ $? -ne 0 ]; then
 echo "libpng install failure"
 exit 1
 fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 echo "$(date --iso-8601=seconds)" > $currentpath/libpng/.installsuccess
 fi
-
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/freetype" ]; then
@@ -376,6 +375,59 @@ echo "$(date --iso-8601=seconds)" > $currentpath/freetype/.installsuccess
 fi
 
 
+function handlex11deps
+{
+x11pjname=$1
+x11pjrepo=$2
+mkdir -p "$currentpath"
+mkdir -p "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/$x11pjname" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone $x11pjrepo
+if [ $? -ne 0 ]; then
+echo "$x11pjname clone failed"
+exit 1
+fi
+fi
+cd "$currentpath/$x11pjname"
+git pull --quiet
+
+if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
+mkdir -p $currentpath/$x11pjname
+cd $currentpath/$x11pjname
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/$x11pjname/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --cache-file=$currentpath/$x11pjname/config.cache --enable-malloc0returnsnull 
+if [ $? -ne 0 ]; then
+echo "$x11pjname configuresuccess failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/$x11pjname/.configuresuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
+mkdir -p $currentpath/$x11pjname
+cd ${currentpath}/$x11pjname
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "$x11pjname build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.buildsuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
+cd ${currentpath}/$x11pjname
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "$x11pjname install failure"
+exit 1
+fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
+echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
+fi
+
+}
+
+
 mkdir -p "$currentpath"
 if [ ! -d "$TOOLCHAINS_BUILD/libxtrans" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -430,10 +482,10 @@ if [ $? -ne 0 ]; then
 echo "libxtrans install failure"
 exit 1
 fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 echo "$(date --iso-8601=seconds)" > $currentpath/libxtrans/.installsuccess
 fi
 
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 mkdir -p "$currentpath"
 if [ ! -d "$TOOLCHAINS_BUILD/xorgproto" ]; then
@@ -489,6 +541,7 @@ if [ $? -ne 0 ]; then
 echo "xorgproto install failure"
 exit 1
 fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 echo "$(date --iso-8601=seconds)" > $currentpath/xorgproto/.installsuccess
 fi
 
@@ -515,8 +568,6 @@ exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/xauth/.autogensuccess
 fi
-
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 if [ ! -f $currentpath/xauth/.configuresuccess ]; then
 mkdir -p $currentpath/xauth
@@ -709,10 +760,10 @@ if [ $? -ne 0 ]; then
 echo "install failed"
 exit 1
 fi
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 echo "$(date --iso-8601=seconds)" > ${currentpath}/Vulkan-Loader/.installsuccess
 fi
 
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
 
 fi
 
