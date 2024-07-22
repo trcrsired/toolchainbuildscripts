@@ -246,7 +246,7 @@ fi
 if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	if [[ ${ARCH} == "riscv" ]]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
-		multilibsoptions=("" " -march=lp64" " -march=lp64d" " -march=ilp32" " -march=ilp32d")
+		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32i -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
 		multilibsdir=("lib" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
 	else
