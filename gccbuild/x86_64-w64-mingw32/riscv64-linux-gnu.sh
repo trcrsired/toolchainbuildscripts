@@ -175,6 +175,10 @@ linuxkernelheaders=${currentpath}/install/linux
 if [ ! -d $linuxkernelheaders ]; then
 	cd "$TOOLCHAINS_BUILD/linux"
 	make headers_install ARCH=riscv64 -j INSTALL_HDR_PATH=$linuxkernelheaders
+if [ $? -ne 0 ]; then
+echo "linux kernel headers install failure"
+exit 1
+fi
 fi
 
 if [ ! -d "${currentpath}/install/glibc" ]; then
@@ -191,11 +195,23 @@ if [ ! -d "${currentpath}/install/glibc" ]; then
 		cd ${currentpath}/build/glibc/$item
 		host=$HOST
 		if [ ! -f Makefile ]; then
-			(export -n LD_LIBRARY_PATH; $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST )
+			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip $GLIBCREPOPATH/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$linuxkernelheaders/include --without-selinux --host=$HOST )
+				if [ $? -ne 0 ]; then
+					echo "glibc configure failure"
+					exit 1
+				fi
 		fi
 		if [[ ! -d $currentpath/install/glibc/${item} ]]; then
 			(export -n LD_LIBRARY_PATH; make -j$(nproc))
+			if [ $? -ne 0 ]; then
+				echo "glibc build failure"
+				exit 1
+			fi
 			(export -n LD_LIBRARY_PATH; make install -j$(nproc)16)
+			if [ $? -ne 0 ]; then
+				echo "glibc install failure"
+				exit 1
+			fi
 		fi
 	done
 
