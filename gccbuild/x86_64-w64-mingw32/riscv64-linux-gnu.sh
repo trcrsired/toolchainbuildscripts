@@ -298,7 +298,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			for file in "${glibcfiles[@]}"; do
 				filepath=$currentpath/install/glibc/${item}/$file
 				if [ -f "$filepath" ]; then
-					getfilesize=$(wc -c <"$currentpath/install/glibc/${item}/$filepath")
+					getfilesize=$(wc -c <"$filepath")
 					echo $getfilesize
 					if [ $getfilesize -lt 1024 ]; then
 						echo "here: $filepath"
