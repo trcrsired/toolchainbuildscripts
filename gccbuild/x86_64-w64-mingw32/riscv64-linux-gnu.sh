@@ -489,24 +489,73 @@ fi
 
 }
 
-function handlebuild
-{
-handlebinutilsgdbbuild $1
-handlegccbuild $1
-}
-
 handlegccbuild ${CANADIANHOST}
 
+RUNTIMESCXX=${currentpath}/install/runtimescxx
 if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated ]; then
 mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
-RUNTIMESCXX=${currentpath}/install/runtimescxx
-mkdir -p ${currentpath}/install/runtimescxx
+mkdir -p ${RUNTIMESCXX}
 cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
 rm -rf $RUNTIMESCXX/bin
 rm -rf $RUNTIMESCXX/lib/ldscripts
 echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated
 fi
 
-#handlebinutilsbuild ${CANADIANHOST}
+RUNTIMESGCC=${currentpath}/install/runtimegcc
+if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimegcccreated ]; then
+mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
+mkdir -p ${RUNTIMESLIBGCC}
+cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/lib/gcc/${HOST} $RUNTIMESGCC/
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimegcccreated
+fi
 
-#handlebuild ${HOST}
+if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimestocrosscopied ]; then
+cp -r --preserve=links $RUNTIMESCXX/* $PREFIXTARGET/
+cp -r --preserve=links $RUNTIMESGCC/* $PREFIX/lib/gcc/
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimestocrosscopied
+fi
+
+handlebinutilsbuild ${CANADIANHOST}
+
+
+
+function handlepackaging
+{
+local hosttriple=$1
+local build_prefix=${currentpath}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
+if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+if [ -f ${prefix}/bin/gcc ]; then
+mkdir -p ${prefix}/runtimes/glibc
+mkdir -p ${prefix}/runtimes/gcc
+cp -r --preserve=links $SYSROOT/* ${prefix}/runtimes/glibc/
+cp -r --preserve=links $RUNTIMESCXX/* ${prefix}/runtimes/gcc/
+else
+mkdir -p ${prefix}/${HOST}/runtimes/glibc
+mkdir -p ${prefix}/${HOST}/runtimes/gcc
+cp -r --preserve=links $SYSROOT/* ${prefix}/${HOST}/runtimes/glibc/
+cp -r --preserve=links $RUNTIMESCXX/* ${prefix}/${HOST}/runtimes/gcc/
+cp -r --preserve=links $SYSROOT/* ${prefix}/${HOST}/
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+fi
+if [ ! -f ${build_prefix}/.packagingsuccess ]; then
+	cd ${TOOLCHAINSPATH}/${hosttriple}
+	rm $HOST.tar.xz
+	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+	chmod 755 $HOST.tar.xz
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.packagingsuccess
+fi
+}
+
+handlepackaging ${CANADIANHOST}
+
+
+function handlebuild
+{
+handlebinutilsgdbbuild $1
+handlegccbuild $1
+handlepackaging $1
+}
+
+handlebuild ${HOST}
