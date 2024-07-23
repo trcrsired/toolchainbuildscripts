@@ -1,10 +1,10 @@
 #!/bin/bash
 
 if [ -z ${ARCH+x} ]; then
-	ARCH=x86_64
+	ARCH=loongarch64
 fi
 if [ -z ${TARGETTRIPLE+x} ]; then
-	TARGETTRIPLE=x86_64-generic-linux-gnu
+	TARGETTRIPLE=loongarch64-linux-gnu
 fi
 TARGETTRIPLE=$TARGETTRIPLE ARCH=$ARCH ./aarch64-linux-gnu.sh "$@"
 
