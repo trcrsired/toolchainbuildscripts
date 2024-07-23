@@ -325,21 +325,19 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			$HOST-strip --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 		fi
-#		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
+		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
 			mkdir -p $SYSROOT/$libdir
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir/
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
-#		fi
+		fi
 		unset item
 		unset marchitem
 		unset libdir
 		unset host
 	done
-#	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
-
-exit 0
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
 cp -r --preserve=links $SYSROOT/* $PREFIXTARGET
