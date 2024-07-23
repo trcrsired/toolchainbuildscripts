@@ -524,11 +524,16 @@ local prefixcross=$prefix
 
 if [[ ${hosttriple} == ${HOST} ]]; then
 prefixcross=$prefix/$HOST
-#mkdir -p ${prefixcross}/runtimes/glibc
+fi
 mkdir -p ${prefixcross}/runtimes/gcc
-#cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
 cp -r --preserve=links $RUNTIMESCXX/* ${prefixcross}/runtimes/gcc/
+
+if [[ ${hosttriple} == ${HOST} ]]; then
+mkdir -p ${prefixcross}/runtimes/glibc
+cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
+else
 cp -r --preserve=links $SYSROOT/* ${prefixcross}/
+fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
