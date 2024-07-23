@@ -1,8 +1,18 @@
-./native.sh "$@"
-./x86_64-w64-mingw32.sh "$@"
-#./x86_64-linux-gnu-crossback.sh "$@"
-./x86_64-generic-linux-gnu.sh "$@"
-./aarch64-linux-gnu.sh "$@"
-./x86_64-elf.sh "$@"
-./loongarch64-linux-gnu.sh "$@"
-./riscv64-linux-gnu.sh "$@"
+if ! ./native.sh "$@"; then
+exit 1
+fi
+if ! ./x86_64-w64-mingw32.sh "$@"; then
+exit 1
+fi
+if ! ./x86_64-linux-gnu.sh "$@"; then
+exit 1
+fi
+if ! ./aarch64-linux-gnu.sh "$@"; then
+exit 1
+fi
+if ! ./x86_64-elf.sh "$@"; then
+exit 1
+fi
+if ! ./loongarch64-linux-gnu.sh "$@"; then
+exit 1
+fi

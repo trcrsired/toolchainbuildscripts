@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 if [ -z ${HOST+x} ]; then
 	HOST=loongarch64-linux-gnu
 fi
