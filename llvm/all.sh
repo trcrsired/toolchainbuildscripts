@@ -2,4 +2,5 @@
 ./x86_64-windows-gnu.sh "$@"
 ./aarch64-windows-gnu.sh "$@"
 ./aarch64-linux-android30.sh "$@"
-
+./aarch64-linux-gnu.sh "$@"
+./x86_64-generic-linux-gnu.sh "$@"
