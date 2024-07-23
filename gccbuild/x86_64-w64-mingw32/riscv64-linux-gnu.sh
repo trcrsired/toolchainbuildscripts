@@ -251,7 +251,7 @@ fi
 if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	if [[ ${ARCH} == "riscv" ]]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
-		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32i -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
+		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32g -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
 		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
 	elif [[ ${ARCH} == "x86_64" ]]; then
@@ -407,105 +407,98 @@ fi
 
 exit 0
 
-mkdir -p ${currentpath}/canadianbuild
-mkdir -p ${currentpath}/canadianbuild/$HOST
-cd ${currentpath}/canadianbuild/$HOST
-mkdir -p ${currentpath}/canadianbuild/$HOST/binutils-gdb
-cd ${currentpath}/canadianbuild/$HOST/binutils-gdb
-if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANCROSSTRIPLETTRIPLETS --prefix=$CANADIANHOSTPREFIX
-fi
+function handlebinutilsgdbbuild
+{
+local hosttriple=$1
+local build_prefix=${currentpath}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}
+local prefixtarget=${prefix}/${HOST}
 
-if [ ! -d $CANADIANHOSTPREFIX/lib/bfd-plugins ]; then
-make -j$(nproc)
-make install-strip
-fi
-cd ${currentpath}/canadianbuild/$HOST
+mkdir -p ${build_prefix}
 
-mkdir -p ${currentpath}/canadianbuild/$HOST/gcc
-cd ${currentpath}/canadianbuild/$HOST/gcc
-if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$CANADIANHOSTPREFIXTARGET/include/c++/v1 --prefix=$CANADIANHOSTPREFIX $CANADIANCROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
-fi
-if [ ! -d $CANADIANHOSTPREFIX/lib/gcc ]; then
-make -j$(nproc)
-make install-strip -j$(nproc)
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $CANADIANHOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
-fi
-
-if [ ! -f $CANADIANHOSTPREFIXTARGET/include/stdio.h ]; then
-	cp -r ${currentpath}/install/linux/* $CANADIANHOSTPREFIXTARGET/
-	cp -r ${currentpath}/install/glibc/canadian/* $CANADIANHOSTPREFIXTARGET/
-fi
-
-cd ${CANADIANHOSTPREFIX}/..
-if [ ! -f ${HOST}.tar.xz ]; then
-	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-	chmod 755 $HOST.tar.xz
-fi
-
-
-
-
-
-
-
-mkdir -p ${currentpath}/hostbuild
-mkdir -p ${currentpath}/hostbuild/$HOST
-cd ${currentpath}/hostbuild/$HOST
-mkdir -p ${currentpath}/hostbuild/$HOST/binutils-gdb
-cd ${currentpath}/hostbuild/$HOST/binutils-gdb
-if [ ! -f Makefile ]; then
-STRIP=$HOST-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-gold $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
+mkdir -p ${build_prefix}/binutils-gdb
+cd $build_prefix/binutils-gdb
+STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror --enable-gold --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
 if [ $? -ne 0 ]; then
-	echo "binutils configure failure"
-	exit 1
+echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
+exit 1
 fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.configuresuccess
 fi
 
-if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
+if [ ! -f ${build_prefix}/binutils-gdb/.buildsuccess ]; then
+cd $build_prefix/binutils-gdb
 make -j$(nproc)
 if [ $? -ne 0 ]; then
-	echo "gcc build failure"
-	exit 1
+echo "binutils-gdb (${hosttriple}/${HOST}) build failed"
+exit 1
 fi
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-	echo "gcc install failure"
-	exit 1
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.buildsuccess
 fi
+
+if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
+cd $build_prefix/binutils-gdb
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
-	echo "gcc install-strip failure"
-	exit 1
+echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
+exit 1
 fi
-${HOST}-strip --strip-unneeded $HOSTPREFIX/bin/*
-${HOST}-strip --strip-unneeded $HOSTPREFIX/lib/*
-${HOST}-strip --strip-unneeded $HOSTPREFIX/lib64/*
-${HOST}-strip --strip-unneeded $HOSTPREFIX/$HOST/bin/*
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
-cd ${currentpath}/hostbuild/$HOST
 
-mkdir -p ${currentpath}/hostbuild/$HOST/gcc
-cd ${currentpath}/hostbuild/$HOST/gcc
-if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+
+}
+
+function handlegccbuild
+{
+local hosttriple=$1
+local build_prefix=${currentpath}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}
+local prefixtarget=${prefix}/${HOST}
+
+mkdir -p ${build_prefix}
+
+if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
+mkdir -p ${build_prefix}/gcc
+cd $build_prefix/gcc
+STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) configure failed"
+exit 1
 fi
-if [ ! -d $HOSTPREFIX/lib/gcc ]; then
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
+fi
+
+if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
+cd $build_prefix/gcc
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) build failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
+fi
+
+if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
+cd $build_prefix/gcc
 make install-strip -j$(nproc)
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $HOSTPREFIX/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) install failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
-if [ ! -f $HOSTPREFIX/include/stdio.h ]; then
-	cp -r ${currentpath}/install/linux/* $HOSTPREFIX/
-	cp -r ${currentpath}/install/glibc/canadian/include $HOSTPREFIX/
-	mkdir -p $HOSTPREFIX/runtimes
-	cp -r ${currentpath}/install/glibc/canadian/* $HOSTPREFIX/runtimes/
-fi
+}
 
-cd $TOOLCHAINSPATH/$HOST
-if [ ! -f $HOST.tar.xz ]; then
-	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-	chmod 755 $HOST.tar.xz
-fi
+function handlebuild
+{
+handlebinutilsgdbbuild $1
+handlegccbuild $1
+}
+
+handlegccbuild ${CANADIANHOST}
+#handlebinutilsbuild ${CANADIANHOST}
+
+#handlebuild ${HOST}
