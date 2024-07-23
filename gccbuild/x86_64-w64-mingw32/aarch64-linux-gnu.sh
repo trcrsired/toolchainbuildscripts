@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${HOST+x} ]; then
-	HOST=aarch64-generic-linux-gnu
+	HOST=aarch64-linux-gnu
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=arm64

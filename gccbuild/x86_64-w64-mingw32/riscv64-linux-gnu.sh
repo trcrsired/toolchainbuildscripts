@@ -7,7 +7,7 @@ fi
 
 relpath=$(realpath .)
 if [ -z ${HOST+x} ]; then
-	HOST=riscv64-generic-linux-gnu
+	HOST=riscv64-linux-gnu
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=riscv

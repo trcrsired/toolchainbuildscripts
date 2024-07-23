@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${HOST+x} ]; then
-	HOST=loongarch64-generic-linux-gnu
+	HOST=loongarch64-linux-gnu
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=loongarch
