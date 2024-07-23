@@ -521,9 +521,9 @@ local build_prefix=${currentpath}/${hosttriple}/${HOST}
 local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 local prefixcross=$prefix
-if [ ! -f ${prefix}/bin/gcc ]; then
+
+if [[ ${hosttriple} == ${HOST} ]]; then
 prefixcross=$prefix/$HOST
-fi
 #mkdir -p ${prefixcross}/runtimes/glibc
 mkdir -p ${prefixcross}/runtimes/gcc
 #cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
