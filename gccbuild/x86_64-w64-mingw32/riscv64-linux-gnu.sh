@@ -27,6 +27,11 @@ if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
 fi
 
+if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
+then
+        echo "${CANADIANHOST}-g++ not found. we need another cross compiler to get around gcc bug. failed"
+        exit 1
+fi
 
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
@@ -398,12 +403,6 @@ echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/
 fi
 
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-
-if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
-then
-        echo "${CANADIANHOST}-g++ not found. we need another cross compiler to get around gcc bug. failed"
-        exit 1
-fi
 
 function handlebinutilsgdbbuild
 {
