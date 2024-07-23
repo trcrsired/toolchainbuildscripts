@@ -520,18 +520,15 @@ local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
 local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-if [ -f ${prefix}/bin/gcc ]; then
-mkdir -p ${prefix}/runtimes/glibc
-mkdir -p ${prefix}/runtimes/gcc
-cp -r --preserve=links $SYSROOT/* ${prefix}/runtimes/glibc/
-cp -r --preserve=links $RUNTIMESCXX/* ${prefix}/runtimes/gcc/
-else
-mkdir -p ${prefix}/${HOST}/runtimes/glibc
-mkdir -p ${prefix}/${HOST}/runtimes/gcc
-cp -r --preserve=links $SYSROOT/* ${prefix}/${HOST}/runtimes/glibc/
-cp -r --preserve=links $RUNTIMESCXX/* ${prefix}/${HOST}/runtimes/gcc/
-cp -r --preserve=links $SYSROOT/* ${prefix}/${HOST}/
+local prefixcross=$prefix
+if [ ! -f ${prefix}/bin/gcc ]; then
+prefixcross=$prefix/$HOST
 fi
+mkdir -p ${prefixcross}/runtimes/glibc
+mkdir -p ${prefixcross}/runtimes/gcc
+cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
+cp -r --preserve=links $RUNTIMESCXX/* ${prefixcross}/runtimes/gcc/
+cp -r --preserve=links $SYSROOT/* ${prefixcross}/
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
