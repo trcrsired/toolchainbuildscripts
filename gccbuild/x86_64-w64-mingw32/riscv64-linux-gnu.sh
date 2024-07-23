@@ -468,14 +468,56 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
 fi
 
-if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
+if [ ! -f ${build_prefix}/gcc/.buildphase1success ]; then
+cd $build_prefix/gcc
+make all-gcc all-target-libgcc -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) in phase1 build failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildphase1success
+fi
+
+}
+
+function handlegccinstalllibgcc
+{
+local hosttriple=$1
+local build_prefix=${currentpath}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
+local prefixtarget=${prefix}/${HOST}
+
+mkdir -p ${build_prefix}
+
+if [ ! -f ${build_prefix}/gcc/.installlibgccsuccess ]; then
+cd $build_prefix/gcc
+make install-strip-gcc install-strip-target-libgcc -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) install-strip gcc or libgcc failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installlibgccsuccess
+fi
+
+}
+
+function handlegccbuildphase2
+{
+local hosttriple=$1
+local build_prefix=${currentpath}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
+local prefixtarget=${prefix}/${HOST}
+
+mkdir -p ${build_prefix}
+
+if [ ! -f ${build_prefix}/gcc/.buildphase2success ]; then
 cd $build_prefix/gcc
 make -j$(nproc)
 if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) build failed"
+echo "gcc (${hosttriple}/${HOST}) in phase2 build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildphase2success
 fi
 
 if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
@@ -499,9 +541,20 @@ fi
 
 }
 
-handlegccbuild ${CANADIANHOST}
-
 RUNTIMESCXX=${currentpath}/install/runtimescxx
+
+handlegccbuild ${CANADIANHOST}
+handlegccinstalllibgcc ${CANADIANHOST}
+if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxp1created ]; then
+mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
+mkdir -p ${RUNTIMESCXX}
+cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
+rm -rf $RUNTIMESCXX/bin
+rm -rf $RUNTIMESCXX/lib/ldscripts
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxp1created
+fi
+handlegccbuildphase2 ${CANADIANHOST}
+
 if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated ]; then
 mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
 mkdir -p ${RUNTIMESCXX}
@@ -567,6 +620,7 @@ function handlebuild
 {
 handlebinutilsgdbbuild $1
 handlegccbuild $1
+handlegccbuildphase2 $1
 handlepackaging $1
 }
 
