@@ -524,9 +524,9 @@ local prefixcross=$prefix
 if [ ! -f ${prefix}/bin/gcc ]; then
 prefixcross=$prefix/$HOST
 fi
-mkdir -p ${prefixcross}/runtimes/glibc
+#mkdir -p ${prefixcross}/runtimes/glibc
 mkdir -p ${prefixcross}/runtimes/gcc
-cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
+#cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
 cp -r --preserve=links $RUNTIMESCXX/* ${prefixcross}/runtimes/gcc/
 cp -r --preserve=links $SYSROOT/* ${prefixcross}/
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
