@@ -451,7 +451,7 @@ function handlegccbuild
 {
 local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 local prefixtarget=${prefix}/${HOST}
 
 mkdir -p ${build_prefix}
@@ -496,6 +496,11 @@ handlegccbuild $1
 }
 
 handlegccbuild ${CANADIANHOST}
+
+RUNTIMESCXX=${currentpath}/install/runtimescxx
+mkdir -p $RUNTIMESCXX
+cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST} $RUNTIMESCXX
+
 #handlebinutilsbuild ${CANADIANHOST}
 
 #handlebuild ${HOST}
