@@ -339,6 +339,8 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
 
+exit 0
+
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
 cp -r --preserve=links $SYSROOT/* $PREFIXTARGET
 if [ $? -ne 0 ]; then
