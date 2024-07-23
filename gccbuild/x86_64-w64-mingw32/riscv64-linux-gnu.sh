@@ -72,6 +72,12 @@ MULTILIBLISTS=
 fi
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
+if [[ ${ARCH} == "loongarch" ]]; then
+ENABLEGOLD=
+else
+ENABLEGOLD="--enable-gold"
+fi
+
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
 git clone git://sourceware.org/git/binutils-gdb.git
@@ -142,7 +148,7 @@ git pull --quiet
 if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
 cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-gold $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 if [ $? -ne 0 ]; then
 echo "binutils-gdb configure failure"
 exit 1
@@ -411,7 +417,7 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror --enable-gold --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
+STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
