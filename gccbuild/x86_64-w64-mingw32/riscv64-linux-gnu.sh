@@ -51,9 +51,22 @@ if [[ ${BUILD} == ${HOST} ]]; then
 	exit 1
 fi
 
+if [[ $1 == "clean" ]]; then
+	echo "cleaning"
+	rm -rf ${currentpath}
+	echo "clean done"
+	exit 0
+fi
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
+	rm -rf ${PREFIX}
+	rm ${PREFIX}.tar.xz
+	rm -rf ${CANADIANHOSTPREFIX}
+	rm ${CANADIANHOSTPREFIX}.tar.xz
+	rm -rf ${HOSTPREFIXTARGET}
+	rm ${HOSTPREFIXTARGET}.tar.xz
 	echo "restart done"
 fi
 
