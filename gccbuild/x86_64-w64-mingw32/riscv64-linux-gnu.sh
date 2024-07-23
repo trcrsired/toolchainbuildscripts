@@ -221,7 +221,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-STRIP=strip STRIP_FOR_TARGET=$HOST-strip make install-strip-gcc -j$(nproc)
+make install-strip-gcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase1 install strip gcc failure"
 exit 1
@@ -231,7 +231,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-STRIP=strip STRIP_FOR_TARGET=$HOST-strip make install-strip-target-libgcc -j$(nproc)
+make install-strip-target-libgcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase1 install strip libgcc failure"
 exit 1
@@ -439,7 +439,7 @@ fi
 
 if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip make install-strip -j$(nproc)
+make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
 exit 1
@@ -493,7 +493,7 @@ mkdir -p ${build_prefix}
 
 if [ ! -f ${build_prefix}/gcc/.installlibgccsuccess ]; then
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip make install-strip-gcc install-strip-target-libgcc -j$(nproc)
+make install-strip-gcc install-strip-target-libgcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) install-strip gcc or libgcc failed"
 exit 1
@@ -524,7 +524,7 @@ fi
 
 if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip make install-strip -j$(nproc)
+make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) install failed"
 exit 1
