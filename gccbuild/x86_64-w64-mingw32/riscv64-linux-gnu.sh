@@ -54,11 +54,6 @@ fi
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
-	rm -rf ${PREFIX}
-	rm -rf ${HOSTPREFIX}
-	rm -f $HOSTPREFIX.tar.xz
-	rm -rf ${CANADIANHOSTPREFIX}
-	rm -rf $CANADIANHOSTPREFIX.tar.xz
 	echo "restart done"
 fi
 
