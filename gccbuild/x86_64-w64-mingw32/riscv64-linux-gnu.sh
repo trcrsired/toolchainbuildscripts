@@ -510,7 +510,7 @@ cp -r --preserve=links $RUNTIMESGCC/* $PREFIX/lib/gcc/
 echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimestocrosscopied
 fi
 
-handlebinutilsbuild ${CANADIANHOST}
+handlebinutilsgdbbuild ${CANADIANHOST}
 
 
 
