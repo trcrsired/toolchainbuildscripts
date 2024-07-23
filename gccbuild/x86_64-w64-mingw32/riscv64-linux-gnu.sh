@@ -488,6 +488,15 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
+if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $prefix/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) generate limits failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.generatelimitssuccess
+fi
+
 }
 
 handlegccbuild ${CANADIANHOST}
