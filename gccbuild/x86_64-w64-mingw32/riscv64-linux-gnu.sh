@@ -626,7 +626,6 @@ handlepackaging $1
 }
 
 if [[ ${ARCH} == "loongarch" ]]; then
-echo "MPFR hasn't yet supported loongarch. skip"
 exit 0
 fi
 
