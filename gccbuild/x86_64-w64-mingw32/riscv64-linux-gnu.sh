@@ -192,7 +192,7 @@ fi
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-STRIP=$BUILD-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
 if [ $? -ne 0 ]; then
 echo "gcc phase1 configure failure"
 exit 1
@@ -221,28 +221,17 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make install-strip-gcc -j$(nproc)
+STRIP=strip STRIP_FOR_TARGET=$HOST-strip make install-strip-gcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase1 install strip gcc failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
 fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make install-strip-gcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase1 install strip gcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
-fi
-
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make install-strip-target-libgcc -j$(nproc)
+STRIP=strip STRIP_FOR_TARGET=$HOST-strip make install-strip-target-libgcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase1 install strip libgcc failure"
 exit 1
@@ -379,7 +368,7 @@ fi
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-STRIP=$BUILD-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
+STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
 if [ $? -ne 0 ]; then
 echo "gcc phase2 configure failure"
 exit 1
