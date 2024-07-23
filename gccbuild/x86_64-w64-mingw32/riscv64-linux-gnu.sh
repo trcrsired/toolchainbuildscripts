@@ -336,7 +336,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		unset libdir
 		unset host
 	done
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
+#	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
 
 exit 0
