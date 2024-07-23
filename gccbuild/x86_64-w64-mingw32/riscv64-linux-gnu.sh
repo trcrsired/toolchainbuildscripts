@@ -437,7 +437,7 @@ fi
 
 if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
 cd $build_prefix/binutils-gdb
-make install-strip -j$(nproc)
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
 exit 1
