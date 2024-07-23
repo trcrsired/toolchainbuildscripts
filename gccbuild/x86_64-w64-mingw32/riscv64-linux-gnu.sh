@@ -143,7 +143,7 @@ if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; the
 mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
 cd ${currentpath}/targetbuild/$HOST/binutils-gdb
 $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-gold $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
-if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/Makefile ]; then
+if [ $? -ne 0 ]; then
 echo "binutils-gdb configure failure"
 exit 1
 fi
