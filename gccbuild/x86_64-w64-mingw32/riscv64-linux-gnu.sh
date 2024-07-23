@@ -527,7 +527,7 @@ prefixcross=$prefix/$HOST
 fi
 mkdir -p ${prefixcross}/runtimes/gcc
 cp -r --preserve=links $RUNTIMESCXX/* ${prefixcross}/runtimes/gcc/
-
+cp -r --preserve=links $SYSROOT/include ${prefixcross}/
 if [[ ${hosttriple} == ${HOST} ]]; then
 mkdir -p ${prefixcross}/runtimes/glibc
 cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
