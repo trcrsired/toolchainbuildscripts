@@ -291,7 +291,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$HOST )
+			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
 			if [ $? -ne 0 ]; then
 				echo "glibc ($item) configure failure"
 				exit 1
