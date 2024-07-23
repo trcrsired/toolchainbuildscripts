@@ -411,7 +411,7 @@ function handlebinutilsgdbbuild
 {
 local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}
+local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 local prefixtarget=${prefix}/${HOST}
 
 mkdir -p ${build_prefix}
