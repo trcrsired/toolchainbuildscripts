@@ -268,7 +268,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	else
 		multilibs=(default)
 		multilibsoptions=("")
-		multilibsdir=("lib64")
+		multilibsdir=("lib")
 		multilibshost=("$HOST")
 	fi
 	glibcfiles=(libm.a libm.so libc.so)
