@@ -445,8 +445,12 @@ if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
 cd $build_prefix/binutils-gdb
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
 exit 1
+fi
+$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
 fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
