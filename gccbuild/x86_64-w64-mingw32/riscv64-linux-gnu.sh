@@ -253,7 +253,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
 		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32g -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
 		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibshost=("riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu" "riscv64-generic-linux-gnu")
+		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
 	elif [[ ${ARCH} == "x86_64" ]]; then
 		multilibs=(m64 m32 mx32)
 		multilibsoptions=(" -m64" " -m32" " -mx32")
