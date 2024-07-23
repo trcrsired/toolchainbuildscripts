@@ -327,8 +327,8 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
 			mkdir -p $SYSROOT/$libdir
-			cp -r --preserve=links ${currentpath}/build/glibc/$item/include $SYSROOT/
-			cp -r --preserve=links ${currentpath}/build/glibc/$item/lib $SYSROOT/$libdir
+			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
+			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib $SYSROOT/$libdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 		fi
 		unset item
