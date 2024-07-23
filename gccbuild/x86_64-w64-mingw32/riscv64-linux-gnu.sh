@@ -591,7 +591,7 @@ local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 local prefixcross=$prefix
 
-if [[ ${hosttriple} == ${HOST} ]]; then
+if [[ ${hosttriple} != ${HOST} ]]; then
 prefixcross=$prefix/$HOST
 fi
 mkdir -p ${prefixcross}/runtimes/gcc
