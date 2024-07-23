@@ -340,7 +340,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-cp -r --preserve=links $SYSROOT/* $PREFIXTARGET
+cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/
 if [ $? -ne 0 ]; then
 echo "gcc phase1 copysysroot failure"
 exit 1
