@@ -497,9 +497,15 @@ handlegccbuild $1
 
 handlegccbuild ${CANADIANHOST}
 
+if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated ]; then
+mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
 RUNTIMESCXX=${currentpath}/install/runtimescxx
-mkdir -p $RUNTIMESCXX
-cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST} $RUNTIMESCXX
+mkdir -p ${currentpath}/install/runtimescxx
+cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
+rm -rf $RUNTIMESCXX/bin
+rm -rf $RUNTIMESCXX/lib/ldscripts
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated
+fi
 
 #handlebinutilsbuild ${CANADIANHOST}
 
