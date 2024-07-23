@@ -417,7 +417,7 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -460,7 +460,7 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -522,7 +522,7 @@ fi
 
 if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 cd $build_prefix/gcc
-make install-strip -j$(nproc)
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) install failed"
 exit 1
