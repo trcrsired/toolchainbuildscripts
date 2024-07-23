@@ -551,6 +551,7 @@ mkdir -p ${RUNTIMESCXX}
 cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
 rm -rf $RUNTIMESCXX/bin
 rm -rf $RUNTIMESCXX/lib/ldscripts
+cp -r --preserve=links $RUNTIMESCXX/* $PREFIXTARGET/
 echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxp1created
 fi
 handlegccbuildphase2 ${CANADIANHOST}
