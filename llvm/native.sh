@@ -135,13 +135,3 @@ if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
 	chmod 755 ${TARGETTRIPLE}.tar.xz
 fi
-
-
-if [ ! -f "$clang_directory/clang.cfg" ]; then
-gcc_path=`which g++`
-gcc_bin_directory=$(dirname "$gcc_path")
-gcc_directory=$(dirname "$gcc_bin_directory")
-echo "--gcc-toolchain=$gcc_directory" > "$clang_directory/clang.cfg"
-cp "$clang_directory/clang.cfg" "$clang_directory/clang++.cfg"
-cp -r --preserve=links "${LLVMRUNTIMESINSTALLPATH}"/* "${gcc_directory}/"
-fi
