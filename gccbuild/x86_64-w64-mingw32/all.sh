@@ -4,4 +4,3 @@
 ./aarch64-linux-gnu.sh "$@"
 ./x86_64-elf.sh "$@"
 ./loongarch64-linux-gnu.sh "$@"
-./riscv64-linux-gnu.sh "$@"
