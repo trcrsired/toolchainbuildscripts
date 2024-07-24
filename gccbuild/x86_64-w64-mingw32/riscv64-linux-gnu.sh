@@ -27,12 +27,6 @@ if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
 fi
 
-if ! [ -x "$(command -v ${CANADIANHOST}-g++)" ];
-then
-        echo "${CANADIANHOST}-g++ not found. we need another cross compiler to get around gcc bug. failed"
-        exit 1
-fi
-
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH/$BUILD/$HOST
@@ -45,11 +39,6 @@ HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
 CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
-
-if [[ ${BUILD} == ${HOST} ]]; then
-	echo "Native compilation not supported"
-	exit 1
-fi
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
@@ -246,9 +235,11 @@ fi
 cd ${currentpath}
 mkdir -p build
 
-linuxkernelheaders=${currentpath}/install/sysroot
 SYSROOT=${currentpath}/install/sysroot
+linuxkernelheaders=${SYSROOT}
+GCCSYSROOT=${currentpath}/install/gccsysroot
 mkdir -p $SYSROOT
+mkdir -p $GCCSYSROOT
 
 if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 	cd "$TOOLCHAINS_BUILD/linux"
@@ -265,16 +256,19 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		multilibs=(default lp64 lp64d ilp32 ilp32d)
 		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32g -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
 		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
 	elif [[ ${ARCH} == "x86_64" ]]; then
 		multilibs=(m64 m32 mx32)
 		multilibsoptions=(" -m64" " -m32" " -mx32")
 		multilibsdir=("lib64" "lib" "libx32")
+		multilibsingccdir=("" "32" "x32")
 		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
 	else
 		multilibs=(default)
 		multilibsoptions=("")
 		multilibsdir=("lib64")
+		multilibsingccdir=("")
 		multilibshost=("$HOST")
 	fi
 	glibcfiles=(libm.a libm.so libc.so)
@@ -288,6 +282,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		marchitem=${multilibsoptions[$i]}
 		libdir=${multilibsdir[$i]}
 		host=${multilibshost[$i]}
+		libingccdir=${multilibsingccdir[$i]}
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
@@ -338,9 +333,8 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
-			mkdir -p $SYSROOT/$libdir
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
-			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir/
+			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 		fi
 		unset item
@@ -351,8 +345,11 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 fi
 
+GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
+
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
 cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/
+cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
 if [ $? -ne 0 ]; then
 echo "gcc phase1 copysysroot failure"
 exit 1
@@ -382,7 +379,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make all-gcc -j$(nproc)
+make -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase2 build gcc failure"
 exit 1
@@ -392,7 +389,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make install-strip-gcc -j$(nproc)
+make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase2 install strip gcc failure"
 exit 1
@@ -409,10 +406,9 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
 fi
 
-GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-
-function handlebinutilsgdbbuild
+function handlebuild
 {
+handlebinutilsgdbbuild $1
 local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
 local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
@@ -455,18 +451,6 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
 
-
-}
-
-function handlegccbuild
-{
-local hosttriple=$1
-local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
-local prefixtarget=${prefix}/${HOST}
-
-mkdir -p ${build_prefix}
-
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
@@ -478,141 +462,39 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
 fi
 
-if [ ! -f ${build_prefix}/gcc/.buildphase1success ]; then
-cd $build_prefix/gcc
-make all-gcc all-target-libgcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) in phase1 build failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildphase1success
-fi
-
-}
-
-function handlegccinstalllibgcc
-{
-local hosttriple=$1
-local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
-local prefixtarget=${prefix}/${HOST}
-
-mkdir -p ${build_prefix}
-
-if [ ! -f ${build_prefix}/gcc/.installlibgccsuccess ]; then
-cd $build_prefix/gcc
-make install-strip-gcc install-strip-target-libgcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) install-strip gcc or libgcc failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installlibgccsuccess
-fi
-
-}
-
-function handlegccbuildphase2
-{
-local hosttriple=$1
-local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
-local prefixtarget=${prefix}/${HOST}
-
-mkdir -p ${build_prefix}
-
-if [ ! -f ${build_prefix}/gcc/.buildphase2success ]; then
+if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
 cd $build_prefix/gcc
 make -j$(nproc)
 if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) in phase2 build failed"
+echo "gcc (${hosttriple}/${HOST}) build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildphase2success
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 cd $build_prefix/gcc
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) install failed"
 exit 1
+fi
+$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
 fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
-if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > $prefix/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) generate limits failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.generatelimitssuccess
-fi
-
-}
-
-RUNTIMESCXX=${currentpath}/install/runtimescxx
-
-handlegccbuild ${CANADIANHOST}
-handlegccinstalllibgcc ${CANADIANHOST}
-if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxp1created ]; then
-mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
-mkdir -p ${RUNTIMESCXX}
-cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
-rm -rf $RUNTIMESCXX/bin
-rm -rf $RUNTIMESCXX/lib/ldscripts
-cp -r --preserve=links $RUNTIMESCXX/* $PREFIXTARGET/
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxp1created
-fi
-handlegccbuildphase2 ${CANADIANHOST}
-
-if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated ]; then
-mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
-mkdir -p ${RUNTIMESCXX}
-cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/${HOST}/* $RUNTIMESCXX/
-rm -rf $RUNTIMESCXX/bin
-rm -rf $RUNTIMESCXX/lib/ldscripts
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimescxxcreated
-fi
-
-RUNTIMESGCC=${currentpath}/install/runtimegcc
-if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimegcccreated ]; then
-mkdir -p ${currentpath}/${CANADIANHOST}/${HOST}
-mkdir -p ${RUNTIMESLIBGCC}
-cp -r --preserve=links ${TOOLCHAINSPATH}/${CANADIANHOST}/${HOST}/lib/gcc/${HOST} $RUNTIMESGCC/
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimegcccreated
-fi
-
-if [ ! -f ${currentpath}/${CANADIANHOST}/${HOST}/.runtimestocrosscopied ]; then
-cp -r --preserve=links $RUNTIMESCXX/* $PREFIXTARGET/
-cp -r --preserve=links $RUNTIMESGCC/* $PREFIX/lib/gcc/
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${CANADIANHOST}/${HOST}/.runtimestocrosscopied
-fi
-
-handlebinutilsgdbbuild ${CANADIANHOST}
-
-
-
-function handlepackaging
-{
-local hosttriple=$1
-local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 local prefixcross=$prefix
 
 if [[ ${hosttriple} != ${HOST} ]]; then
 prefixcross=$prefix/$HOST
 fi
-mkdir -p ${prefixcross}/runtimes/gcc
-cp -r --preserve=links $RUNTIMESCXX/* ${prefixcross}/runtimes/gcc/
-cp -r --preserve=links $SYSROOT/include ${prefixcross}/
-if [[ ${hosttriple} == ${HOST} ]]; then
-mkdir -p ${prefixcross}/runtimes/glibc
-cp -r --preserve=links $SYSROOT/* ${prefixcross}/runtimes/glibc/
-else
 cp -r --preserve=links $SYSROOT/* ${prefixcross}/
-fi
+cp -r --preserve=links $GCCSYSROOT/* ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/
+
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
@@ -624,19 +506,15 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
-handlepackaging ${CANADIANHOST}
-
-
-function handlebuild
-{
-handlebinutilsgdbbuild $1
-handlegccbuild $1
-handlegccbuildphase2 $1
-handlepackaging $1
-}
 
 if [[ ${ARCH} == "loongarch" ]]; then
-exit 0
+echo "loongarch hasn't yet got supported. skip"
+else
+handlebuild ${HOST}
 fi
 
-handlebuild ${HOST}
+if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then
+handlebuild ${CANADIANHOST}
+else
+echo "${CANADIANHOST}-g++ not found. skipped"
+fi
