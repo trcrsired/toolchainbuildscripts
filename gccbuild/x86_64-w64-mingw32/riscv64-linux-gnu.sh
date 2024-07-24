@@ -269,7 +269,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	elif [[ ${ARCH} == "x86_64" ]]; then
 		multilibs=(m64 m32 mx32)
 		multilibsoptions=(" -m64" " -m32" " -mx32")
-		multilibsdir=("lib64" "lib32" "libx32")
+		multilibsdir=("lib64" "lib" "libx32")
 		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
 	else
 		multilibs=(default)
