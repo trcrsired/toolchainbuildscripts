@@ -408,7 +408,6 @@ fi
 
 function handlebuild
 {
-handlebinutilsgdbbuild $1
 local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
 local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
