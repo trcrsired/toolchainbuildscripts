@@ -334,6 +334,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
+			mkdir -p $GCCSYSROOT/$libingccdir
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 		fi
