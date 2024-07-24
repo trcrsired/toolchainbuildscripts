@@ -389,7 +389,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make install -j$(nproc)
+make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase2 install strip gcc failure"
 exit 1
