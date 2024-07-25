@@ -38,7 +38,6 @@ HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
 export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
-CANADIANHOSTPREFIXTARGET=$CANADIANHOSTPREFIX/$HOST
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
@@ -65,8 +64,6 @@ if [ ! -d ${currentpath} ]; then
 fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
-CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
-CANADIANCROSSTRIPLETTRIPLETS="--build=$BUILD --host=$CANADIANHOST --target=$HOST"
 if [[ ${ARCH} == "x86_64" ]]; then
 MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 else
