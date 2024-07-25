@@ -40,7 +40,7 @@ if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
 	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
-	rm "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
+	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 fi
 
