@@ -4,7 +4,9 @@ if [ -z ${ARCH+x} ]; then
 ARCH=aarch64
 fi
 TARGETTRIPLE_CPU=${ARCH}
+if [ -z ${TARGETTRIPLE+x} ]; then
 TARGETTRIPLE=${TARGETTRIPLE_CPU}-linux-gnu
+fi
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 if [ ! -d ${currentpath} ]; then
 	mkdir -p ${currentpath}
