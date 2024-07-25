@@ -51,11 +51,11 @@ if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf ${currentpath}
 	rm -rf ${PREFIX}
-	rm ${PREFIX}.tar.xz
+	rm -f ${PREFIX}.tar.xz
 	rm -rf ${CANADIANHOSTPREFIX}
-	rm ${CANADIANHOSTPREFIX}.tar.xz
+	rm -f ${CANADIANHOSTPREFIX}.tar.xz
 	rm -rf ${HOSTPREFIXTARGET}
-	rm ${HOSTPREFIXTARGET}.tar.xz
+	rm -f ${HOSTPREFIXTARGET}.tar.xz
 	echo "restart done"
 fi
 
@@ -506,7 +506,7 @@ echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 	cd ${TOOLCHAINSPATH}/${hosttriple}
-	rm $HOST.tar.xz
+	rm -f $HOST.tar.xz
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.packagingsuccess
