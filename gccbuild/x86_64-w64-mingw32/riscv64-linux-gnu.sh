@@ -267,7 +267,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 	else
 		multilibs=(default)
 		multilibsoptions=("")
-		multilibsdir=("lib64")
+		multilibsdir=("lib")
 		multilibsingccdir=("")
 		multilibshost=("$HOST")
 	fi
@@ -334,6 +334,8 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
+			mkdir -p $SYSROOT/$libdir
+			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir
 			mkdir -p $GCCSYSROOT/$libingccdir
 			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
@@ -349,7 +351,7 @@ fi
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/
+cp -r --preserve=links $SYSROOT/include $PREFIXTARGET/
 cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
 if [ $? -ne 0 ]; then
 echo "gcc phase1 copysysroot failure"
@@ -370,7 +372,7 @@ fi
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${CROSSTRIPLETTRIPLETS} ${GCCCONFIGUREFLAGSCOMMON}
+STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
 if [ $? -ne 0 ]; then
 echo "gcc phase2 configure failure"
 exit 1
@@ -380,7 +382,7 @@ fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess ]; then
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make -j$(nproc)
+make all-gcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "gcc phase2 build gcc failure"
 exit 1
@@ -388,23 +390,37 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess
 fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make install-strip -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase2 install strip gcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripgccsuccess
-fi
-
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
 if [ $? -ne 0 ]; then
 echo "gcc phase2 generate limits failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
+cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc phase2 build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
+cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc phase2 install strip failure"
+exit 1
+fi
+${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 fi
 
 function handlebuild
@@ -492,7 +508,7 @@ local prefixcross=$prefix
 if [[ ${hosttriple} != ${HOST} ]]; then
 prefixcross=$prefix/$HOST
 fi
-cp -r --preserve=links $SYSROOT/* ${prefixcross}/
+cp -r --preserve=links $SYSROOT/include ${prefixcross}/
 cp -r --preserve=links $GCCSYSROOT/* ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/
 
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
