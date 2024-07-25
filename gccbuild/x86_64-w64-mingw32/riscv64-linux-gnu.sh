@@ -360,15 +360,6 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
 fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.generatelimitssuccess ]; then
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > `dirname $(${HOST}-gcc -print-libgcc-file-name)`/include/limits.h
-if [ $? -ne 0 ]; then
-echo "gcc phase1 generate limits failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.generatelimitssuccess
-fi
-
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
