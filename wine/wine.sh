@@ -337,7 +337,7 @@ echo "wine install failure"
 exit 1
 fi
 mkdir -p $PREFIX/wine/share/wine
-cp -r --preserve=links ${currentwinepath}/nls $PREFIX/wine/share/wine/
+cp -r --preserve=links $TOOLCHAINS_BUILD/wine/nls $PREFIX/wine/share/wine/
 echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.installsuccess
 fi
 
