@@ -498,6 +498,7 @@ prefixcross=$prefix/$HOST
 fi
 cp -r --preserve=links $SYSROOT/include ${prefixcross}/
 cp -r --preserve=links $GCCSYSROOT/* ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
