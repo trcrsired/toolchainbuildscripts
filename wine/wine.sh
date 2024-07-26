@@ -343,6 +343,6 @@ fi
 
 if [ ! -f $SOFTWARESPATH/$HOST.tar.xz ]; then
 cd ${SOFTWARESPATH}
-XZ_OPT=-e9T0 tar cJf $HOST.tar.xz wine
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 chmod 755 $HOST.tar.xz
 fi
