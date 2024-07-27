@@ -1,1 +1,0 @@
-cmake -GNinja ../llvm-project/llvm  -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="clang;lld" -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxx;libcxxabi" -DDEFAULT_SYSROOT="$(xcrun --show-sdk-path)"

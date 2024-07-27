@@ -411,6 +411,14 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 fi
 
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
+cd ${TOOLCHAINSPATH}/${BUILD}
+rm -f $HOST.tar.xz
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+chmod 755 $HOST.tar.xz
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
+fi
+
 function handlebuild
 {
 local hosttriple=$1
