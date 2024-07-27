@@ -71,7 +71,7 @@ MULTILIBLISTS=
 fi
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-if [[ ${ARCH} == "arm64" ]]; then
+if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
