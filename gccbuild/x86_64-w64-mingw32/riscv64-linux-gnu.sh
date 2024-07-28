@@ -611,7 +611,7 @@ mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
 local extra_binutils_configure_flags=
 local hostarch=${hosttriple%%-*}
-if [[ ${hostarch} == "loongarch" ]]; then
+if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
 # see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
 extra_binutils_configure_flags="--disable-gdbserver"
 fi
