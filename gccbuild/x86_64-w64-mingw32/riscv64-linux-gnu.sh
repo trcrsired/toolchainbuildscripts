@@ -292,8 +292,7 @@ else
 fi
 
 if [[ ${MUSLLIBC} == "yes" ]]; then
-if [ ! -f ${currentpath}/install/.muslinstallsuccess ];
-
+if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	item=${multilibs[1]}
 	marchitem=${multilibsoptions[1]}
 	libdir=${multilibsdir[1]}
