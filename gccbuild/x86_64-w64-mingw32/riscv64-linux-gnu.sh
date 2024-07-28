@@ -81,7 +81,7 @@ if [[ ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-shared --enable-static"
 fi
 
-if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" ]]; then
+if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
