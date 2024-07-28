@@ -301,29 +301,33 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	mkdir -p ${currentpath}/build/musl/$item
 	cd ${currentpath}/build/musl/$item
 
-	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+	if [ ! -f ${currentpath}/build/musl/.configuresuccess ]; then
 		(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
 		if [ $? -ne 0 ]; then
-			echo "musl ($item) configure failure"
+			echo "musl configure failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.configuresuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
+	if [ ! -f ${currentpath}/build/musl/.buildsuccess ]; then
 		(export -n LD_LIBRARY_PATH; make -j$(nproc))
 		if [ $? -ne 0 ]; then
-			echo "musl ($item) build failure"
+			echo "musl build failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.buildsuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
+	if [ ! -f ${currentpath}/build/musl/.installsuccess ]; then
 		(export -n LD_LIBRARY_PATH; make install -j$(nproc))
 		if [ $? -ne 0 ]; then
-			echo "musl ($item) install failure"
+			echo "musl install failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.installsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/.stripsuccess ]; then
+		$HOST-strip --strip-unneeded $currentpath/install/musl/lib/* $currentpath/install/musl/lib/audit/* $currentpath/install/musl/lib/gconv/*
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.stripsuccess
 	fi
 	if [ ! -f ${currentpath}/build/musl/.sysrootsuccess ]; then
 		cp -r --preserve=links ${currentpath}/install/musl/include $SYSROOT/
