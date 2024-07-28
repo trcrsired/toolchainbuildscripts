@@ -298,11 +298,11 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	libdir=${multilibsdir[1]}
 	host=${multilibshost[1]}
 	libingccdir=${multilibsingccdir[1]}
-	mkdir -p ${currentpath}/build/musl/$item
-	cd ${currentpath}/build/musl/$item
+	mkdir -p ${currentpath}/build/musl
+	cd ${currentpath}/build/musl
 
 	if [ ! -f ${currentpath}/build/musl/.configuresuccess ]; then
-		(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
+		(export -n LD_LIBRARY_PATH; STRIP=llvm-strip AS=llvm-as AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt CC="clang --target=$host" CXX="clang++ --target=$host" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --host=$host )
 		if [ $? -ne 0 ]; then
 			echo "musl configure failure"
 			exit 1
