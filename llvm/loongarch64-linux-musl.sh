@@ -107,11 +107,10 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	item="default"
 	marchitem=""
 	libdir="lib"
-	host=$HOST
+	host=$TARGETTRIPLE
 	libingccdir=""
 	mkdir -p ${currentpath}/build/musl/$item
 	cd ${currentpath}/build/musl/$item
-
 	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
 		STRIP=llvm-strip CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
 		if [ $? -ne 0 ]; then
