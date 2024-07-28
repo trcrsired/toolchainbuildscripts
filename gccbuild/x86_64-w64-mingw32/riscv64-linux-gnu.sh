@@ -516,7 +516,7 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
