@@ -63,15 +63,19 @@ fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
 
-if [ -z ${MINGWW64PATH+x} ]; then
-MINGWW64PATH=$TOOLCHAINS_BUILD/mingw-w64
-fi
+#if [ -z ${MINGWW64PATH+x} ]; then
+#MINGWW64PATH=$TOOLCHAINS_BUILD/mingw-w64
+#fi
 
 cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
-git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
+if [ ! -d "$TOOLCHAINS_BUILD/musl" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:bminor/musl.git
+if [ $? -ne 0 ]; then
+echo "musl clone failed"
+exit 1
 fi
-cd "$TOOLCHAINS_BUILD/mingw-w64"
+cd "$TOOLCHAINS_BUILD/musl"
 git pull --quiet
 
 cd "$TOOLCHAINS_BUILD"
