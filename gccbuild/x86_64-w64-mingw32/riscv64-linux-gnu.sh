@@ -86,7 +86,8 @@ GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
 if [[ ${ARCH} == "loongarch" ]]; then
-ENABLEGOLD=
+# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
+ENABLEGOLD="--disable-gdbserver"
 else
 ENABLEGOLD="--enable-gold"
 fi
