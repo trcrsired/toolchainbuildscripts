@@ -91,8 +91,7 @@ else
 ENABLEGOLD="--enable-gold"
 fi
 
-./clonebinutilsgccwithdeps.sh
-if [ $? -ne 0 ]; then
+if ! $relpath/clonebinutilsgccwithdeps.sh
 then
 exit 1
 fi
