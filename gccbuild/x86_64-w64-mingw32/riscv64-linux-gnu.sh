@@ -605,11 +605,11 @@ fi
 }
 
 
-if [[ ${ARCH} == "loongarch" ]]; then
-echo "loongarch hasn't yet got supported. skip"
-else
+#if [[ ${ARCH} == "loongarch" ]]; then
+#echo "loongarch hasn't yet got supported. skip"
+#else
 handlebuild ${HOST}
-fi
+#fi
 
 if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then
 handlebuild ${CANADIANHOST}
