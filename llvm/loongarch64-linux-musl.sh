@@ -75,6 +75,7 @@ if [ $? -ne 0 ]; then
 echo "musl clone failed"
 exit 1
 fi
+fi
 cd "$TOOLCHAINS_BUILD/musl"
 git pull --quiet
 
@@ -136,7 +137,7 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
 	fi
 	if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
-		$HOST-strip --strip-unneeded $currentpath/install/musl/$item/lib/*
+		llvm-strip --strip-unneeded $currentpath/install/musl/$item/lib/*
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
 	fi
 	if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
@@ -152,7 +153,6 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	unset libingccdir
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
 fi
-
 
 CURRENTTRIPLEPATH=${currentpath}
 
