@@ -77,10 +77,6 @@ MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
 fi
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-if [[ ${MUSLLIBC} == "yes" ]]; then
-GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-shared --enable-static"
-fi
-
 if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
