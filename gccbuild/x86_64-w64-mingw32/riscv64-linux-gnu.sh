@@ -697,12 +697,7 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
-
-#if [[ ${ARCH} == "loongarch" ]]; then
-#echo "loongarch hasn't yet got supported. skip"
-#else
 handlebuild ${HOST}
-#fi
 
 if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then
 handlebuild ${CANADIANHOST}
