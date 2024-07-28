@@ -613,7 +613,7 @@ local extra_binutils_configure_flags=
 local hostarch=${hosttriple%%-*}
 if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
 # see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
-extra_binutils_configure_flags="--disable-gdbserver"
+extra_binutils_configure_flags="--disable-gdbserver --disable-gdb"
 fi
 
 STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
