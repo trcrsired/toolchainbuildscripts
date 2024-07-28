@@ -155,8 +155,6 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 fi
 
 
-
-
 CURRENTTRIPLEPATH=${currentpath}
 
 if [ ! -f "${BUILTINSINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
@@ -273,28 +271,6 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 ninja install/strip
-fi
-
-if [ ! -f "${SYSROOTPATH}/bin/cppwinrt.exe" ]; then
-mkdir -p "$CURRENTTRIPLEPATH/cppwinrt"
-cd $CURRENTTRIPLEPATH/cppwinrt
-cmake -GNinja $TOOLCHAINS_BUILD/cppwinrt -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang -DCMAKE_RC_COMPILER=llvm-windres \
-	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
-	-DCMAKE_CROSSCOMPILING=On -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
-	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
-	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -Wno-unused-command-line-argument"
-	ninja
-	ninja install/strip
 fi
 
 if [ ! -d "$LLVMINSTALLPATH" ]; then
