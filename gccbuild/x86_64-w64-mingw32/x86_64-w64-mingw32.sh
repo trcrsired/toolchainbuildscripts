@@ -11,7 +11,8 @@ fi
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
-currentpath=$(realpath .)/.gnuartifacts/$HOST
+relpath=$(realpath .)
+currentpath=$relpath/.gnuartifacts/$HOST
 mkdir -p $currentpath
 cd $currentpath
 BUILD=$(gcc -dumpmachine)
