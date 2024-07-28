@@ -126,7 +126,7 @@ cd "$TOOLCHAINS_BUILD/gmp"
 hg pull --quiet
 if [ ! -f "$TOOLCHAINS_BUILD/gmp/configure" ]; then
 cd $TOOLCHAINS_BUILD/gmp
-autoreconf -i
+./.bootstrap
 fi
 
 
