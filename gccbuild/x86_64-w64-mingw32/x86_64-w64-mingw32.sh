@@ -41,7 +41,8 @@ CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-if ! ./clonebinutilsgccwithdeps.sh
+./clonebinutilsgccwithdeps.sh
+if [ $? -ne 0 ]; then
 then
 exit 1
 fi
