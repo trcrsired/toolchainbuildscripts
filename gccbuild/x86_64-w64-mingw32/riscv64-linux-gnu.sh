@@ -86,8 +86,7 @@ GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
 if [[ ${ARCH} == "loongarch" ]]; then
-# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
-ENABLEGOLD="--disable-gdbserver"
+ENABLEGOLD=
 else
 ENABLEGOLD="--enable-gold"
 fi
@@ -610,7 +609,13 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
+local extra_binutils_configure_flags=
+if [[ ${hosttriple} == "loongarch" ]]; then
+# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
+extra_binutils_configure_flags="--disable-gdbserver"
+fi
+
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
