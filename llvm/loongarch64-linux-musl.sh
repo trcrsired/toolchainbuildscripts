@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [ -z ${ARCH+x} ]; then
-ARCH=loongarch64
+ARCH=loongarch
 fi
-TARGETTRIPLE_CPU=${ARCH}
+TARGETTRIPLE_CPU=${ARCH}64
 TARGETTRIPLE=${TARGETTRIPLE_CPU}-linux-musl
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 if [ ! -d ${currentpath} ]; then
@@ -113,7 +113,7 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 	mkdir -p ${currentpath}/build/musl/$item
 	cd ${currentpath}/build/musl/$item
 	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
-		STRIP=llvm-strip CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
+		STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
 		if [ $? -ne 0 ]; then
 			echo "musl configure failure"
 			exit 1
@@ -197,8 +197,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
 	-DLIBCXXABI_SILENT_TERMINATE=On \
 	-DLIBCXX_CXX_ABI=libcxxabi \
-	-DLIBCXX_ENABLE_SHARED=On \
-	-DLIBCXX_ABI_VERSION=1 \
+	-DLIBCXX_ABI_VERSION=2 \
 	-DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
 	${THREADS_FLAGS} \
 	-DLIBCXX_ENABLE_EXCEPTIONS=${ENABLE_EH} \
@@ -285,7 +284,6 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_SYSTEM_NAME=Linux \
-	-DBUILD_SHARED_LIBS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DLLVM_ENABLE_LLD=On \
