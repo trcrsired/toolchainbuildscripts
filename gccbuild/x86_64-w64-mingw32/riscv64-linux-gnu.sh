@@ -293,49 +293,49 @@ fi
 
 if [[ ${MUSLLIBC} == "yes" ]]; then
 if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
-	item=${multilibs[1]}
-	marchitem=${multilibsoptions[1]}
-	libdir=${multilibsdir[1]}
-	host=${multilibshost[1]}
-	libingccdir=${multilibsingccdir[1]}
-	mkdir -p ${currentpath}/build/musl
-	cd ${currentpath}/build/musl
+	item="default"
+	marchitem=""
+	libdir="lib"
+	host=$HOST
+	libingccdir=""
+	mkdir -p ${currentpath}/build/musl/$item
+	cd ${currentpath}/build/musl/$item
 
-	if [ ! -f ${currentpath}/build/musl/.configuresuccess ]; then
-		(export -n LD_LIBRARY_PATH; STRIP=llvm-strip AS=llvm-as AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt CC="clang --target=$host" CXX="clang++ --target=$host" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --host=$host )
+	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+		(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
 		if [ $? -ne 0 ]; then
 			echo "musl configure failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.configuresuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/.buildsuccess ]; then
+	if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
 		(export -n LD_LIBRARY_PATH; make -j$(nproc))
 		if [ $? -ne 0 ]; then
 			echo "musl build failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.buildsuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/.installsuccess ]; then
+	if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
 		(export -n LD_LIBRARY_PATH; make install -j$(nproc))
 		if [ $? -ne 0 ]; then
 			echo "musl install failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.installsuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/.stripsuccess ]; then
-		$HOST-strip --strip-unneeded $currentpath/install/musl/lib/* $currentpath/install/musl/lib/audit/* $currentpath/install/musl/lib/gconv/*
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.stripsuccess
+	if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
+		$HOST-strip --strip-unneeded $currentpath/install/musl/$item/lib/*
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/.sysrootsuccess ]; then
-		cp -r --preserve=links ${currentpath}/install/musl/include $SYSROOT/
+	if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
+		cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
 		mkdir -p $SYSROOT/$libdir
-		cp -r --preserve=links ${currentpath}/install/musl/lib/* $SYSROOT/$libdir
+		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
 		mkdir -p $GCCSYSROOT/$libingccdir
-		cp -r --preserve=links ${currentpath}/install/musl/lib/* $GCCSYSROOT/$libingccdir
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.sysrootsuccess
+		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
 	fi
 	unset item
 	unset marchitem
