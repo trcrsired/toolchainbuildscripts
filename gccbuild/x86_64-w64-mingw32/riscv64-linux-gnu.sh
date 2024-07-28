@@ -176,6 +176,7 @@ cd $TOOLCHAINS_BUILD/isl
 ./autogen.sh
 fi
 
+if [[ ${USE_GETTEXT} == "yes" ]]; then
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/gettext" ]; then
 git clone git://git.savannah.gnu.org/gettext.git
@@ -199,6 +200,7 @@ echo "gettext autogen failed"
 exit 1
 fi
 fi
+fi
 
 if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
 cd $TOOLCHAINS_BUILD/binutils-gdb
@@ -214,7 +216,6 @@ ln -s $TOOLCHAINS_BUILD/gmp gmp
 ln -s $TOOLCHAINS_BUILD/mpfr mpfr
 ln -s $TOOLCHAINS_BUILD/mpc mpc
 ln -s $TOOLCHAINS_BUILD/isl isl
-ln -s $TOOLCHAINS_BUILD/gettext gettext
 fi
 
 cd "$TOOLCHAINS_BUILD"
