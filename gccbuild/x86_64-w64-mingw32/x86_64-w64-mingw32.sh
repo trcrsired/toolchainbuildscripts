@@ -41,30 +41,9 @@ CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
-git clone git://sourceware.org/git/binutils-gdb.git
-fi
-cd "$TOOLCHAINS_BUILD/binutils-gdb"
-git pull --quiet
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
-git clone git://gcc.gnu.org/git/gcc.git
-fi
-cd "$TOOLCHAINS_BUILD/gcc"
-git pull --quiet
-
-if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
-cd $TOOLCHAINS_BUILD/gcc
-./contrib/download_prerequisites
-fi
-
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
-cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s ../gcc/gmp gmp
-ln -s ../gcc/mpfr mpfr
-ln -s ../gcc/mpc mpc
+if ! ./clonebinutilsgccwithdeps.sh
+then
+exit 1
 fi
 
 cd "$TOOLCHAINS_BUILD"
