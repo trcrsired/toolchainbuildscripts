@@ -570,6 +570,10 @@ fi
 
 handlebuild ${HOST}
 
+if [[ ${CANADIANHOST} == ${HOST} ]]; then
+exit 0
+fi
+
 if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then
 handlebuild ${CANADIANHOST}
 else
