@@ -64,12 +64,22 @@ if [ ! -d ${currentpath} ]; then
 fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
+
+if [[ ${MUSLLIBC} == "yes" ]]; then
+MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
+else
 if [[ ${ARCH} == "x86_64" ]]; then
 MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 else
 MULTILIBLISTS=
 fi
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
+fi
+GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+
+if [[ ${MUSLLIBC} == "yes" ]]; then
+GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-shared --enable-static"
+fi
 
 if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
@@ -125,6 +135,18 @@ fi
 cd "$TOOLCHAINS_BUILD/mingw-w64"
 git pull --quiet
 
+if [[ ${MUSLLIBC} == "yes" ]]; then
+if [ ! -d "$TOOLCHAINS_BUILD/musl" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:bminor/musl.git
+if [ $? -ne 0 ]; then
+echo "musl clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/musl"
+git pull --quiet
+else
 if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone -b stableabi https://github.com/trcrsired/glibc.git
@@ -135,6 +157,7 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
+fi
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -248,28 +271,78 @@ if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.linuxkernelheadersinstallsuccess
 fi
 
-if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
-	if [[ ${ARCH} == "riscv" ]]; then
-		multilibs=(default lp64 lp64d ilp32 ilp32d)
-		multilibsoptions=("" " -march=rv64imac -mabi=lp64" " -march=rv64imafdc -mabi=lp64d" " -march=rv32imac -mabi=ilp32" " -march=rv32imafdc -mabi=ilp32d")
-		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
-	elif [[ ${ARCH} == "x86_64" ]]; then
-		multilibs=(m64 m32 mx32)
-		multilibsoptions=(" -m64" " -m32" " -mx32")
-		multilibsdir=("lib64" "lib" "libx32")
-		multilibsingccdir=("" "32" "x32")
-		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
-	else
-		multilibs=(default)
-		multilibsoptions=("")
-		multilibsdir=("lib")
-		multilibsingccdir=("")
-		multilibshost=("$HOST")
-	fi
-	glibcfiles=(libm.a libm.so libc.so)
+if [[ ${ARCH} == "riscv" ]]; then
+	multilibs=(default lp64 lp64d ilp32 ilp32d)
+	multilibsoptions=("" " -march=rv64imac -mabi=lp64" " -march=rv64imafdc -mabi=lp64d" " -march=rv32imac -mabi=ilp32" " -march=rv32imafdc -mabi=ilp32d")
+	multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+	multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+	multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
+elif [[ ${ARCH} == "x86_64" ]]; then
+	multilibs=(m64 m32 mx32)
+	multilibsoptions=(" -m64" " -m32" " -mx32")
+	multilibsdir=("lib64" "lib" "libx32")
+	multilibsingccdir=("" "32" "x32")
+	multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+else
+	multilibs=(default)
+	multilibsoptions=("")
+	multilibsdir=("lib")
+	multilibsingccdir=("")
+	multilibshost=("$HOST")
+fi
 
+if [[ ${MUSLLIBC} == "yes" ]]; then
+if [ ! -f ${currentpath}/install/.muslinstallsuccess ];
+
+	item=${multilibs[1]}
+	marchitem=${multilibsoptions[1]}
+	libdir=${multilibsdir[1]}
+	host=${multilibshost[1]}
+	libingccdir=${multilibsingccdir[1]}
+	mkdir -p ${currentpath}/build/musl/$item
+	cd ${currentpath}/build/musl/$item
+
+	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+		(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
+		if [ $? -ne 0 ]; then
+			echo "musl ($item) configure failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
+		(export -n LD_LIBRARY_PATH; make -j$(nproc))
+		if [ $? -ne 0 ]; then
+			echo "musl ($item) build failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
+		(export -n LD_LIBRARY_PATH; make install -j$(nproc))
+		if [ $? -ne 0 ]; then
+			echo "musl ($item) install failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/.sysrootsuccess ]; then
+		cp -r --preserve=links ${currentpath}/install/musl/include $SYSROOT/
+		mkdir -p $SYSROOT/$libdir
+		cp -r --preserve=links ${currentpath}/install/musl/lib/* $SYSROOT/$libdir
+		mkdir -p $GCCSYSROOT/$libingccdir
+		cp -r --preserve=links ${currentpath}/install/musl/lib/* $GCCSYSROOT/$libingccdir
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/.sysrootsuccess
+	fi
+	unset item
+	unset marchitem
+	unset libdir
+	unset host
+	unset libingccdir
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
+fi
+elif [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
+	glibcfiles=(libm.a libm.so libc.so)
 
 	mkdir -p ${currentpath}/build/glibc
 	mkdir -p ${currentpath}/install/sysroot
