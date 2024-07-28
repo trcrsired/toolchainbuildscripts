@@ -308,7 +308,7 @@ if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
 
 	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
 		if [[ ${USELLVM} == "yes" ]]; then
-			STRIP=llvm-strip CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
+			STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
 		else
 			(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
 		fi
