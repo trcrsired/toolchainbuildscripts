@@ -78,6 +78,7 @@ fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make all-gcc -j$(nproc)
 make install-strip-gcc -j
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/include/limits.h
 fi
 
 cd ${currentpath}
@@ -138,6 +139,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
+make all-gcc -j$(nproc)
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/hostbuild/$HOST/gcc/include/limits.h
 make -j$(nproc)
 make install-strip -j$(nproc)
 fi
