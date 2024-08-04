@@ -30,13 +30,10 @@ mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 mkdir -p $TOOLCHAINS_BUILD
 mkdir -p $TOOLCHAINSPATH
 
-clang_path=`which clang`
-clang_directory=$(dirname "$clang_path")
-clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
-clang_major_version="${clang_version%%.*}"
-llvm_install_directory="$clang_directory/.."
-clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+LLVMCOMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
+LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
@@ -68,6 +65,22 @@ if ! command -v "$TARGETTRIPLE-gcc" &> /dev/null
 then
     echo "$TARGETTRIPLE-gcc not exists"
     exit 1
+fi
+
+
+if ! command -v "gcc" &> /dev/null
+then
+    echo "gcc not exists"
+    exit 1
+fi
+
+gccnativetriplet=$(gcc -dumpmachine)
+
+isnativecompilation="no"
+
+if [[ $TARGETTRIPLE == $gccnativetriplet ]]; then
+isnativecompilation="yes"
+export PATH=$LLVMINSTALLPATH/bin:$PATH
 fi
 
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
@@ -114,6 +127,97 @@ fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
 fi
 
+function buildllvm
+{
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/llvm"
+cd $CURRENTTRIPLEPATH/llvm
+#if [[ isnativecompilation == "yes" ]]; then
+
+if [[ "no" == "yes" ]]; then
+cmake $LLVMPROJECTPATH/llvm \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=$TARGETTRIPLE-gcc -DCMAKE_CXX_COMPILER=$TARGETTRIPLE-g++ -DCMAKE_ASM_COMPILER=$TARGETTRIPLE-gcc \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$LLVMINSTALLPATH \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
+	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DBUILD_SHARED_LIBS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
+	-DLLVM_ENABLE_ZLIB=FORCE_ON \
+	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
+	-DHAVE_ZLIB=On \
+	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+else
+cmake $LLVMPROJECTPATH/llvm \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$LLVMINSTALLPATH \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
+	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DBUILD_SHARED_LIBS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DLLVM_ENABLE_LLD=On \
+	-DLLVM_ENABLE_LTO=thin \
+	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
+	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
+	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
+	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
+	-DLLVM_ENABLE_ZLIB=FORCE_ON \
+	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
+	-DHAVE_ZLIB=On \
+	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+fi
+if [ $? -ne 0 ]; then
+echo "llvm configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.configuresuccess
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.buildsuccess" ]; then
+cd $CURRENTTRIPLEPATH/llvm
+ninja
+if [ $? -ne 0 ]; then
+echo "llvm build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.buildsuccess
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.installsuccess" ]; then
+cd $CURRENTTRIPLEPATH/llvm
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "llvm install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.installsuccess
+fi
+
+}
+
+if [[ isnativecompilation == "yes" ]]; then
+buildllvm
+fi
+
 if [ ! -f "${currentpath}/compiler-rt/.compilerrtconfigure" ]; then
 mkdir -p ${currentpath}/compiler-rt
 cd ${currentpath}/compiler-rt
@@ -135,9 +239,24 @@ if [ $? -ne 0 ]; then
 echo "ninja install/strip failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtninja
-cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
+
+
+if [ ! -f "${currentpath}/compiler-rt/.compilerrtcopy" ]; then
+clang_path=`which clang`
+clang_directory=$(dirname "$clang_path")
+clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
+clang_major_version="${clang_version%%.*}"
+llvm_install_directory="$clang_directory/.."
+clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+if [ $? -ne 0 ]; then
+echo "compilerrt copy failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtcopy
+fi
+
 
 if [ ! -f "${currentpath}/runtimes/.runtimesconfigure" ]; then
 mkdir -p ${currentpath}/runtimes
@@ -172,62 +291,9 @@ ln -s libc++.so.1 libc++.so
 echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesln
 fi
 
-if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
-mkdir -p "$CURRENTTRIPLEPATH/llvm"
-cd $CURRENTTRIPLEPATH/llvm
-cmake $LLVMPROJECTPATH/llvm \
-	-GNinja -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$LLVMINSTALLPATH \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
-	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DBUILD_SHARED_LIBS=On \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
-	-DLLVM_ENABLE_LLD=On \
-	-DLLVM_ENABLE_LTO=thin \
-	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
-	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DLLVM_ENABLE_ZLIB=FORCE_ON \
-	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
-	-DHAVE_ZLIB=On \
-	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
-	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
-if [ $? -ne 0 ]; then
-echo "llvm configure failure"
-exit 1
+if [[ isnativecompilation != "yes" ]]; then
+buildllvm
 fi
-echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.configuresuccess
-fi
-
-if [ ! -f "$CURRENTTRIPLEPATH/llvm/.buildsuccess" ]; then
-cd $CURRENTTRIPLEPATH/llvm
-ninja
-if [ $? -ne 0 ]; then
-echo "llvm build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.buildsuccess
-fi
-
-if [ ! -f "$CURRENTTRIPLEPATH/llvm/.installsuccess" ]; then
-cd $CURRENTTRIPLEPATH/llvm
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "llvm install failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.installsuccess
-fi
-
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
 	cd $TOOLCHAINS_LLVMPATH
