@@ -80,7 +80,7 @@ SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
 fi
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${SYSROOTTRIPLEPATH}/include/zlib.h" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibconfigure" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
@@ -97,11 +97,82 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
-ninja install/strip
+if [ $? -ne 0 ]; then
+echo "zlib configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibconfigure
 fi
 
-if [ ! -d "$LLVMINSTALLPATH" ]; then
-if [ ! -d "$CURRENTTRIPLEPATH/llvm" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure" ]; then
+cd $CURRENTTRIPLEPATH/zlib
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "zlib install/strip failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
+fi
+
+if [ ! -f "${currentpath}/compiler-rt/.compilerrtconfigure" ]; then
+mkdir -p ${currentpath}/compiler-rt
+cd ${currentpath}/compiler-rt
+cmake -GNinja $LLVMPROJECTPATH/compiler-rt \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMCOMPILERRTINSTALLPATH}
+if [ $? -ne 0 ]; then
+echo "compile-rt configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtconfigure
+fi
+
+if [ ! -f "${currentpath}/compiler-rt/.compilerrtninja" ]; then
+cd "${currentpath}/compiler-rt"
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "ninja install/strip failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtninja
+cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+fi
+
+if [ ! -f "${currentpath}/runtimes/.runtimesconfigure" ]; then
+mkdir -p ${currentpath}/runtimes
+cd ${currentpath}/runtimes
+cmake -GNinja $LLVMPROJECTPATH/runtimes \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMRUNTIMESINSTALLPATH} \
+	-DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+	-DLIBCXXABI_SILENT_TERMINATE=On
+if [ $? -ne 0 ]; then
+echo "runtimesconfigure build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesconfigure
+fi
+
+if [ ! -f "${currentpath}/runtimes/.runtimesbuild" ]; then
+cd ${currentpath}/runtimes
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "ninja install/strip failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesbuild
+fi
+
+if [ ! -f "${currentpath}/runtimes/.runtimesln" ]; then
+cd "${LLVMRUNTIMESINSTALLPATH}/lib"
+rm libc++.so
+ln -s libc++.so.1 libc++.so
+echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesln
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
 cd $CURRENTTRIPLEPATH/llvm
 cmake $LLVMPROJECTPATH/llvm \
@@ -130,14 +201,42 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+if [ $? -ne 0 ]; then
+echo "llvm configure failure"
+exit 1
 fi
-cd $CURRENTTRIPLEPATH/llvm
-ninja
-ninja install/strip
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.configuresuccess
 fi
 
-if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.buildsuccess" ]; then
+cd $CURRENTTRIPLEPATH/llvm
+ninja
+if [ $? -ne 0 ]; then
+echo "llvm build failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.buildsuccess
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.installsuccess" ]; then
+cd $CURRENTTRIPLEPATH/llvm
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "llvm install failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.installsuccess
+fi
+
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
 	cd $TOOLCHAINS_LLVMPATH
+	rm -f ${TARGETTRIPLE}.tar.xz
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
+	if [ $? -ne 0 ]; then
+		echo "llvm packaging failure"
+		exit 1
+	fi
 	chmod 755 ${TARGETTRIPLE}.tar.xz
+	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.packagingsuccess
 fi
