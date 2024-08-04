@@ -76,6 +76,7 @@ fi
 
 gccnativetriplet=$(gcc -dumpmachine)
 export PATH=$LLVMINSTALLPATH/bin:$PATH
+export LD_LIBRARY_PATH=$LLVMINSTALLPATH/lib:$LD_LIBRARY_PATH
 
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
 gccbinpath=$(dirname "$gccpath")
