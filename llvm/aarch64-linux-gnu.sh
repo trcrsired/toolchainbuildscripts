@@ -38,7 +38,9 @@ LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
 if [[ $1 == "clean" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+	if [[ $NO_TOOLCHAIN_DELETION != "yes" ]]; then
+		rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+	fi
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 	exit 1
@@ -47,6 +49,9 @@ fi
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
+	if [[ $NO_TOOLCHAIN_DELETION != "yes" ]]; then
+		rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+	fi
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 fi
