@@ -38,7 +38,6 @@ LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 fi
