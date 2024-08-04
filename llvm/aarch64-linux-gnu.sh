@@ -75,13 +75,7 @@ then
 fi
 
 gccnativetriplet=$(gcc -dumpmachine)
-
-isnativecompilation="no"
-
-if [[ $TARGETTRIPLE == $gccnativetriplet ]]; then
-isnativecompilation="yes"
 export PATH=$LLVMINSTALLPATH/bin:$PATH
-fi
 
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
 gccbinpath=$(dirname "$gccpath")
@@ -188,9 +182,7 @@ fi
 
 }
 
-if [[ isnativecompilation == "yes" ]]; then
 buildllvm
-fi
 
 if [ ! -f "${currentpath}/compiler-rt/.compilerrtconfigure" ]; then
 mkdir -p ${currentpath}/compiler-rt
@@ -214,23 +206,6 @@ echo "ninja install/strip failure"
 exit 1
 fi
 fi
-
-
-if [ ! -f "${currentpath}/compiler-rt/.compilerrtcopy" ]; then
-clang_path=`which clang`
-clang_directory=$(dirname "$clang_path")
-clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
-clang_major_version="${clang_version%%.*}"
-llvm_install_directory="$clang_directory/.."
-clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
-cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
-if [ $? -ne 0 ]; then
-echo "compilerrt copy failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtcopy
-fi
-
 
 if [ ! -f "${currentpath}/runtimes/.runtimesconfigure" ]; then
 mkdir -p ${currentpath}/runtimes
@@ -265,8 +240,21 @@ ln -s libc++.so.1 libc++.so
 echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesln
 fi
 
-if [[ isnativecompilation != "yes" ]]; then
 buildllvm
+
+if [ ! -f "${currentpath}/compiler-rt/.compilerrtcopy" ]; then
+clang_path=`which clang`
+clang_directory=$(dirname "$clang_path")
+clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
+clang_major_version="${clang_version%%.*}"
+llvm_install_directory="$clang_directory/.."
+clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+if [ $? -ne 0 ]; then
+echo "compilerrt copy failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtcopy
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
