@@ -64,14 +64,20 @@ if [ ! -d ${currentpath} ]; then
 fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
+
+if [[ ${MUSLLIBC} == "yes" ]]; then
+MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
+else
 if [[ ${ARCH} == "x86_64" ]]; then
 MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 else
 MULTILIBLISTS=
 fi
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
+fi
+GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-if [[ ${ARCH} == "arm64" ]]; then
+if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
@@ -81,50 +87,23 @@ else
 ENABLEGOLD="--enable-gold"
 fi
 
+if ! $relpath/clonebinutilsgccwithdeps.sh
+then
+exit 1
+fi
+
+if [[ ${MUSLLIBC} == "yes" ]]; then
+if [ ! -d "$TOOLCHAINS_BUILD/musl" ]; then
 cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
-git clone git://sourceware.org/git/binutils-gdb.git
+git clone git@github.com:bminor/musl.git
 if [ $? -ne 0 ]; then
-echo "binutils-gdb clone failed"
+echo "musl clone failed"
 exit 1
 fi
 fi
-cd "$TOOLCHAINS_BUILD/binutils-gdb"
+cd "$TOOLCHAINS_BUILD/musl"
 git pull --quiet
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
-git clone git://gcc.gnu.org/git/gcc.git
-if [ $? -ne 0 ]; then
-echo "gcc clone failed"
-exit 1
-fi
-fi
-cd "$TOOLCHAINS_BUILD/gcc"
-git pull --quiet
-
-if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
-cd $TOOLCHAINS_BUILD/gcc
-./contrib/download_prerequisites
-fi
-
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
-cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s ../gcc/gmp gmp
-ln -s ../gcc/mpfr mpfr
-ln -s ../gcc/mpc mpc
-fi
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
-git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
-if [ $? -ne 0 ]; then
-echo "mingw-w64 clone failed"
-fi
-fi
-cd "$TOOLCHAINS_BUILD/mingw-w64"
-git pull --quiet
-
+else
 if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone -b stableabi https://github.com/trcrsired/glibc.git
@@ -135,6 +114,7 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
+fi
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -147,6 +127,11 @@ fi
 cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
 
+if [[ ${USELLVM} == "yes" ]]; then
+HOSTSTRIP=llvm-strip
+else
+HOSTSTRIP=$HOST-strip
+fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
@@ -182,7 +167,7 @@ fi
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
 if [ $? -ne 0 ]; then
 echo "gcc phase1 configure failure"
 exit 1
@@ -248,28 +233,85 @@ if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.linuxkernelheadersinstallsuccess
 fi
 
-if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
-	if [[ ${ARCH} == "riscv" ]]; then
-		multilibs=(default lp64 lp64d ilp32 ilp32d)
-		multilibsoptions=("" " -mabi=lp64" " -mabi=lp64d" " -march=rv32g -mabi=ilp32" " -march=rv32g -mabi=ilp32d")
-		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
-	elif [[ ${ARCH} == "x86_64" ]]; then
-		multilibs=(m64 m32 mx32)
-		multilibsoptions=(" -m64" " -m32" " -mx32")
-		multilibsdir=("lib64" "lib" "libx32")
-		multilibsingccdir=("" "32" "x32")
-		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
-	else
-		multilibs=(default)
-		multilibsoptions=("")
-		multilibsdir=("lib")
-		multilibsingccdir=("")
-		multilibshost=("$HOST")
-	fi
-	glibcfiles=(libm.a libm.so libc.so)
+if [[ ${ARCH} == "riscv" ]]; then
+	multilibs=(default lp64 lp64d ilp32 ilp32d)
+	multilibsoptions=("" " -march=rv64imac -mabi=lp64" " -march=rv64imafdc -mabi=lp64d" " -march=rv32imac -mabi=ilp32" " -march=rv32imafdc -mabi=ilp32d")
+	multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+	multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+	multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
+elif [[ ${ARCH} == "x86_64" ]]; then
+	multilibs=(m64 m32 mx32)
+	multilibsoptions=(" -m64" " -m32" " -mx32")
+	multilibsdir=("lib64" "lib" "libx32")
+	multilibsingccdir=("" "32" "x32")
+	multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+else
+	multilibs=(default)
+	multilibsoptions=("")
+	multilibsdir=("lib")
+	multilibsingccdir=("")
+	multilibshost=("$HOST")
+fi
 
+if [[ ${MUSLLIBC} == "yes" ]]; then
+if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
+	item="default"
+	marchitem=""
+	libdir="lib"
+	host=$HOST
+	libingccdir=""
+	mkdir -p ${currentpath}/build/musl/$item
+	cd ${currentpath}/build/musl/$item
+
+	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+		if [[ ${USELLVM} == "yes" ]]; then
+			STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
+		else
+			(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
+		fi
+		if [ $? -ne 0 ]; then
+			echo "musl configure failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
+		(export -n LD_LIBRARY_PATH; make -j$(nproc))
+		if [ $? -ne 0 ]; then
+			echo "musl build failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
+		(export -n LD_LIBRARY_PATH; make install -j$(nproc))
+		if [ $? -ne 0 ]; then
+			echo "musl install failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
+		$HOSTSTRIP --strip-unneeded $currentpath/install/musl/$item/lib/*
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
+	fi
+	if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
+		cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
+		mkdir -p $SYSROOT/$libdir
+		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
+		mkdir -p $GCCSYSROOT/$libingccdir
+		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
+	fi
+	unset item
+	unset marchitem
+	unset libdir
+	unset host
+	unset libingccdir
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
+fi
+elif [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
+	glibcfiles=(libm.a libm.so libc.so)
 
 	mkdir -p ${currentpath}/build/glibc
 	mkdir -p ${currentpath}/install/sysroot
@@ -283,7 +325,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		mkdir -p ${currentpath}/build/glibc/$item
 		cd ${currentpath}/build/glibc/$item
 		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-			(export -n LD_LIBRARY_PATH; STRIP=$HOST-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
+			(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
 			if [ $? -ne 0 ]; then
 				echo "glibc ($item) configure failure"
 				exit 1
@@ -326,7 +368,7 @@ if [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		fi
 
 		if [ ! -f ${currentpath}/build/glibc/$item/.stripsuccess ]; then
-			$HOST-strip --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
+			$HOSTSTRIP --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 		fi
 		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
@@ -360,7 +402,7 @@ fi
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-STRIP=strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
+STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
 if [ $? -ne 0 ]; then
 echo "gcc phase2 configure failure"
 exit 1
@@ -411,6 +453,14 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 fi
 
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
+cd ${TOOLCHAINSPATH}/${BUILD}
+rm -f $HOST.tar.xz
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+chmod 755 $HOST.tar.xz
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
+fi
+
 function handlebuild
 {
 local hosttriple=$1
@@ -423,7 +473,16 @@ mkdir -p ${build_prefix}
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${build_prefix}/binutils-gdb
 cd $build_prefix/binutils-gdb
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/binutils-gdb/configure  --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST
+local extra_binutils_configure_flags=
+local hostarch=${hosttriple%%-*}
+if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
+# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
+extra_binutils_configure_flags="--disable-gdbserver --disable-gdb"
+fi
+if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
+extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
+fi
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -458,7 +517,7 @@ fi
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOST-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -511,11 +570,10 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
-
-if [[ ${ARCH} == "loongarch" ]]; then
-echo "loongarch hasn't yet got supported. skip"
-else
 handlebuild ${HOST}
+
+if [[ ${CANADIANHOST} == ${HOST} ]]; then
+exit 0
 fi
 
 if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then

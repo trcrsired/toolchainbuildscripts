@@ -11,7 +11,8 @@ fi
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
-currentpath=$(realpath .)/.gnuartifacts/$HOST
+relpath=$(realpath .)
+currentpath=$relpath/.gnuartifacts/$HOST
 mkdir -p $currentpath
 cd $currentpath
 BUILD=$(gcc -dumpmachine)
@@ -41,30 +42,9 @@ CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
-git clone git://sourceware.org/git/binutils-gdb.git
-fi
-cd "$TOOLCHAINS_BUILD/binutils-gdb"
-git pull --quiet
-
-cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
-git clone git://gcc.gnu.org/git/gcc.git
-fi
-cd "$TOOLCHAINS_BUILD/gcc"
-git pull --quiet
-
-if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
-cd $TOOLCHAINS_BUILD/gcc
-./contrib/download_prerequisites
-fi
-
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
-cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s ../gcc/gmp gmp
-ln -s ../gcc/mpfr mpfr
-ln -s ../gcc/mpc mpc
+if ! $relpath/clonebinutilsgccwithdeps.sh
+then
+exit 1
 fi
 
 cd "$TOOLCHAINS_BUILD"
@@ -98,6 +78,7 @@ fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make all-gcc -j$(nproc)
 make install-strip-gcc -j
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/include/limits.h
 fi
 
 cd ${currentpath}
@@ -158,6 +139,8 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -d $HOSTPREFIX/lib/gcc ]; then
+make all-gcc -j$(nproc)
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/hostbuild/$HOST/gcc/include/limits.h
 make -j$(nproc)
 make install-strip -j$(nproc)
 fi
