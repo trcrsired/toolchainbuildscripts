@@ -132,6 +132,12 @@ HOSTSTRIP=llvm-strip
 else
 HOSTSTRIP=$HOST-strip
 fi
+isnativebuild=
+if [[ $BUILD != $HOST ]]; then
+isnativebuild=yes
+fi
+
+if [[ $isnativebuild != "yes" ]]; then
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
@@ -212,6 +218,8 @@ echo "gcc phase1 install strip libgcc failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
+fi
+
 fi
 
 cd ${currentpath}
@@ -389,6 +397,8 @@ fi
 
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
+if [[ $isnativebuild != "yes" ]]; then
+
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
 cp -r --preserve=links $SYSROOT/include $PREFIXTARGET/
 cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
@@ -459,6 +469,8 @@ rm -f $HOST.tar.xz
 XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 chmod 755 $HOST.tar.xz
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
+fi
+
 fi
 
 function handlebuild
