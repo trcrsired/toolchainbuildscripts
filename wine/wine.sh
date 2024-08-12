@@ -14,18 +14,30 @@ fi
 
 if [ -z ${CC_FOR_BUILD+x} ]; then
     CC_FOR_BUILD=gcc
+	if ! command -v "$CC_FOR_BUILD" &> /dev/null; then
+		CC_FOR_BUILD=clang
+	fi
 fi
 
 if [ -z ${CXX_FOR_BUILD+x} ]; then
     CXX_FOR_BUILD=g++
+	if ! command -v "$CXX_FOR_BUILD" &> /dev/null; then
+		CXX_FOR_BUILD=clang++
+	fi
 fi
 
 if [ -z ${CC+x} ]; then
     CC=gcc
+	if ! command -v "$CC" &> /dev/null; then
+		CC=clang
+	fi
 fi
 
 if [ -z ${CXX+x} ]; then
     CXX=g++
+	if ! command -v "$CXX" &> /dev/null; then
+		CXX=clang
+	fi
 fi
 
 if [ -z ${CLANG+x} ]; then
@@ -37,6 +49,12 @@ if [ -z ${CLANGXX+x} ]; then
 fi
 
 HOST=$(${CC} -dumpmachine)
+if [ -z ${CC_TARGET+x} ]; then
+	CC_TARGET=$HOST
+fi
+if [ -z ${CXX_TARGET+x} ]; then
+	CXX_TARGET=$HOST
+fi
 
 if [ -z ${STRIP+x} ]; then
 	if ! command -v "llvm-strip" &> /dev/null; then
@@ -79,7 +97,11 @@ if [ -z ${SYSROOT+x} ]; then
 gccpath=$(command -v "$HOST-gcc")
 gccbinpath=$(dirname "$gccpath")
 SYSROOTPATH=$(dirname "$gccbinpath")
+if [ -f $SYSROOTPATH/include/stdio.h ]; then
+SYSROOT=$SYSROOTPATH
+else
 SYSROOT=$SYSROOTPATH/$HOST
+fi
 fi
 
 if [ -z ${ARCH} ]; then
@@ -165,7 +187,7 @@ git pull --quiet
 mkdir -p $currentpath/$x11pjname
 if [ ! -f $currentpath/$x11pjname/.cmakeconfiguresuccess ]; then
 cd $currentpath/$x11pjname
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/$x11pjname -GNinja -DCMAKE_C_COMPILER=$HOST-gcc -DCMAKE_CXX_COMPILER=$HOST-g++ -DCMAKE_ASM_COMPILER=$HOST-gcc -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=On ${TOOLCHAINS_BUILD}/$x11pjname -GNinja -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGXX -DCMAKE_ASM_COMPILER=$CLANG -DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$HOST -DCMAKE_SYSROOT=$SYSROOT -DCMAKE_STRIP=llvm-strip -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$currentpath/installs
 if [ $? -ne 0 ]; then
 echo "$x11pjname autogen failed"
 exit 1
@@ -302,7 +324,7 @@ mkdir -p ${currentwinepath}
 
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
-CC=$CC CXX=$CXX x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror  --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+CC="$CLANG --target=$HOST --sysroot=$SYSROOT" CXX="$CLANGXX --target=$HOST--sysroot=$SYSROOT" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror  --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
