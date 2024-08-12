@@ -1,4 +1,5 @@
 #!/bin/bash
+./dependencycheck.sh
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
