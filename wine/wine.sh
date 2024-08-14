@@ -48,9 +48,10 @@ if [ -z ${CLANGXX+x} ]; then
     CLANGXX=clang++
 fi
 
-if [ -z {$HOST+x} ]; then
+if [ -z ${HOST+x} ]; then
 	HOST=$(${CC} -dumpmachine)
 fi
+
 if [ -z ${CC_TARGET+x} ]; then
 	CC_TARGET=$HOST
 fi
