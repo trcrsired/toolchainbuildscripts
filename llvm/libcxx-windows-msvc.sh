@@ -73,9 +73,9 @@ cmake -GNinja $LLVMPROJECTPATH/runtimes \
     -DCMAKE_CXX_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_ASM_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_C_COMPILER_WORKS=On \
 	-DLIBCXXABI_SILENT_TERMINATE=On -DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DLIBCXX_CXX_ABI=vcruntime \
     -DCMAKE_SYSROOT=$WINDOWSSYSROOT \
-    -DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lvcruntime --sysroot=$WINDOWSSYSROOT" \
-    -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lvcruntime --sysroot=$WINDOWSSYSROOT" \
-    -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lvcruntime --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT" \
     -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CROSSCOMPILING=On -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
     -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off \
     -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off 
