@@ -71,12 +71,13 @@ THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 	-DLIBUNWIND_ENABLE_THREADS=On \
 	-DLIBUNWIND_HAS_PTHREAD_API=Off \
 	-DLIBUNWIND_HAS_WIN32_THREAD_API=On \
-	-DLIBUNWIND_HAS_EXTERNAL_THREAD_API=Off"
+	-DLIBUNWIND_HAS_EXTERNAL_THREAD_API=Off \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=Off"
 
-if [ -z ${USELIBCXXABI+x} ]; then
-EHBUILDLIBS="libcxx"
+if [[ "${USELIBCXXABI}" == "yes" ]]; then
+EHBUILDLIBS="libcxx;libcxxabi"
 else
-EHBUILDLIBS="libcxx;libcxxabi;libunwind"
+EHBUILDLIBS="libcxx"
 fi
 
 function handlebuild
@@ -86,12 +87,12 @@ local hosttriple=$1-unknown-windows-msvc
 local buildprefix=${currentpath}/$hosttriple
 local flags
 local runtimes
-if [ -z ${USELIBCXXABI+x} ]; then
-flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT"
-runtimes=vcruntime
-else
+if [[ "${USELIBCXXABI}" == "yes" ]]; then
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -sysroot=$WINDOWSSYSROOT"
 runtimes=libcxxabi
+else
+flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT"
+runtimes=vcruntime
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesconfigure" ]; then
