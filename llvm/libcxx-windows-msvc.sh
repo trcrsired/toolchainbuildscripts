@@ -100,7 +100,7 @@ cd ${buildprefix}/runtimes
 cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DLLVM_ENABLE_LLD=On -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple \
+	-DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple \
     -DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
 	-DCMAKE_SYSTEM_PROCESSOR="$hosttriple" -DCMAKE_C_COMPILER_TARGET=$hosttriple \
     -DCMAKE_CXX_COMPILER_TARGET=$hosttriple -DCMAKE_ASM_COMPILER_TARGET=$hosttriple -DCMAKE_C_COMPILER_WORKS=On \
