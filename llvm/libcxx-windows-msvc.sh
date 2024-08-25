@@ -79,8 +79,9 @@ fi
 
 function handlebuild
 {
-local hosttriple=$1
-local buildprefix=${currentpath}/$hosttriple-windows-msvc
+local hostarch=$1
+local hosttriple=$1-windows-msvc
+local buildprefix=${currentpath}/$hosttriple
 local flags
 local runtimes
 if [ -z ${USELIBCXXABI+x} ]; then
@@ -97,10 +98,10 @@ cd ${buildprefix}/runtimes
 cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DLLVM_ENABLE_LLD=On -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple-windows-msvc \
+	-DLLVM_ENABLE_LLD=On -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple \
     -DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
-	-DCMAKE_SYSTEM_PROCESSOR="$hosttriple" -DCMAKE_C_COMPILER_TARGET=$hosttriple-windows-msvc \
-    -DCMAKE_CXX_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_ASM_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_C_COMPILER_WORKS=On \
+	-DCMAKE_SYSTEM_PROCESSOR="$hosttriple" -DCMAKE_C_COMPILER_TARGET=$hosttriple \
+    -DCMAKE_CXX_COMPILER_TARGET=$hosttriple -DCMAKE_ASM_COMPILER_TARGET=$hosttriple -DCMAKE_C_COMPILER_WORKS=On \
 	-DLIBCXXABI_SILENT_TERMINATE=On -DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DLIBCXX_CXX_ABI=$runtimes \
     -DCMAKE_SYSROOT=$WINDOWSSYSROOT \
     -DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
@@ -141,10 +142,21 @@ fi
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstall
 fi
 
+if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
+echo sed -i "s|\.\./\.\./share/|\.\./\.\./share/$host-triple/|g" ${buildprefix}/installs/$hosttriple/lib/libc++.modules.json
+sed -i "s|\.\./\.\./share/|\.\./\.\./share/$host-triple/|g" ${buildprefix}/installs/$hosttriple/lib/libc++.modules.json
+if [ $? -ne 0 ]; then
+echo "runtimes fix rename failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesmodulefix
+fi
+
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
-echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/include $WINDOWSSYSROOT/
-echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
-echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
+
+echo cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
+echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
+echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
 fi
 
 }
