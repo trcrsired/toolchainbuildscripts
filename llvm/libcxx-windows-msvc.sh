@@ -165,8 +165,6 @@ git add $WINDOWSSYSROOT/share/$hosttriple/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple/*
 git add $WINDOWSSYSROOT/bin/$hosttriple/*
 git add $WINDOWSSYSROOT/share/$hosttriple/*
-git commit -m "auto update libc++ for $hosttriple from LLVM source"
-git push
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
 
@@ -175,3 +173,9 @@ fi
 handlebuild x86_64
 handlebuild i686
 handlebuild aarch64
+
+if [ ! -f "${currentpath}/.runtimespushed" ]; then
+git commit -m "auto update libc++ from LLVM source"
+git push
+echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimespushed
+fi
