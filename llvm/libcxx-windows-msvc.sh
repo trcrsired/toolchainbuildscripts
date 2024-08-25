@@ -30,6 +30,7 @@ if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
     rm -rf "${WINDOWSSYSROOT}/include/c++/v1"
+    rm -rf "${WINDOWSSYSROOT}/share"
 	echo "restart done"
 fi
 
@@ -157,6 +158,7 @@ if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
+mkdir -p $WINDOWSSYSROOT/share/$hosttriple
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
 fi
 
