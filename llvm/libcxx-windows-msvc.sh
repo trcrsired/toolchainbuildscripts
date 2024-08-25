@@ -76,7 +76,7 @@ THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 if [ -z ${USELIBCXXABI+x} ]; then
 EHBUILDLIBS="libcxx"
 else
-EHBUILDLIBS="libcxx;libcxxabi"
+EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 fi
 
 function handlebuild
