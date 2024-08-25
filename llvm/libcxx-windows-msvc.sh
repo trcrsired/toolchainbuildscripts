@@ -87,8 +87,15 @@ local hosttriple=$1-unknown-windows-msvc
 local buildprefix=${currentpath}/$hosttriple
 local flags
 local runtimes
+local genfile
+if [[ "${USEMAKE}" == "yes" ]]; then
+genfile="Unix Makefiles"
+else
+genfile="Ninja"
+fi
+
 if [[ "${USELIBCXXABI}" == "yes" ]]; then
-flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -sysroot=$WINDOWSSYSROOT"
+flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt --sysroot=$WINDOWSSYSROOT"
 runtimes=libcxxabi
 else
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT"
@@ -98,7 +105,7 @@ fi
 if [ ! -f "${buildprefix}/runtimes/.runtimesconfigure" ]; then
 mkdir -p ${buildprefix}/runtimes
 cd ${buildprefix}/runtimes
-cmake -GNinja $LLVMPROJECTPATH/runtimes \
+cmake -G "$genfile" $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple \
@@ -122,11 +129,14 @@ fi
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesconfigure
 fi
 
-
 if [ ! -f "${buildprefix}/runtimes/.runtimesninja" ]; then
 mkdir -p ${buildprefix}/runtimes
 cd ${buildprefix}/runtimes
+if [[ "${USEMAKE}" == "yes" ]]; then
+make -j$(nproc)
+else
 ninja
+fi
 if [ $? -ne 0 ]; then
 echo "runtimes build failure"
 exit 1
@@ -137,7 +147,11 @@ fi
 if [ ! -f "${buildprefix}/runtimes/.runtimesninjainstall" ]; then
 mkdir -p ${buildprefix}/runtimes
 cd ${buildprefix}/runtimes
+if [[ "${USEMAKE}" == "yes" ]]; then
+make install/strip -j$(nproc)
+else
 ninja install/strip
+fi
 if [ $? -ne 0 ]; then
 echo "runtimes install failure"
 exit 1
