@@ -31,6 +31,10 @@ fi
 if [ ! -d "$LLVMPROJECTPATH" ]; then
 cd $TOOLCHAINS_BUILD
 git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+if [ $? -ne 0 ]; then
+echo "llvm clone failure"
+exit 1
+fi
 fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
@@ -43,6 +47,10 @@ fi
 if [ ! -d "$WINDOWSSYSROOT" ]; then
 cd $TOOLCHAINSPATH
 git clone git@github.com:trcrsired/windows-msvc-sysroot.git
+if [ $? -ne 0 ]; then
+echo "windows-msvc-sysroot clone failure"
+exit 1
+fi
 fi
 cd "$WINDOWSSYSROOT"
 git pull --quiet
