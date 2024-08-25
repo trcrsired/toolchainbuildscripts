@@ -80,7 +80,7 @@ fi
 function handlebuild
 {
 local hostarch=$1
-local hosttriple=$1-windows-msvc
+local hosttriple=$1-unknown-windows-msvc
 local buildprefix=${currentpath}/$hosttriple
 local flags
 local runtimes
@@ -157,6 +157,7 @@ if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
 echo cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
 echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
 echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
+echo cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/
 fi
 
 }
