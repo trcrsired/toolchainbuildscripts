@@ -166,6 +166,7 @@ handlebuild x86_64
 handlebuild i686
 handlebuild aarch64
 
+if [ false ]; then
 cd $WINDOWSSYSROOT
 git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/*
@@ -173,3 +174,4 @@ git add $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/*
 git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/*
 git commit -m "update libc++ from LLVM source"
 git push
+fi
