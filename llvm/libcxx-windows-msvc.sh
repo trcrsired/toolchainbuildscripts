@@ -167,6 +167,7 @@ cd $WINDOWSSYSROOT
 git add $WINDOWSSYSROOT/include/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple/*
 git add $WINDOWSSYSROOT/bin/$hosttriple/*
+mkdir -p "$WINDOWSSYSROOT/share/$hosttriple"
 git add $WINDOWSSYSROOT/share/$hosttriple/*
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
