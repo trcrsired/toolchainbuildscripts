@@ -153,10 +153,10 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesmodulefix
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
-cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
-cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
-cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
-cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
+cp -r --preserve=links ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
+cp -r --preserve=links ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
+cp -r --preserve=links ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
+cp -r --preserve=links ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
 fi
 
 }
