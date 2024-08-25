@@ -97,7 +97,7 @@ fi
 if [[ "${USELIBCXXABI}" == "yes" ]]; then
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt --sysroot=$WINDOWSSYSROOT"
 runtimes=libcxxabi
-THREADS_FLAGS="$THREAD_FLAGS -DLIBCXX_NO_VCRUNTIME=On"
+THREADS_FLAGS="$THREADS_FLAGS -DLIBCXX_NO_VCRUNTIME=On"
 else
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT"
 runtimes=vcruntime
