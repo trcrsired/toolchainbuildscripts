@@ -95,7 +95,7 @@ genfile="Ninja"
 fi
 
 if [[ "${USELIBCXXABI}" == "yes" ]]; then
-flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt --sysroot=$WINDOWSSYSROOT"
+flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument --sysroot=$WINDOWSSYSROOT"
 runtimes=libcxxabi
 THREADS_FLAGS="$THREADS_FLAGS -DLIBCXX_NO_VCRUNTIME=On -DLIBCXXABI_SILENT_TERMINATE=Off"
 else
