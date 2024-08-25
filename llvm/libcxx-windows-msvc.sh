@@ -57,7 +57,14 @@ cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple-windows-msvc \
 	-DLLVM_ENABLE_RUNTIMES="libcxx" -DCMAKE_SYSTEM_PROCESSOR="$hosttriple" -DCMAKE_C_COMPILER_TARGET=$hosttriple-windows-msvc \
     -DCMAKE_CXX_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_ASM_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_C_COMPILER_WORKS=On \
-	-DLIBCXXABI_SILENT_TERMINATE=On -DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DLIBCXX_CXX_ABI=vcruntime
+	-DLIBCXXABI_SILENT_TERMINATE=On -DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DLIBCXX_CXX_ABI=vcruntime \
+    -DCMAKE_SYSROOT=$WINDOWSSYSROOT \
+    -DCMAKE_C_FLAGS="-fuse-ld=lld -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_CXX_FLAGS="-fuse-ld=lld -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_ASM_FLAGS="-fuse-ld=lld -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument --sysroot=$WINDOWSSYSROOT" \
+    -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CROSSCOMPILING=On -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off \
+    -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off 
 if [ $? -ne 0 ]; then
 echo "runtimesconfigure build failure"
 exit 1
@@ -89,8 +96,9 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstal
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
-
-
+echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/include $WINDOWSSYSROOT/
+echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
+echo cp -r ${buildprefix}/installs/$hosttriple-windows-msvc/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
 fi
 
 }
