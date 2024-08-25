@@ -97,7 +97,7 @@ fi
 if [[ "${USELIBCXXABI}" == "yes" ]]; then
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt --sysroot=$WINDOWSSYSROOT"
 runtimes=libcxxabi
-THREADS_FLAGS="$THREADS_FLAGS -DLIBCXX_NO_VCRUNTIME=On"
+THREADS_FLAGS="$THREADS_FLAGS -DLIBCXX_NO_VCRUNTIME=On -DLIBCXXABI_SILENT_TERMINATE=Off"
 else
 flags="-fuse-ld=lld -flto=thin -D_DLL=1 -stdlib=libc++ -Wno-unused-command-line-argument -lmsvcrt -lmsvcprt --sysroot=$WINDOWSSYSROOT"
 runtimes=vcruntime
@@ -134,6 +134,7 @@ if [ ! -f "${buildprefix}/runtimes/.runtimesninja" ]; then
 mkdir -p ${buildprefix}/runtimes
 cd ${buildprefix}/runtimes
 if [[ "${USEMAKE}" == "yes" ]]; then
+make -j$(nproc) -C . cxx_static
 make -j$(nproc)
 else
 ninja
