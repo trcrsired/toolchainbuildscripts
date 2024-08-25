@@ -179,5 +179,5 @@ if [ ! -f "${currentpath}/.runtimespushed" ]; then
 cd $WINDOWSSYSROOT
 git commit -m "auto update libc++ from LLVM source"
 git push
-echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimespushed
+echo "$(date --iso-8601=seconds)" > ${currentpath}/.runtimespushed
 fi
