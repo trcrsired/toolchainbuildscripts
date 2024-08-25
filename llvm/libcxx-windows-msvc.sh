@@ -175,6 +175,7 @@ handlebuild i686
 handlebuild aarch64
 
 if [ ! -f "${currentpath}/.runtimespushed" ]; then
+cd $WINDOWSSYSROOT
 git commit -m "auto update libc++ from LLVM source"
 git push
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimespushed
