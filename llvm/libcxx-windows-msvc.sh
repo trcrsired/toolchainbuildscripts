@@ -68,7 +68,7 @@ cd ${buildprefix}/runtimes
 cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple-windows-msvc \
+	-DLLVM_ENABLE_LLD=On -DCMAKE_INSTALL_PREFIX=${buildprefix}/installs/$hosttriple-windows-msvc \
 	-DLLVM_ENABLE_RUNTIMES="libcxx" -DCMAKE_SYSTEM_PROCESSOR="$hosttriple" -DCMAKE_C_COMPILER_TARGET=$hosttriple-windows-msvc \
     -DCMAKE_CXX_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_ASM_COMPILER_TARGET=$hosttriple-windows-msvc -DCMAKE_C_COMPILER_WORKS=On \
 	-DLIBCXXABI_SILENT_TERMINATE=On -DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DLIBCXX_CXX_ABI=vcruntime \
