@@ -142,18 +142,17 @@ fi
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstall
 fi
 
-#if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
-echo sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
-sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
-#if [ $? -ne 0 ]; then
+if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
+echo sed -i "s|../../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+sed -i "s|../../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+if [ $? -ne 0 ]; then
 echo "runtimes fix rename failure"
 exit 1
-#fi
+fi
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesmodulefix
-#fi
+fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
-
 echo cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
 echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
 echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
