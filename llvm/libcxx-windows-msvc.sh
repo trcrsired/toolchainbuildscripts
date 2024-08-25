@@ -22,9 +22,14 @@ if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
 
+if [ -z ${WINDOWSSYSROOT+x} ]; then
+WINDOWSSYSROOT=$TOOLCHAINSPATH/windows-msvc-sysroot
+fi
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
+    rm -rf "${WINDOWSSYSROOT}/include/c++/v1"
 	echo "restart done"
 fi
 
@@ -39,10 +44,6 @@ fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
 
-
-if [ -z ${WINDOWSSYSROOT+x} ]; then
-WINDOWSSYSROOT=$TOOLCHAINSPATH/windows-msvc-sysroot
-fi
 
 if [ ! -d "$WINDOWSSYSROOT" ]; then
 cd $TOOLCHAINSPATH
