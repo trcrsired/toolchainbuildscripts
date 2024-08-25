@@ -143,8 +143,8 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstal
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
-echo sed -i "s|../../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
-sed -i "s|../../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+echo sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
 if [ $? -ne 0 ]; then
 echo "runtimes fix rename failure"
 exit 1
@@ -153,10 +153,10 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesmodulefix
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
-echo cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
-echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
-echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
-echo cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
+cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
+cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
+cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
+cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
 fi
 
 }
