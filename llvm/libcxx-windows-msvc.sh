@@ -154,9 +154,9 @@ fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
 echo cp -r ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSROOT/
-echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/
-echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/
-echo cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/
+echo cp -r ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
+echo cp -r ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
+echo cp -r ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
 fi
 
 }
