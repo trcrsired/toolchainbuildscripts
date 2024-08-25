@@ -159,18 +159,19 @@ cp -r --preserve=links ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
 fi
 
-}
-
-handlebuild x86_64
-handlebuild i686
-handlebuild aarch64
-
-if [ false ]; then
+if [ ! -f "${buildprefix}/runtimes/.runtimesupdated" ]; then
 cd $WINDOWSSYSROOT
 git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/*
 git add $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/*
 git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/*
-git commit -m "update libc++ from LLVM source"
+git commit -m "update libc++ for $hosttriple from LLVM source"
 git push
+echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
+
+}
+
+handlebuild x86_64
+handlebuild i686
+handlebuild aarch64
