@@ -143,8 +143,8 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstal
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
-echo sed -i "s|\.\./\.\./share/|\.\./\.\./share/$host-triple/|g" ${buildprefix}/installs/$hosttriple/lib/libc++.modules.json
-sed -i "s|\.\./\.\./share/|\.\./\.\./share/$host-triple/|g" ${buildprefix}/installs/$hosttriple/lib/libc++.modules.json
+echo sed -i "s|../share/|../../share/${host-triple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+sed -i "s|../share/|../../share/${host-triple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
 if [ $? -ne 0 ]; then
 echo "runtimes fix rename failure"
 exit 1
