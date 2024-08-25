@@ -161,7 +161,7 @@ fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesupdated" ]; then
 cd $WINDOWSSYSROOT
-git add $WINDOWSSYSROOT/share/$hosttriple/c++/v1/*
+git add $WINDOWSSYSROOT/include/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple/*
 git add $WINDOWSSYSROOT/bin/$hosttriple/*
 git add $WINDOWSSYSROOT/share/$hosttriple/*
