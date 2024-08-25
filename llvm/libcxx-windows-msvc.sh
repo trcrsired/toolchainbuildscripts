@@ -161,11 +161,11 @@ fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesupdated" ]; then
 cd $WINDOWSSYSROOT
-git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/c++/v1/*
-git add $WINDOWSSYSROOT/lib/$hosttriple-unknown-windows-msvc/*
-git add $WINDOWSSYSROOT/bin/$hosttriple-unknown-windows-msvc/*
-git add $WINDOWSSYSROOT/share/$hosttriple-unknown-windows-msvc/*
-git commit -m "update libc++ for $hosttriple from LLVM source"
+git add $WINDOWSSYSROOT/share/$hosttriple/c++/v1/*
+git add $WINDOWSSYSROOT/lib/$hosttriple/*
+git add $WINDOWSSYSROOT/bin/$hosttriple/*
+git add $WINDOWSSYSROOT/share/$hosttriple/*
+git commit -m "auto update libc++ for $hosttriple from LLVM source"
 git push
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
