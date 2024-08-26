@@ -35,5 +35,8 @@ cd "$TOOLCHAINS_BUILD/STL"
 git pull --quiet
 
 rm -rf "$WINDOWSSYSROOT/include/c++/stl"
-cp -r --preserve=links "$TOOLCHAINS_BUILD/STL/inc" "$WINDOWSSYSROOT/include/c++/stl"
+cp -r --preserve=links "$TOOLCHAINS_BUILD/STL/inc" "$WINDOWSSYSROOT/include/c++/"
+mv "$WINDOWSSYSROOT/include/c++/inc" "$WINDOWSSYSROOT/include/c++/stl"
 
+cd "$WINDOWSSYSROOT"
+git push --quiet
