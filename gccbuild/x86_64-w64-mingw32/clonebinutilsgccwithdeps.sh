@@ -7,10 +7,9 @@ if [ $? -ne 0 ]; then
 echo "binutils-gdb from tsinghua.edu clone failed"
 exit 1
 fi
-cd "$TOOLCHAINS_BUILD/binutils-gdb"
-git remote add upstream git://sourceware.org/git/binutils-gdb.git
 fi
 cd "$TOOLCHAINS_BUILD/binutils-gdb"
+git remote add upstream git://sourceware.org/git/binutils-gdb.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "binutils-gdb fetch from upstream failed"
@@ -36,6 +35,31 @@ git pull --quiet
 fi
 
 cd "$TOOLCHAINS_BUILD"
+
+
+if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
+if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
+git clone https://mirrors.tuna.tsinghua.edu.cn/git/gcc.git
+if [ $? -ne 0 ]; then
+echo "gcc from tsinghua.edu clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/gcc"
+git remote add upstream git://gcc.gnu.org/git/gcc.git
+git fetch upstream
+if [ $? -ne 0 ]; then
+echo "gcc fetch from upstream failed"
+exit 1
+fi
+cd "$TOOLCHAINS_BUILD/gcc"
+git merge upstream/master
+if [ $? -ne 0 ]; then
+echo "gcc merge from upstream/master failed"
+exit 1
+fi
+else
+
 if [ ! -d "$TOOLCHAINS_BUILD/gcc" ]; then
 git clone git://gcc.gnu.org/git/gcc.git
 if [ $? -ne 0 ]; then
@@ -45,6 +69,8 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/gcc"
 git pull --quiet
+fi
+
 
 
 cd "$TOOLCHAINS_BUILD"
@@ -73,10 +99,9 @@ if [ $? -ne 0 ]; then
 echo "mpfc from gitee.com clone failed"
 exit 1
 fi
-cd "$TOOLCHAINS_BUILD/mpfr"
-git remote add upstream https://gitlab.inria.fr/mpfr/mpfr.git
 fi
 cd "$TOOLCHAINS_BUILD/mpfr"
+git remote add upstream https://gitlab.inria.fr/mpfr/mpfr.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpfr fetch from upstream failed"
@@ -112,10 +137,9 @@ if [ $? -ne 0 ]; then
 echo "mpc from gitee.com clone failed"
 exit 1
 fi
-cd "$TOOLCHAINS_BUILD/mpc"
-git remote add upstream https://gitlab.inria.fr/mpc/mpc.git
 fi
 cd "$TOOLCHAINS_BUILD/mpc"
+git remote add upstream https://gitlab.inria.fr/mpc/mpc.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpc fetch from upstream failed"
@@ -155,10 +179,9 @@ if [ $? -ne 0 ]; then
 echo "mpfc from gitee.com clone failed"
 exit 1
 fi
-cd "$TOOLCHAINS_BUILD/isl"
-git remote add upstream git://repo.or.cz/isl.git
 fi
 cd "$TOOLCHAINS_BUILD/isl"
+git remote add upstream git://repo.or.cz/isl.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "isl fetch from upstream failed"
