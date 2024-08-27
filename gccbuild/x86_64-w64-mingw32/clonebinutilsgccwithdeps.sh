@@ -7,11 +7,21 @@ if [ $? -ne 0 ]; then
 echo "binutils-gdb from tsinghua.edu clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/binutils-gdb"
 git remote add upstream git://sourceware.org/git/binutils-gdb.git
 fi
+cd "$TOOLCHAINS_BUILD/binutils-gdb"
 git fetch upstream
+if [ $? -ne 0 ]; then
+echo "binutils-gdb fetch from upstream failed"
+exit 1
+fi
+cd "$TOOLCHAINS_BUILD/binutils-gdb"
 git merge upstream/master
-
+if [ $? -ne 0 ]; then
+echo "binutils-gdb merge from upstream/master failed"
+exit 1
+fi
 else
 
 if [ ! -d "$TOOLCHAINS_BUILD/binutils-gdb" ]; then
@@ -63,13 +73,16 @@ if [ $? -ne 0 ]; then
 echo "mpfc from gitee.com clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/mpfr"
 git remote add upstream https://gitlab.inria.fr/mpfr/mpfr.git
 fi
+cd "$TOOLCHAINS_BUILD/mpfr"
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpfr fetch from upstream failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/mpfr"
 git merge upstream/master
 if [ $? -ne 0 ]; then
 echo "mpfr merge from upstream/main failed"
@@ -91,28 +104,30 @@ cd $TOOLCHAINS_BUILD/mpfr
 ./autogen.sh
 fi
 
+cd "$TOOLCHAINS_BUILD"
 if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
-
 if [ ! -d "$TOOLCHAINS_BUILD/mpc" ]; then
 git clone https://gitee.com/mirrors_gitlab_inria_fr/mpc.git
 if [ $? -ne 0 ]; then
 echo "mpc from gitee.com clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/mpc"
 git remote add upstream https://gitlab.inria.fr/mpc/mpc.git
 fi
+cd "$TOOLCHAINS_BUILD/mpc"
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpc fetch from upstream failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/mpc"
 git merge upstream/master
 if [ $? -ne 0 ]; then
 echo "mpc merge from upstream/main failed"
 exit
 fi
 else
-cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/mpc" ]; then
 git clone https://gitlab.inria.fr/mpc/mpc.git
 if [ $? -ne 0 ]; then
@@ -140,13 +155,16 @@ if [ $? -ne 0 ]; then
 echo "mpfc from gitee.com clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/isl"
 git remote add upstream git://repo.or.cz/isl.git
 fi
+cd "$TOOLCHAINS_BUILD/isl"
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "isl fetch from upstream failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/isl"
 git merge upstream/master
 if [ $? -ne 0 ]; then
 echo "isl merge from upstream/main failed"
