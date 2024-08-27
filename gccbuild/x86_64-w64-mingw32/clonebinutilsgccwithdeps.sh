@@ -174,9 +174,9 @@ cd "$TOOLCHAINS_BUILD"
 if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
 
 if [ ! -d "$TOOLCHAINS_BUILD/isl" ]; then
-git clone https://gitee.com/mirrors_community_repo_or/isl_1
+git clone https://gitee.com/mirrors_community_repo_or/isl_1 isl
 if [ $? -ne 0 ]; then
-echo "mpfc from gitee.com clone failed"
+echo "isl from gitee.com clone failed"
 exit 1
 fi
 fi
@@ -190,7 +190,7 @@ fi
 cd "$TOOLCHAINS_BUILD/isl"
 git merge upstream/master
 if [ $? -ne 0 ]; then
-echo "isl merge from upstream/main failed"
+echo "isl merge from upstream/master failed"
 exit
 fi
 else
