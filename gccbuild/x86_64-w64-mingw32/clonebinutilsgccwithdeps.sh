@@ -9,7 +9,7 @@ exit 1
 fi
 fi
 cd "$TOOLCHAINS_BUILD/binutils-gdb"
-git remote add upstream git://sourceware.org/git/binutils-gdb.git
+git --quiet remote add upstream git://sourceware.org/git/binutils-gdb.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "binutils-gdb fetch from upstream failed"
@@ -46,7 +46,7 @@ exit 1
 fi
 fi
 cd "$TOOLCHAINS_BUILD/gcc"
-git remote add upstream git://gcc.gnu.org/git/gcc.git
+git --quiet remote add upstream git://gcc.gnu.org/git/gcc.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "gcc fetch from upstream failed"
@@ -101,7 +101,7 @@ exit 1
 fi
 fi
 cd "$TOOLCHAINS_BUILD/mpfr"
-git remote add upstream https://gitlab.inria.fr/mpfr/mpfr.git
+git --quiet remote add upstream https://gitlab.inria.fr/mpfr/mpfr.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpfr fetch from upstream failed"
@@ -139,7 +139,7 @@ exit 1
 fi
 fi
 cd "$TOOLCHAINS_BUILD/mpc"
-git remote add upstream https://gitlab.inria.fr/mpc/mpc.git
+git --quiet remote add upstream https://gitlab.inria.fr/mpc/mpc.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "mpc fetch from upstream failed"
@@ -181,7 +181,7 @@ exit 1
 fi
 fi
 cd "$TOOLCHAINS_BUILD/isl"
-git remote add upstream git://repo.or.cz/isl.git
+git --quiet remote add upstream git://repo.or.cz/isl.git
 git fetch upstream
 if [ $? -ne 0 ]; then
 echo "isl fetch from upstream failed"
