@@ -60,6 +60,10 @@ fi
 
 if [ ! -d "$LLVMPROJECTPATH" ]; then
 git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+if [ $? -ne 0 ]; then
+echo "llvm-project clone failure"
+exit 1
+fi
 fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
@@ -71,6 +75,10 @@ fi
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
 git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
+if [ $? -ne 0 ]; then
+echo "mingw-w64 clone failure"
+exit 1
+fi
 fi
 cd "$TOOLCHAINS_BUILD/mingw-w64"
 git pull --quiet
@@ -78,6 +86,10 @@ git pull --quiet
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/zlib" ]; then
 git clone git@github.com:trcrsired/zlib.git
+if [ $? -ne 0 ]; then
+echo "zlib clone failure"
+exit 1
+fi
 fi
 cd "$TOOLCHAINS_BUILD/zlib"
 git pull --quiet
@@ -85,6 +97,10 @@ git pull --quiet
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/cppwinrt" ]; then
 git clone https://github.com/microsoft/cppwinrt.git
+if [ $? -ne 0 ]; then
+echo "cppwinrt clone failure"
+exit 1
+fi
 fi
 cd "$TOOLCHAINS_BUILD/cppwinrt"
 git pull --quiet
@@ -127,7 +143,7 @@ fi
 
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${BUILTINSINSTALLPATH}/lib/windows/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/builtins/.builtinconfigsuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -142,8 +158,29 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DLLVM_ENABLE_LTO=thin \
 	-DLLVM_ENABLE_LLD=On
+if [ $? -ne 0 ]; then
+echo "builtin config failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/builtins/.builtinconfigsuccess"
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/builtins/.builtinninjasuccess" ]; then
 ninja
+if [ $? -ne 0 ]; then
+echo "builtin ninja failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/builtins/.builtinninjasuccess"
+fi
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/builtins/.builtinninjastripsuccess" ]; then
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "builtin ninja installstrip failure"
+exit 1
+fi
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
