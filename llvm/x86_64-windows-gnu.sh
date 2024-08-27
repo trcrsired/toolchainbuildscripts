@@ -173,7 +173,6 @@ exit 1
 fi
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/builtins/.builtinninjasuccess"
 fi
-fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/builtins/.builtinninjastripsuccess" ]; then
 ninja install/strip
@@ -182,6 +181,7 @@ echo "builtin ninja installstrip failure"
 exit 1
 fi
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/builtins/.builtinninjastripsuccess"
 fi
 
 THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
