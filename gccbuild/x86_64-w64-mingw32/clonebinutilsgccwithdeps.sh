@@ -132,7 +132,7 @@ fi
 cd "$TOOLCHAINS_BUILD"
 if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/mpc" ]; then
-git clone https://gitee.com/mirrors_gitlab_inria_fr/mpc.git
+git clone https://gitee.com/qabeowjbtkwb/mpc.git
 if [ $? -ne 0 ]; then
 echo "mpc from gitee.com clone failed"
 exit 1
