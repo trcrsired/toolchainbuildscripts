@@ -94,7 +94,7 @@ cd "$TOOLCHAINS_BUILD"
 if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
 
 if [ ! -d "$TOOLCHAINS_BUILD/mpfr" ]; then
-git clone https://gitee.com/hic_0757/mpfr.git
+git clone https://gitee.com/qabeowjbtkwb/mpfr
 if [ $? -ne 0 ]; then
 echo "mpfc from gitee.com clone failed"
 exit 1
