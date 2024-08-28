@@ -133,7 +133,7 @@ else
 HOSTSTRIP=$HOST-strip
 fi
 isnativebuild=
-if [[ $BUILD != $HOST ]]; then
+if [[ $BUILD == $HOST ]]; then
 isnativebuild=yes
 fi
 
