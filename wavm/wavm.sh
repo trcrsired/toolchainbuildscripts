@@ -49,7 +49,7 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
-if [[ $SYSROOTPATH != "" ]];
+if [[ $SYSROOTPATH != "" ]]; then
 SYSROOT_SETTING="-DCMAKE_SYSROOT=$SYSROOTPATH"
 fi
 
