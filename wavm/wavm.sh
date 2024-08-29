@@ -70,7 +70,7 @@ mkdir -p "$currentwavmpath"
 if [ ! -f "${currentwavmpath}/.wavmconfiguresuccess" ]; then
 cd $currentwavmpath
 cmake "$TOOLCHAINS_BUILD/WAVM" -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
-	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$CC -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$HOST -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACFLAGS" \
 	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRAASMFLAGS" \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACXXFLAGS" \
