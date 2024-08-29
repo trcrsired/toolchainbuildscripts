@@ -122,7 +122,7 @@ fi
 echo "$(date --iso-8601=seconds)" > "${currentcmakepath}/.cmakeninjainstallstripsuccess"
 fi
 
-
+mkdir -p "$currentninjapath"
 
 if [ ! -f "${currentninjapath}/.ninjaconfiguresuccess" ]; then
 cd $currentninjapath
