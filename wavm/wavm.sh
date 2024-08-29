@@ -54,7 +54,7 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=$SYSROOTPATH"
 fi
 
 cd "$TOOLCHAINS_BUILD"
-if [ ! -d "$TOOLCHAINS_BUILD/wavm" ]; then
+if [ ! -d "$TOOLCHAINS_BUILD/WAVM" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone -b mt-2 https://github.com/trcrsired/WAVM
 if [ $? -ne 0 ]; then
@@ -62,14 +62,14 @@ echo "wavm clone failed"
 exit 1
 fi
 fi
-cd "$TOOLCHAINS_BUILD/wavm"
+cd "$TOOLCHAINS_BUILD/WAVM"
 git pull --quiet
 
 mkdir -p "$currentwavmpath"
 
 if [ ! -f "${currentwavmpath}/.wavmconfiguresuccess" ]; then
 cd $currentwavmpath
-cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
+cmake "$TOOLCHAINS_BUILD/WAVM" -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
 	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$CC -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld" -DCMAKE_ASM_FLAGS="-fuse-ld=lld" -DCMAKE_CXX_FLAGS="-fuse-ld=lld" -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
 	$SYSROOT_SETTING $EXTRAFLAGS
