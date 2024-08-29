@@ -330,7 +330,24 @@ mkdir -p ${currentwinepath}
 
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
-CC="$CLANG --target=$HOST --sysroot=$SYSROOT" CXX="$CLANGXX --target=$HOST--sysroot=$SYSROOT" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror  --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+
+if [ -z ${CC_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CC_FOR_HOST="$CLANG --target=$HOST --sysroot=$SYSROOT"
+else
+CC_FOR_HOST="$CC_FOR_BUILD"
+fi
+fi
+
+if [ -z ${CXX_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CXX_FOR_HOST="$CLANGXX --target=$HOST--sysroot=$SYSROOT"
+else
+CXX_FOR_HOST="$CXX_FOR_BUILD"
+fi
+fi
+
+CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror  --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
