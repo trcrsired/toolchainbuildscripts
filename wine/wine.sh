@@ -103,7 +103,7 @@ SYSROOTPATH=$(dirname "$gccbinpath")
 if [ -f $SYSROOTPATH/include/stdio.h ]; then
 SYSROOT=$SYSROOTPATH
 else
-SYSROOT=$SYSROOTPATH/$HOST
+SYSROOT=$SYSROOTPATH
 fi
 fi
 
