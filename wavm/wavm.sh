@@ -75,6 +75,7 @@ cmake "$TOOLCHAINS_BUILD/WAVM" -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMP
 	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRAASMFLAGS" \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACXXFLAGS" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+	-DCMAKE_INSTALL_PREFIX="$SOFTWARESPATH/$HOST" \
 	$SYSROOT_SETTING $EXTRAFLAGS
 if [ $? -ne 0 ]; then
 echo "WAVM configure failed"
