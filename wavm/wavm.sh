@@ -58,7 +58,7 @@ if [ ! -d "$TOOLCHAINS_BUILD/WAVM" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone -b mt-2 https://github.com/trcrsired/WAVM
 if [ $? -ne 0 ]; then
-echo "wavm clone failed"
+echo "WAVM clone failed"
 exit 1
 fi
 fi
@@ -71,20 +71,35 @@ if [ ! -f "${currentwavmpath}/.wavmconfiguresuccess" ]; then
 cd $currentwavmpath
 cmake "$TOOLCHAINS_BUILD/WAVM" -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
 	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$CC -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld" -DCMAKE_ASM_FLAGS="-fuse-ld=lld" -DCMAKE_CXX_FLAGS="-fuse-ld=lld" -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACFLAGS" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRAASMFLAGS" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACXXFLAGS" \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
 	$SYSROOT_SETTING $EXTRAFLAGS
+if [ $? -ne 0 ]; then
+echo "WAVM configure failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmconfiguresuccess"
 fi
 
 if [ ! -f "${currentwavmpath}/.wavmninjasuccess" ]; then
 cd $currentwavmpath
 ninja
+if [ $? -ne 0 ]; then
+echo "WAVM build failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjasuccess"
 fi
 
 if [ ! -f "${currentwavmpath}/.wavmninjainstallstripsuccess" ]; then
 cd $currentwavmpath
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "WAVM install and strip failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
 fi
 
@@ -92,6 +107,10 @@ if [ ! -f "${currentwavmpath}/.wavmpackagingsuccess" ]; then
 cd ${SOFTWARESPATH}
 rm -f $HOST.tar.xz
 XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+if [ $? -ne 0 ]; then
+echo "tar failed"
+exit 1
+fi
 chmod 755 $HOST.tar.xz
 echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
 fi
