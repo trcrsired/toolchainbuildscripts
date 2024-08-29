@@ -341,7 +341,7 @@ fi
 
 if [ -z ${CXX_FOR_HOST+x} ]; then
 if [[ ${BUILD} != ${HOST} ]]; then
-CXX_FOR_HOST="$CLANGXX --target=$HOST--sysroot=$SYSROOT"
+CXX_FOR_HOST="$CLANGXX --target=$HOST --sysroot=$SYSROOT"
 else
 CXX_FOR_HOST="$CXX_FOR_BUILD"
 fi
