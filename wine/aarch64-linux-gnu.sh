@@ -1,1 +1,1 @@
-CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ ARCH=aarch64 ./wine.sh "$@"
+CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ ARCH=aarch64 HOST=aarch64-linux-gnu ./wine.sh "$@"
