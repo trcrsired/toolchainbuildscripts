@@ -79,9 +79,12 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 		echo "cross compiling needs to set SYSTEMNAME, we assume it is Linux"
 		SYSTEMNAME=Linux
 	elif [[ ${SYSTEMNAME} == "Android" ]]; then
-		mkdir -p "$currentwavmpath"
-		$AR rc "$currentwavmpath/librt.a"
-		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 \"$currentwavmpath/librt.a\" $EXTRACXXFLAGS"
+		if [ ! -f "$currentpath/templibs/librt.a" ]; then
+		mkdir -p "$currentpath/templibs"
+		$AR rc "$currentpath/templibs/librt.a"
+		chmod 755 "$currentpath/templibs/librt.a"
+		fi
+		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 -L\"$currentpath/templibs\" -lc++abi -lunwind $EXTRACXXFLAGS"
 		SYSTEMNAME=Linux
 	fi
 fi
