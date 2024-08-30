@@ -37,8 +37,12 @@ fi
 
 if [ -z ${SYSROOT+x} ]; then
 gccpath=$(command -v "$HOST-gcc")
+if [[ $gccpath == "" ]]; then
+SYSROOTPATH=$TOOLCHAINS_LLVMPATH/$HOST/$HOST
+else
 gccbinpath=$(dirname "$gccpath")
 SYSROOTPATH=$(dirname "$gccbinpath")
+fi
 fi
 
 WAVMRTIFACTSDIR=$(realpath .)/.wavmartifacts
@@ -69,6 +73,9 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 	-DCMAKE_CROSSCOMPILING=On"
 	if [ -z ${SYSTEMNAME+x} ]; then
 		echo "cross compiling needs to set SYSTEMNAME, we assume it is Linux"
+		SYSTEMNAME=Linux
+	elif [[ ${SYSTEMNAME} == "Android" ]]; then
+		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 $EXTRACXXFLAGS"
 		SYSTEMNAME=Linux
 	fi
 fi
