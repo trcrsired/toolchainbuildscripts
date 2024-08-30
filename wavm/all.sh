@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
 echo "WAVM x86_64-windows-gnu failed"
 exit 1
 fi
-HOST=aarch64-windows-gnu ./x86_64-windows-gnu.sh "$@"
+./aarch64-windows-gnu.sh "$@"
 if [ $? -ne 0 ]; then
 echo "WAVM aarch64-windows-gnu failed"
 fi
