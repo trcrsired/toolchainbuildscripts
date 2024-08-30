@@ -23,6 +23,10 @@ if [ -z ${CXX+x} ]; then
 	CXX=clang++
 fi
 
+if [ -z ${AR+x} ]; then
+	AR=llvm-ar
+fi
+
 if [ -z ${HOST+x} ]; then
 	HOST=$(${CC} -dumpmachine)
 fi
@@ -75,7 +79,9 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 		echo "cross compiling needs to set SYSTEMNAME, we assume it is Linux"
 		SYSTEMNAME=Linux
 	elif [[ ${SYSTEMNAME} == "Android" ]]; then
-		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 $EXTRACXXFLAGS"
+		mkdir -p "$currentwavmpath"
+		$AR rc "$currentwavmpath/librt.a"
+		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 \"$currentwavmpath/librt.a\" $EXTRACXXFLAGS"
 		SYSTEMNAME=Linux
 	fi
 fi
