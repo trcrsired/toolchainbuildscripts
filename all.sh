@@ -1,4 +1,4 @@
-﻿buildallcurrentpath=$(realpath .)
+buildallcurrentpath=$(realpath .)
 
 cd $buildallcurrentpath/llvm
 ./all.sh "$@"
