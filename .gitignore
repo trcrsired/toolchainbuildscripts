@@ -2,4 +2,4 @@ llvm/.llvmartifacts
 gnu/.gnuartifacts
 gccbuild/x86_64-w64-mingw32/.gnuartifacts
 wine/.wineartifacts
-buildlogs.txt
+buildstderrlogs.txt
