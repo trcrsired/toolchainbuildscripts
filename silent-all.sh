@@ -4,4 +4,4 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
-./all.sh "$@" > /dev/null 2 > "$(realpath .)/buildstderrlogs.txt"
+./all.sh "$@" >/dev/null 2>$(realpath .)/buildstderrlogs.txt
