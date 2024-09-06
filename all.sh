@@ -2,10 +2,11 @@
 
 cd $buildallcurrentpath/llvm
 ./all.sh "$@"
-cd $buildallcurrentpath/llvm
-./wasm-sysroots.sh "$@"
+./libcxx-windows-msvc.sh "$@"
 cd $buildallcurrentpath/gccbuild/x86_64-w64-mingw32
 ./all.sh "$@"
 cd $buildallcurrentpath/wavm
 ./all.sh "$@"
-
+cd $buildallcurrentpath/wine
+./wine.sh "$@"
+./aarch64-linux-android30.sh "$@"
