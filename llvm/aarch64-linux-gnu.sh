@@ -229,7 +229,7 @@ fi
 
 buildllvm
 
-if [[ false ]]; then
+if false ; then
 
 clang_path=`which clang`
 clang_directory=$(dirname "$clang_path")
