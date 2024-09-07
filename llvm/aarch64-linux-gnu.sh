@@ -229,6 +229,16 @@ fi
 
 buildllvm
 
+if [[ false ]]; then
+
+clang_path=`which clang`
+clang_directory=$(dirname "$clang_path")
+clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
+clang_major_version="${clang_version%%.*}"
+llvm_install_directory="$clang_directory/.."
+clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+TARGETUNKNOWNTRIPLE=${TARGETTRIPLE_CPU}-linux-gnu
+
 if [ ! -f "${currentpath}/compiler-rt/.compilerrtconfigure" ]; then
 mkdir -p ${currentpath}/compiler-rt
 cd ${currentpath}/compiler-rt
@@ -264,6 +274,14 @@ exit 1
 fi
 fi
 
+if [ -d "$clangbuiltin" ]; then
+canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
+if [ ! -f "${canadianclangbuiltin}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${canadianclangbuiltin}/"
+fi
+fi
+
+
 if [ ! -f "${currentpath}/runtimes/.runtimesconfigure" ]; then
 mkdir -p ${currentpath}/runtimes
 cd ${currentpath}/runtimes
@@ -283,7 +301,14 @@ cmake -GNinja $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_SYSROOT=$SYSROOTPATH \
-	-DCMAKE_CROSSCOMPILING=On
+	-DCMAKE_CROSSCOMPILING=On \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_USE_COMPILER_RT=On \
+	-DLIBCXXABI_USE_COMPILER_RT=On \
+	-DLIBCXX_USE_LLVM_UNWINDER=On \
+	-DLIBCXXABI_USE_LLVM_UNWINDER=On \
+	-DLIBUNWIND_USE_COMPILER_RT=On
 if [ $? -ne 0 ]; then
 echo "runtimesconfigure build failure"
 exit 1
@@ -323,6 +348,8 @@ echo "compilerrt copy failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtcopy
+fi
+
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
