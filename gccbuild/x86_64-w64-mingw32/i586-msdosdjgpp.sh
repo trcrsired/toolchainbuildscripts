@@ -147,6 +147,12 @@ cp -r ${currentpath}/build/${DJCRX}/include $CANADIANPREFIXTARGET/
 cp -r ${currentpath}/build/${DJCRX}/lib $CANADIANPREFIXTARGET/
 fi
 
+cd $BUILD/..
+if [ ! -f $TARGET.tar.xz ]; then
+	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
+	chmod 755 $TARGET.tar.xz
+fi
+
 cd $CANADIANPREFIX/..
 if [ ! -f $TARGET.tar.xz ]; then
         XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
