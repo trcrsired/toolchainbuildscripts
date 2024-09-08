@@ -74,17 +74,7 @@ fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 
-if [[ ${MUSLLIBC} == "yes" ]]; then
-MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
-else
-if [[ ${ARCH} == "x86_64" ]]; then
-MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
-else
-MULTILIBLISTS=
-fi
-MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
-fi
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
 if [[ ${ARCH} == "loongarch" ]]; then
 ENABLEGOLD=
