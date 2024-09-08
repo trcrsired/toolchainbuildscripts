@@ -176,6 +176,12 @@ if [ ! -f $HOSTPREFIXTARGET/lib/libntdll.a ]; then
 cp -r $LIBRARIESCROSSPATH/installs/mingw-w64-crt/* $HOSTPREFIXTARGET/
 fi
 
+cd $TOOLCHAINSPATH/$BUILD
+if [ ! -f $TARGET.tar.xz ]; then
+	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
+	chmod 755 $TARGET.tar.xz
+fi
+
 cd $TOOLCHAINSPATH/$HOST
 if [ ! -f $TARGET.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
