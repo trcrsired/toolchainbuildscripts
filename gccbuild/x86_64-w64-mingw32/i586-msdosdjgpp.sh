@@ -101,7 +101,7 @@ cd ${currentpath}/targetbuild/$TARGET
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace
+$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace --disable-libquadmath
 fi
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j$(nproc)
@@ -135,7 +135,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$CANADIANPREFIXTARGET/include/c++/v1 --prefix=$CANADIANPREFIX $CANADIANTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace
+$TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$CANADIANPREFIXTARGET/include/c++/v1 --prefix=$CANADIANPREFIX $CANADIANTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace --disable-libquadmath
 fi
 if [ ! -d $CANADIANPREFIX/lib/gcc ]; then
 make -j$(nproc)
