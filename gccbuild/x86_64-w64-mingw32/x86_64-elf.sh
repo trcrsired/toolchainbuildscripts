@@ -110,6 +110,12 @@ make -j$(nproc)
 make install-strip -j$(nproc)
 fi
 
+cd $BUILD/..
+if [ ! -f $TARGET.tar.xz ]; then
+	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
+	chmod 755 $TARGET.tar.xz
+fi
+
 cd $CANADIANPREFIX/..
 if [ ! -f $TARGET.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
