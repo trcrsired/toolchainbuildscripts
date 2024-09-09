@@ -73,7 +73,11 @@ MULTILIBLISTS="--with-multilib-list=m32,mx32,m64"
 else
 MULTILIBLISTS=
 fi
+if [[ ${ARCH} == "sparc" ]]; then
+MULTILIBLISTS="--disable-multilib"
+else
 MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
+fi
 fi
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
