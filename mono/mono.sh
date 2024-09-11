@@ -16,6 +16,18 @@ if [ -z ${HOST+x} ]; then
 	HOST=$(${CC} -dumpmachine)
 fi
 
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/mono" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:mono/mono.git
+if [ $? -ne 0 ]; then
+echo "mono clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/mono"
+git pull --quiet
+
 MONOARTIFACTSDIR=$(realpath .)/.monoartifacts
 
 currentpath=$MONOARTIFACTSDIR/$HOST
@@ -39,7 +51,7 @@ mkdir -p ${currentmonopath}
 
 if [ ! -f "${currentmonopath}/.monoconfigure" ]; then
 cd ${currentmonopath}
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/mono/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/mono/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize $EXTRACONFIGUREFLAGS
 if [ $? -ne 0 ]; then
 echo "mono configure failed"
 exit 1
