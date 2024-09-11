@@ -40,18 +40,30 @@ mkdir -p ${currentmonopath}
 if [ ! -f "${currentmonopath}/.monoconfigure" ]; then
 cd ${currentmonopath}
 STRIP=llvm-strip ${TOOLCHAINS_BUILD}/mono/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
+if [ $? -ne 0 ]; then
+echo "mono configure failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoconfigure"
 fi
 
 if [ ! -f "${currentmonopath}/.monobuild" ]; then
 cd ${currentmonopath}
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "mono build failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monobuild"
 fi
 
 if [ ! -f "${currentmonopath}/.monoinstallstrip" ]; then
 cd ${currentmonopath}
 make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "mono install-strip failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoinstallstrip"
 fi
 
