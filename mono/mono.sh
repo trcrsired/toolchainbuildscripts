@@ -39,14 +39,21 @@ mkdir -p ${currentmonopath}
 
 if [ ! -f "${currentmonopath}/.monoconfigure" ]; then
 cd ${currentmonopath}
-STRIP=llvm-strip ${SOFTWARESPATH}/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
+echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoconfigure"
 fi
 
 if [ ! -f "${currentmonopath}/.monobuild" ]; then
 cd ${currentmonopath}
 make -j$(nproc)
+echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monobuild"
 fi
 
+if [ ! -f "${currentmonopath}/.monoinstallstrip" ]; then
+cd ${currentmonopath}
+make install-strip -j$(nproc)
+echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoinstallstrip"
+fi
 
 if [ ! -f "${currentmonopath}/.monopackaging" ]; then
 cd ${SOFTWARESPATH}
