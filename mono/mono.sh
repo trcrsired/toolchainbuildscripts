@@ -39,7 +39,7 @@ mkdir -p ${currentmonopath}
 
 if [ ! -f "${currentmonopath}/.monoconfigure" ]; then
 cd ${currentmonopath}
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
+STRIP=llvm-strip ${TOOLCHAINS_BUILD}/mono/configure --disable-nls --disable-werror --prefix=$SOFTWARESPATH/$HOST --host=$HOST --enable-llvm --enable-optimize
 echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoconfigure"
 fi
 
