@@ -135,7 +135,7 @@ if ! $relpath/clonebinutilsgccwithdeps.sh
 then
 exit 1
 fi
-
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 if [[ ${MUSLLIBC} == "yes" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/musl" ]; then
 cd "$TOOLCHAINS_BUILD"
@@ -159,7 +159,7 @@ fi
 cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
 fi
-
+fi
 
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 
@@ -175,7 +175,7 @@ cd "$TOOLCHAINS_BUILD/newlib-cygwin"
 git pull --quiet
 
 fi
-
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
@@ -186,6 +186,7 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
+fi
 
 if [[ ${USELLVM} == "yes" ]]; then
 HOSTSTRIP=llvm-strip
@@ -337,56 +338,55 @@ fi
 
 else
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
-mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
-if [ $? -ne 0 ]; then
-echo "gcc phase1 configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
-fi
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make all-gcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase1 build gcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
-fi
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
+	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+	if [ $? -ne 0 ]; then
+	echo "gcc phase1 configure failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
+	fi
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+	make all-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase1 build gcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
+	fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make all-target-libgcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase1 build libgcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
-fi
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+	make all-target-libgcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase1 build libgcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
+	fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make install-strip-gcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase1 install strip gcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
-fi
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+	make install-strip-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase1 install strip gcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
+	fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-make install-strip-target-libgcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase1 install strip libgcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
-fi
-
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+		make install-strip-target-libgcc -j$(nproc)
+		if [ $? -ne 0 ]; then
+		echo "gcc phase1 install strip libgcc failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
+	fi
 fi
 
 cd ${currentpath}
