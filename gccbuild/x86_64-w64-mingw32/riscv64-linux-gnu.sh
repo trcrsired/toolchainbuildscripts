@@ -164,6 +164,7 @@ fi
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 
 if [ ! -d "$TOOLCHAINS_BUILD/newlib-cygwin" ]; then
+cd "$TOOLCHAINS_BUILD"
 git clone git@github.com:mirror/newlib-cygwin.git
 if [ $? -ne 0 ]; then
 echo "newlib-cygwin clone failed"
