@@ -163,6 +163,7 @@ fi
 
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 
+if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
 if [ ! -d "$TOOLCHAINS_BUILD/newlib-cygwin" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone git@github.com:mirror/newlib-cygwin.git
@@ -173,6 +174,7 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/newlib-cygwin"
 git pull --quiet
+fi
 
 fi
 if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
