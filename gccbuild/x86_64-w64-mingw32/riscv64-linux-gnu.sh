@@ -65,7 +65,27 @@ fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 
-if [[ ${MUSLLIBC} == "yes" ]]; then
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+MULTILIBLISTS="--disable-shared \
+--disable-threads \
+--disable-nls \
+--disable-werror \
+--enable-languages=c,c++ \
+--enable-multilib \
+--disable-bootstrap \
+--disable-libstdcxx-verbose \
+--with-libstdcxx-eh-pool-obj-count=0 \
+--disable-sjlj-exceptions"
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
+else
+MULTILIBLISTS="$MULTILIBLISTS \
+--disable-hosted-libstdcxx \
+--disable-libssp \
+--disable-libquadmath \
+--disable-libbacktarce"
+fi
+elif [[ ${MUSLLIBC} == "yes" ]]; then
 MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
 else
 if [[ ${ARCH} == "x86_64" ]]; then
@@ -79,7 +99,27 @@ else
 MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
 fi
 fi
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ $MULTILIBLISTS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
+
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+GCCCONFIGUREFLAGSCOMMON="--disable-nls \
+--disable-werror \
+--enable-languages=c,c++ \
+$MULTILIBLISTS \
+--disable-bootstrap \
+--with-libstdcxx-eh-pool-obj-count=0 \
+--disable-sjlj-exceptions"
+else
+GCCCONFIGUREFLAGSCOMMON="--disable-nls \
+--disable-werror \
+--enable-languages=c,c++ \
+$MULTILIBLISTS \
+--disable-bootstrap \
+--disable-libstdcxx-verbose \
+--with-libstdcxx-eh-pool-obj-count=0 \
+--disable-sjlj-exceptions \
+--enable-libstdcxx-threads \
+--enable-libstdcxx-backtrace"
+fi
 
 if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
@@ -118,6 +158,21 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
+fi
+
+
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+
+if [ ! -d "$TOOLCHAINS_BUILD/newlib-cygwin" ]; then
+git clone git@github.com:mirror/newlib-cygwin.git
+if [ $? -ne 0 ]; then
+echo "newlib-cygwin clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/newlib-cygwin"
+git pull --quiet
+
 fi
 
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
@@ -174,6 +229,104 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
 fi
 
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
+mkdir -p ${currentpath}/targetbuild/$HOST/gcc
+cd ${currentpath}/targetbuild/$HOST/gcc
+STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+if [ $? -ne 0 ]; then
+echo "gcc configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss
+fi
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc
+	make all-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc build gcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess
+	fi
+
+
+	SYSROOT=${currentpath}/install/sysroot
+	mkdir -p $SYSROOT
+
+	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
+	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+	$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=$SYSROOT
+	if [ $? -ne 0 ]; then
+	echo "configure newlib-cygwin failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "make newlib-cygwin failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "make install-strip newlib-cygwin failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess ]; then
+	cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/
+	if [ $? -ne 0 ]; then
+	echo "copy newlib-cygwin failure"
+	exit 1
+	fi
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess
+	fi
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc build failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess
+fi
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc install-strip failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
+cd ${TOOLCHAINSPATH}/${BUILD}
+rm -f $HOST.tar.xz
+XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+chmod 755 $HOST.tar.xz
+echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
+fi
+
+else
+
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
@@ -198,7 +351,7 @@ if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; the
 cd ${currentpath}/targetbuild/$HOST/gcc_phase1
 make all-target-libgcc -j$(nproc)
 if [ $? -ne 0 ]; then
-echo "gcc phase1 build libgccgcc failure"
+echo "gcc phase1 build libgcc failure"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
@@ -477,6 +630,8 @@ fi
 
 fi
 
+fi
+
 function handlebuild
 {
 local hosttriple=$1
@@ -565,6 +720,23 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+	local prefixcross=$prefix
+
+	if [[ ${hosttriple} != ${HOST} ]]; then
+	prefixcross=$prefix/$HOST
+	fi
+	cp -r --preserve=links $SYSROOT/* ${prefixcross}/
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+	fi
+fi
+
+else
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 local prefixcross=$prefix
 
@@ -577,6 +749,7 @@ cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOL
 
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 fi
+fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 	cd ${TOOLCHAINSPATH}/${hosttriple}
 	rm -f $HOST.tar.xz
@@ -586,7 +759,9 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 handlebuild ${HOST}
+fi
 
 if [[ ${CANADIANHOST} == ${HOST} ]]; then
 exit 0

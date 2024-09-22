@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ -z ${TARGET+x} ]; then
-	TARGET=loongarch64-elf
+if [ -z ${HOST+x} ]; then
+	HOST=loongarch64-elf
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=loongarch
 fi
-TARGET=$HOST ARCH=$ARCH ./x86_64-elf.sh "$@"
+
+HOST=$HOST ARCH=$ARCH FREESTANDINGBUILD=yes USE_NEWLIB=yes ./riscv64-linux-gnu.sh "$@"
 
 if [ $? -ne 0 ]; then
 exit 1
