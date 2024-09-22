@@ -238,7 +238,7 @@ if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc
 cd ${currentpath}/targetbuild/$HOST/gcc
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 if [ $? -ne 0 ]; then
 echo "gcc configure failure"
 exit 1
@@ -274,11 +274,12 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
 		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-		$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=$SYSROOT
+		$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=${currentpath}/install/newlib-cygwin
 		if [ $? -ne 0 ]; then
 		echo "configure newlib-cygwin failure"
 		exit 1
 		fi
+		cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
 		fi
 
