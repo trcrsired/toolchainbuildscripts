@@ -60,7 +60,6 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/newlib-cygwin"
 git pull --quiet
-fi
 
 else
 GCCCONFIGURE="$GCCCONFIGURE --disable-hosted-libstdcxx"
