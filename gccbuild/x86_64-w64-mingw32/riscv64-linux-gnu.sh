@@ -387,260 +387,262 @@ else
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
 	fi
-fi
 
-cd ${currentpath}
-mkdir -p build
+	cd ${currentpath}
+	mkdir -p build
 
-SYSROOT=${currentpath}/install/sysroot
-linuxkernelheaders=${SYSROOT}
-GCCSYSROOT=${currentpath}/install/gccsysroot
-mkdir -p $SYSROOT
-mkdir -p $GCCSYSROOT
+	SYSROOT=${currentpath}/install/sysroot
+	linuxkernelheaders=${SYSROOT}
+	GCCSYSROOT=${currentpath}/install/gccsysroot
+	mkdir -p $SYSROOT
+	mkdir -p $GCCSYSROOT
 
-if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
-	cd "$TOOLCHAINS_BUILD/linux"
-	make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=$linuxkernelheaders
-	if [ $? -ne 0 ]; then
-	echo "linux kernel headers install failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.linuxkernelheadersinstallsuccess
-fi
-
-if [[ ${ARCH} == "riscv" ]]; then
-	multilibs=(default lp64 lp64d ilp32 ilp32d)
-	multilibsoptions=("" " -march=rv64imac -mabi=lp64" " -march=rv64imafdc -mabi=lp64d" " -march=rv32imac -mabi=ilp32" " -march=rv32imafdc -mabi=ilp32d")
-	multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-	multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
-	multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
-elif [[ ${ARCH} == "x86_64" ]]; then
-	multilibs=(m64 m32 mx32)
-	multilibsoptions=(" -m64" " -m32" " -mx32")
-	multilibsdir=("lib64" "lib" "libx32")
-	multilibsingccdir=("" "32" "x32")
-	multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
-else
-	multilibs=(default)
-	multilibsoptions=("")
-	multilibsdir=("lib")
-	multilibsingccdir=("")
-	multilibshost=("$HOST")
-fi
-
-if [[ ${MUSLLIBC} == "yes" ]]; then
-if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
-	item="default"
-	marchitem=""
-	libdir="lib"
-	host=$HOST
-	libingccdir=""
-	mkdir -p ${currentpath}/build/musl/$item
-	cd ${currentpath}/build/musl/$item
-
-	if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
-		if [[ ${USELLVM} == "yes" ]]; then
-			STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
-		else
-			(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
-		fi
+	if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
+		cd "$TOOLCHAINS_BUILD/linux"
+		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=$linuxkernelheaders
 		if [ $? -ne 0 ]; then
-			echo "musl configure failure"
-			exit 1
+		echo "linux kernel headers install failure"
+		exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.linuxkernelheadersinstallsuccess
 	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
-		(export -n LD_LIBRARY_PATH; make -j$(nproc))
-		if [ $? -ne 0 ]; then
-			echo "musl build failure"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
-	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
-		(export -n LD_LIBRARY_PATH; make install -j$(nproc))
-		if [ $? -ne 0 ]; then
-			echo "musl install failure"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
-	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
-		$HOSTSTRIP --strip-unneeded $currentpath/install/musl/$item/lib/*
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
-	fi
-	if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
-		cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
-		mkdir -p $SYSROOT/$libdir
-		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
-		mkdir -p $GCCSYSROOT/$libingccdir
-		cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
-	fi
-	unset item
-	unset marchitem
-	unset libdir
-	unset host
-	unset libingccdir
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
-fi
-elif [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
-	glibcfiles=(libm.a libm.so libc.so)
 
-	mkdir -p ${currentpath}/build/glibc
-	mkdir -p ${currentpath}/install/sysroot
+	if [[ ${ARCH} == "riscv" ]]; then
+		multilibs=(default lp64 lp64d ilp32 ilp32d)
+		multilibsoptions=("" " -march=rv64imac -mabi=lp64" " -march=rv64imafdc -mabi=lp64d" " -march=rv32imac -mabi=ilp32" " -march=rv32imafdc -mabi=ilp32d")
+		multilibsdir=("lib64" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
+		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
+	elif [[ ${ARCH} == "x86_64" ]]; then
+		multilibs=(m64 m32 mx32)
+		multilibsoptions=(" -m64" " -m32" " -mx32")
+		multilibsdir=("lib64" "lib" "libx32")
+		multilibsingccdir=("" "32" "x32")
+		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+	else
+		multilibs=(default)
+		multilibsoptions=("")
+		multilibsdir=("lib")
+		multilibsingccdir=("")
+		multilibshost=("$HOST")
+	fi
 
-	for i in "${!multilibs[@]}"; do
-		item=${multilibs[$i]}
-		marchitem=${multilibsoptions[$i]}
-		libdir=${multilibsdir[$i]}
-		host=${multilibshost[$i]}
-		libingccdir=${multilibsingccdir[$i]}
-		mkdir -p ${currentpath}/build/glibc/$item
-		cd ${currentpath}/build/glibc/$item
-		if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-			(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
+	if [[ ${MUSLLIBC} == "yes" ]]; then
+	if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
+		item="default"
+		marchitem=""
+		libdir="lib"
+		host=$HOST
+		libingccdir=""
+		mkdir -p ${currentpath}/build/musl/$item
+		cd ${currentpath}/build/musl/$item
+
+		if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+			if [[ ${USELLVM} == "yes" ]]; then
+				STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
+			else
+				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
+			fi
 			if [ $? -ne 0 ]; then
-				echo "glibc ($item) configure failure"
+				echo "musl configure failure"
 				exit 1
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.configuresuccess
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
 		fi
-		if [ ! -f ${currentpath}/build/glibc/$item/.buildsuccess ]; then
+		if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
 			(export -n LD_LIBRARY_PATH; make -j$(nproc))
 			if [ $? -ne 0 ]; then
-				echo "glibc ($item) build failure"
+				echo "musl build failure"
 				exit 1
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.buildsuccess
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
 		fi
-		if [ ! -f ${currentpath}/build/glibc/$item/.installsuccess ]; then
+		if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
 			(export -n LD_LIBRARY_PATH; make install -j$(nproc))
 			if [ $? -ne 0 ]; then
-				echo "glibc ($item) install failure"
+				echo "musl install failure"
 				exit 1
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.installsuccess
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
 		fi
-
-		if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
-			canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
-			for file in "${glibcfiles[@]}"; do
-				filepath=$canadianreplacedstring/$file
-				if [ -f "$filepath" ]; then
-					getfilesize=$(wc -c <"$filepath")
-					echo $getfilesize
-					if [ $getfilesize -lt 1024 ]; then
-						sed -i "s%${canadianreplacedstring}%%g" $filepath
-						echo "removed hardcoded path: $filepath"
-					fi
-				fi
-				unset filepath
-			done
-			unset canadianreplacedstring
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
+		if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
+			$HOSTSTRIP --strip-unneeded $currentpath/install/musl/$item/lib/*
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
 		fi
-
-		if [ ! -f ${currentpath}/build/glibc/$item/.stripsuccess ]; then
-			$HOSTSTRIP --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
-		fi
-		if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
-			cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
+		if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
+			cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
 			mkdir -p $SYSROOT/$libdir
-			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir
+			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
 			mkdir -p $GCCSYSROOT/$libingccdir
-			cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
+			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
 		fi
 		unset item
 		unset marchitem
 		unset libdir
 		unset host
-	done
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
+		unset libingccdir
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
+	fi
+	elif [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
+		glibcfiles=(libm.a libm.so libc.so)
+
+		mkdir -p ${currentpath}/build/glibc
+		mkdir -p ${currentpath}/install/sysroot
+
+		for i in "${!multilibs[@]}"; do
+			item=${multilibs[$i]}
+			marchitem=${multilibsoptions[$i]}
+			libdir=${multilibsdir[$i]}
+			host=${multilibshost[$i]}
+			libingccdir=${multilibsingccdir[$i]}
+			mkdir -p ${currentpath}/build/glibc/$item
+			cd ${currentpath}/build/glibc/$item
+			if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
+				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
+				if [ $? -ne 0 ]; then
+					echo "glibc ($item) configure failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.configuresuccess
+			fi
+			if [ ! -f ${currentpath}/build/glibc/$item/.buildsuccess ]; then
+				(export -n LD_LIBRARY_PATH; make -j$(nproc))
+				if [ $? -ne 0 ]; then
+					echo "glibc ($item) build failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.buildsuccess
+			fi
+			if [ ! -f ${currentpath}/build/glibc/$item/.installsuccess ]; then
+				(export -n LD_LIBRARY_PATH; make install -j$(nproc))
+				if [ $? -ne 0 ]; then
+					echo "glibc ($item) install failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.installsuccess
+			fi
+
+			if [ ! -f ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess ]; then
+				canadianreplacedstring=$currentpath/install/glibc/${item}/lib/
+				for file in "${glibcfiles[@]}"; do
+					filepath=$canadianreplacedstring/$file
+					if [ -f "$filepath" ]; then
+						getfilesize=$(wc -c <"$filepath")
+						echo $getfilesize
+						if [ $getfilesize -lt 1024 ]; then
+							sed -i "s%${canadianreplacedstring}%%g" $filepath
+							echo "removed hardcoded path: $filepath"
+						fi
+					fi
+					unset filepath
+				done
+				unset canadianreplacedstring
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.removehardcodedpathsuccess
+			fi
+
+			if [ ! -f ${currentpath}/build/glibc/$item/.stripsuccess ]; then
+				$HOSTSTRIP --strip-unneeded $currentpath/install/glibc/${item}/lib/* $currentpath/install/glibc/${item}/lib/audit/* $currentpath/install/glibc/${item}/lib/gconv/*
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
+			fi
+			if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
+				cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
+				mkdir -p $SYSROOT/$libdir
+				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir
+				mkdir -p $GCCSYSROOT/$libingccdir
+				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
+			fi
+			unset item
+			unset marchitem
+			unset libdir
+			unset host
+		done
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
+	fi
+
+	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
+
+	if [[ $isnativebuild != "yes" ]]; then
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
+	cp -r --preserve=links $SYSROOT/include $PREFIXTARGET/
+	cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
+	if [ $? -ne 0 ]; then
+	echo "gcc phase1 copysysroot failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
+	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
+	if [ $? -ne 0 ]; then
+	echo "gcc phase2 configure failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	make all-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase2 build gcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
+	if [ $? -ne 0 ]; then
+	echo "gcc phase2 generate limits failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase2 build failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+	make install -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc phase2 install strip failure"
+	exit 1
+	fi
+	${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
+	cd ${TOOLCHAINSPATH}/${BUILD}
+	rm -f $HOST.tar.xz
+	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+	chmod 755 $HOST.tar.xz
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
+	fi
+
+	fi
+
+	fi
+
 fi
 
-GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-
-if [[ $isnativebuild != "yes" ]]; then
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-cp -r --preserve=links $SYSROOT/include $PREFIXTARGET/
-cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
-if [ $? -ne 0 ]; then
-echo "gcc phase1 copysysroot failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
-mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
-cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
-if [ $? -ne 0 ]; then
-echo "gcc phase2 configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make all-gcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase2 build gcc failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
-if [ $? -ne 0 ]; then
-echo "gcc phase2 generate limits failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase2 build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-make install-strip -j$(nproc)
-if [ $? -ne 0 ]; then
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc phase2 install strip failure"
-exit 1
-fi
-${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
-cd ${TOOLCHAINSPATH}/${BUILD}
-rm -f $HOST.tar.xz
-XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-chmod 755 $HOST.tar.xz
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
-fi
-
-fi
-
-fi
 
 function handlebuild
 {
