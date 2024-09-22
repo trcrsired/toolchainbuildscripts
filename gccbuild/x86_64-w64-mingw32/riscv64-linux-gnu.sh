@@ -266,36 +266,55 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 
 	SYSROOT=${currentpath}/install/sysroot
 	mkdir -p $SYSROOT
-
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
-	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-	$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=$SYSROOT
-	if [ $? -ne 0 ]; then
-	echo "configure newlib-cygwin failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
-	fi
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-	make -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "make newlib-cygwin failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess
-	fi
+	if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-	make install-strip -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "make install-strip newlib-cygwin failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
+		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+		$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=$SYSROOT
+		if [ $? -ne 0 ]; then
+		echo "configure newlib-cygwin failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
+		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+		make -j$(nproc)
+		if [ $? -ne 0 ]; then
+		echo "make newlib-cygwin failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess
+		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+		make install-strip -j$(nproc)
+		if [ $? -ne 0 ]; then
+		echo "make install-strip newlib-cygwin failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
+		fi
+	else
+		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied ]; then
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/
+			if [ $? -ne 0 ]; then
+			echo "copy build sysroot include failed"
+			exit 1
+			fi
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/
+			if [ $? -ne 0 ]; then
+			echo "copy build sysroot lib failed"
+			exit 1
+			fi
+			rm -rf "$SYSROOT/include/c++"
+			rm -rf "$SYSROOT/lib/ldscripts"
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied
+		fi
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess ]; then
