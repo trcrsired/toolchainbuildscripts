@@ -253,6 +253,15 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess
 	fi
 
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc
+	make install-strip-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+	echo "gcc install-strip gcc failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
+	fi
 
 	SYSROOT=${currentpath}/install/sysroot
 	mkdir -p $SYSROOT
