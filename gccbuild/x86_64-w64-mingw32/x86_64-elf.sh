@@ -31,9 +31,40 @@ if [[ ${HOST} == ${TARGET} ]]; then
 	exit 1
 fi
 
+if [[ ${ARCH} == "loongarch" ]]; then
+ENABLEGOLD=
+else
+ENABLEGOLD="--enable-gold"
+fi
+
+./clonebinutilsgccwithdeps
+
+if [ $? -ne 0 ]; then
+exit 1
+fi
+
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$TARGET"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$TARGET"
-GCCCONFIGURE="--without-headers --disable-shared --disable-threads --disable-nls --disable-werror --disable-libssp --disable-libquadmath --disable-libbacktarce --enable-languages=c,c++ --enable-multilib --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-hosted-libstdcxx"
+GCCCONFIGURE="--without-headers --disable-shared --disable-threads --disable-nls --disable-werror --disable-libssp --disable-libquadmath --disable-libbacktarce --enable-languages=c,c++ --enable-multilib --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions"
+
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+GCCCONFIGURE="$GCCCONFIGURE --disable-libstdcxx-verbose"
+
+
+if [ ! -d "$TOOLCHAINS_BUILD/newlib-cygwin" ]; then
+git clone git@github.com:mirror/newlib-cygwin.git
+if [ $? -ne 0 ]; then
+echo "newlib-cygwin clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/newlib-cygwin"
+git pull --quiet
+fi
+
+else
+GCCCONFIGURE="$GCCCONFIGURE --disable-hosted-libstdcxx"
+fi
 
 cd "$TOOLCHAINS_BUILD/binutils-gdb"
 git pull --quiet
@@ -61,7 +92,7 @@ cd ${currentpath}/targetbuild/$TARGET
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX --enable-gold
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX $ENABLEGOLD
 fi
 
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
@@ -75,6 +106,7 @@ cd gcc
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure $GCCCONFIGURE $CROSSTRIPLETTRIPLETS --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX
 fi
+
 if [ ! -d $PREFIX/lib/gcc ]; then
 make -j$(nproc)
 make install-strip -j$(nproc)
@@ -91,7 +123,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$CANADIANPREFIX --enable-gold
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$CANADIANPREFIX $ENABLEGOLD
 fi
 
 if [ ! -d $CANADIANPREFIX/lib/bfd-plugins ]; then
