@@ -302,6 +302,16 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
 		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess ]; then
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/
+			if [ $? -ne 0 ]; then
+			echo "copy newlib-cygwin failure"
+			exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess
+		fi
 	else
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied ]; then
 			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/
