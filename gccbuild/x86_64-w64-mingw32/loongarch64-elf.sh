@@ -11,7 +11,7 @@ if [ -z ${FREESTANDINGBUILD+x} ]; then
 	FREESTANDINGBUILD=yes
 fi
 
-HOST=$HOST ARCH=$ARCH ./riscv64-linux-gnu.sh "$@"
+HOST=$HOST ARCH=$ARCH FREESTANDINGBUILD=yes ./riscv64-linux-gnu.sh "$@"
 
 if [ $? -ne 0 ]; then
 exit 1
