@@ -1,17 +1,21 @@
 #!/bin/bash
 
 if [ -z ${HOST+x} ]; then
-	HOST=loongarch64-elf
+	HOST=arm-none-eabi
 fi
 if [ -z ${ARCH+x} ]; then
-	ARCH=loongarch
+	ARCH=arm
 fi
 
 if [ -z ${FREESTANDINGBUILD+x} ]; then
 	FREESTANDINGBUILD=yes
 fi
 
-HOST=$HOST ARCH=$ARCH FREESTANDINGBUILD=yes ./riscv64-linux-gnu.sh "$@"
+if [ -z ${USE_NEWLIB+x} ]; then
+	USE_NEWLIB=yes
+fi
+
+HOST=$HOST ARCH=$ARCH FREESTANDINGBUILD=$FREESTANDINGBUILD USE_NEWLIB=$USE_NEWLIB ./riscv64-linux-gnu.sh "$@"
 
 if [ $? -ne 0 ]; then
 exit 1
