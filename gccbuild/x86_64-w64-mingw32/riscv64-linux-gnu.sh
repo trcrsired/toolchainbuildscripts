@@ -267,6 +267,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 
 	SYSROOT=${currentpath}/install/sysroot
+	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 	mkdir -p $SYSROOT
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
 
