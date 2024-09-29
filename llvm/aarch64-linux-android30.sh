@@ -118,7 +118,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 		-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS -DCOMPILER_RT_BAREMETAL_BUILD=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wunused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wunused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wunused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	-DLLVM_ENABLE_LTO=thin \
