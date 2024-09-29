@@ -84,7 +84,7 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 		$AR rc "$currentpath/templibs/librt.a"
 		chmod 755 "$currentpath/templibs/librt.a"
 		fi
-		EXTRACXXFLAGS="-I${SYSROOTPATH}/include/c++/v1 -L\"$currentpath/templibs\" -lc++abi -lunwind $EXTRACXXFLAGS"
+		EXTRACXXFLAGS="-L\"$currentpath/templibs\" -lc++abi -lunwind $EXTRACXXFLAGS"
 		SYSTEMNAME=Linux
 	fi
 fi
