@@ -61,7 +61,7 @@ cd $LLVMPROJECTPATH
 git pull --quiet
 
 if [ ! -d ${WASILIBCPATH} ]; then
-git clone -b mtdevelopment git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
+git clone -b mt-2 git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
 fi
 cd $WASILIBCPATH
 git pull --quiet
