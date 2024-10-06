@@ -142,8 +142,8 @@ fi
 
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
-mkdir -p "$CURRENTTRIPLEPATH/builtins"
-cd $CURRENTTRIPLEPATH/builtins
+mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
+cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
