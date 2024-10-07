@@ -122,7 +122,7 @@ if [[ $isnativebuild != "yes" ]]; then
 if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
 cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-targets=all $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 if [ $? -ne 0 ]; then
 echo "binutils-gdb configure failure"
 exit 1
@@ -253,7 +253,7 @@ fi
 if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 fi
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-targets=all $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1

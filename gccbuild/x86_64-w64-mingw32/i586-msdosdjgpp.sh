@@ -89,7 +89,7 @@ cd ${currentpath}/targetbuild/$TARGET
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 --enable-targets=all $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 fi
 
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
@@ -119,7 +119,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --enable-targets=all $CANADIANTRIPLETTRIPLETS --prefix=$CANADIANPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$CANADIANPREFIX
 fi
 
 if [ ! -d $CANADIANPREFIX/lib/bfd-plugins ]; then
