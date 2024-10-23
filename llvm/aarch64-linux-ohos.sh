@@ -128,7 +128,7 @@ if [ $? -ne 0 ]; then
 echo "OpenHarmony Musl configure failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/musl_build/.muslconfiguresuccess
 fi
 
 if [ ! -f ${currentpath}/musl_build/.muslbuildsuccess ]; then
@@ -139,7 +139,7 @@ if [ $? -ne 0 ]; then
 echo "OpenHarmony Musl build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/.muslbuildsuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/musl_build/.muslbuildsuccess
 fi
 if [ ! -f ${currentpath}/musl_build/.muslinstallsuccess ]; then
 mkdir -p ${currentpath}/musl_build
@@ -149,7 +149,7 @@ if [ $? -ne 0 ]; then
 echo "OpenHarmony Musl install failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/.muslinstallsuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/musl_build/.muslinstallsuccess
 fi
 
 
