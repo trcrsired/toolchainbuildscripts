@@ -123,7 +123,7 @@ fi
 if [ ! -f ${currentpath}/musl_build/.muslconfiguresuccess ]; then
 mkdir -p ${currentpath}/musl_build
 cd ${currentpath}/musl_build
-${TOOLCHAINS_BUILD}/ohos_third_party_musl/configure --disable-nls --disable-werror --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH
+STRIP=llvm-strip NM=llvm-nm CXXFILT=llvm-cxxfilt OBJDUMP=llvm-objdump AR=llvm-ar RANLIB=llvm-ranlib DLLTOOL=llvm-dlltool WINDRES=llvm-windres CC="clang --target=$TARGETTRIPLE -fuse-ld=lld" CXX="clang++ --target=$TARGETTRIPLE -fuse-ld=lld"  ${TOOLCHAINS_BUILD}/ohos_third_party_musl/configure --disable-nls --disable-werror --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH
 if [ $? -ne 0 ]; then
 echo "OpenHarmony Musl configure failure"
 exit 1
