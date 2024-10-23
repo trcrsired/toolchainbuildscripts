@@ -100,6 +100,18 @@ cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
 fi
 
+
+if [ ! -d "$TOOLCHAINS_BUILD/fortify-headers" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git@github.com:jvoisin/fortify-headers.git
+if [ $? -ne 0 ]; then
+echo "linux clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/fortify-headers"
+git pull --quiet
+
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 ANDROIDSYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TARGETTRIPLE}"
@@ -118,6 +130,16 @@ if [ ! -f ${currentpath}/.linuxkernelheadersinstallsuccess ]; then
 	exit 1
 	fi
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/.linuxkernelheadersinstallsuccess
+fi
+
+if [ ! -f ${currentpath}/.fortify-headers-installedsuccess ]; then
+	cd "$TOOLCHAINS_BUILD/fortify-headers"
+	PREFIX=$SYSROOTPATH make install -j 
+	if [ $? -ne 0 ]; then
+	echo "fortify-headers install failure"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/.fortify-headers-installedsuccess
 fi
 
 if [ ! -f ${currentpath}/musl_build/.muslconfiguresuccess ]; then
