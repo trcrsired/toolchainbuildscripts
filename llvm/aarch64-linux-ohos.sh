@@ -2,6 +2,7 @@
 
 if [ -z ${ARCH+x} ]; then
 ARCH=aarch64
+ARCHALTERNATIVE=arm64
 fi
 TARGETTRIPLE_CPU=${ARCH}
 if [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
@@ -111,7 +112,7 @@ mkdir -p ${SYSROOTPATH}
 
 if [ ! -f ${currentpath}/.linuxkernelheadersinstallsuccess ]; then
 	cd "$TOOLCHAINS_BUILD/linux"
-	make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=$SYSROOTPATH
+	make headers_install ARCH=$ARCHALTERNATIVE -j INSTALL_HDR_PATH=$SYSROOTPATH
 	if [ $? -ne 0 ]; then
 	echo "linux kernel headers install failure"
 	exit 1
