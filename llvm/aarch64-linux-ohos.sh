@@ -134,7 +134,7 @@ fi
 
 if [ ! -f ${currentpath}/.fortify-headers-installedsuccess ]; then
 	cd "$TOOLCHAINS_BUILD/fortify-headers"
-	PREFIX=$SYSROOTPATH make install -j 
+	make install -j PREFIX=$SYSROOTPATH
 	if [ $? -ne 0 ]; then
 	echo "fortify-headers install failure"
 	exit 1
