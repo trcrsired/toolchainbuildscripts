@@ -206,8 +206,21 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=Off -DLIBCXXABI_ENABLE_SHARED=Off \
 	-DLIBUNWIND_ENABLE_SHARED=Off ${EH_FLAGS}
+if [ $? -ne 0 ]; then
+echo "runtimes configure failure"
+rm -rf "$CURRENTTRIPLEPATH/build/runtimes"
+exit 1
+fi
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "runtimes build failure"
+exit 1
+fi
 make -j$(nproc) install/strip
+if [ $? -ne 0 ]; then
+echo "runtimes install/strip failure"
+exit 1
+fi
 
 if [ -d "$RUNTIMESINSTALLPATH/include" ]; then
 
