@@ -129,8 +129,20 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 	-DANDROID=On
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins cmake failed"
+exit 1
+fi
 ninja
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins ninja failed"
+exit 1
+fi
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins ninja install failed"
+exit 1
+fi
 cd ${BUILTINSINSTALLPATH}/lib
 mv linux ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
