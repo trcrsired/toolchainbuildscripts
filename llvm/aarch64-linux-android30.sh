@@ -133,8 +133,8 @@ ninja install/strip
 cd ${BUILTINSINSTALLPATH}/lib
 mv linux ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
-for file in *-aarch64*; do
-    new_name="${file//-aarch64/}"
+for file in *-${TARGETTRIPLE_CPU}*; do
+    new_name="${file//-${TARGETTRIPLE_CPU}/}"
     mv "$file" "$new_name"
 done
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
