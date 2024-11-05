@@ -18,5 +18,9 @@ echo "WAVM aarch64-linux-gnu failed"
 fi
 ./aarch64-linux-android30.sh "$@"
 if [ $? -ne 0 ]; then
-echo "WAVM aarch64-linux-andoid30 failed"
+echo "WAVM aarch64-linux-android30 failed"
+fi
+./x86_64-linux-android30.sh "$@"
+if [ $? -ne 0 ]; then
+echo "WAVM x86_64-linux-android30 failed"
 fi
