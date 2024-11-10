@@ -137,7 +137,6 @@ if [ $? -ne 0 ]; then
 echo "mpc from gitee.com clone failed"
 exit 1
 fi
-fi
 cd "$TOOLCHAINS_BUILD/mpc"
 git remote add upstream https://gitlab.inria.fr/mpc/mpc.git 2>/dev/null
 git fetch upstream
@@ -157,7 +156,6 @@ git clone https://gitlab.inria.fr/mpc/mpc.git
 if [ $? -ne 0 ]; then
 echo "mpc clone failed"
 exit 1
-fi
 fi
 fi
 
