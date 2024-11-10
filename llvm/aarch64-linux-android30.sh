@@ -151,7 +151,7 @@ cd ${BUILTINSINSTALLPATH}/lib
 mv linux ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
 for file in *-${TARGETTRIPLE_CPU}*; do
-    new_name="${file//-${TARGETTRIPLE_CPU}/}"
+    new_name="${file//-${TARGETTRIPLE_CPU}-android/}"
     mv "$file" "$new_name"
 done
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
@@ -314,7 +314,7 @@ fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
-if [ ! -f "${canadianclangbuiltin}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "${canadianclangbuiltin}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 ${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
