@@ -113,6 +113,7 @@ cd "$WASILIBCPATH"
 rm -rf sysroot
 rm -rf build
 make -j$(nproc) ${MYWASICOMMAND}
+rm -rf build
 fi
 
 mkdir -p "$CURRENTTRIPLEPATH/install/wasi-libc"
