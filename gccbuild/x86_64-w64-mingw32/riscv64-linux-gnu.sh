@@ -150,7 +150,7 @@ git pull --quiet
 else
 if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
-git clone -b stableabi https://github.com/trcrsired/glibc.git
+git clone git://sourceware.org/git/glibc.git
 if [ $? -ne 0 ]; then
 echo "glibc clone failed"
 exit 1
