@@ -111,6 +111,7 @@ mkdir -p "$CURRENTTRIPLEPATH"
 if [ ! -d "$CURRENTTRIPLEPATH/install/wasi-libc/sysroot" ]; then
 cd "$WASILIBCPATH"
 rm -rf sysroot
+rm -rf build
 make -j$(nproc) ${MYWASICOMMAND}
 fi
 
