@@ -217,7 +217,6 @@ rm libc++.so
 ln -s libc++.so.1 libc++.so
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
-<<COMMENT
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
@@ -225,29 +224,40 @@ cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
 	-DCOMPILER_RT_DEFAULT_TARGET_ARCH=${TARGETTRIPLE_CPU_ALIAS} \
-	-DCOMPILER_RT_USE_LIBCXX=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
+if [ $? -ne 0 ]; then
+echo "compiler-rt cmake failure"
+exit 1
+fi
 ninja
+if [ $? -ne 0 ]; then
+echo "compiler-rt ninja failure"
+exit 1
+fi
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "compiler-rt ninja install/strip failure"
+exit 1
+fi
 cd ${COMPILERRTINSTALLPATH}/lib
 mv linux ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
-for file in *-aarch64*; do
-    new_name="${file//-aarch64/}"
+for file in *-${TARGETTRIPLE_CPU}*; do
+    new_name="${file//-${TARGETTRIPLE_CPU}-android/}"
     mv "$file" "$new_name"
 done
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 
-COMMENT
 if [ ! -f "${SYSROOTPATH}/lib/libz.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
