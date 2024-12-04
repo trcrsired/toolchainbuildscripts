@@ -100,6 +100,15 @@ then
     exit 1
 fi
 
+clang_path=`which clang`
+clang_directory=$(dirname "$clang_path")
+clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
+clang_major_version="${clang_version%%.*}"
+llvm_install_directory="$clang_directory/.."
+clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+SYSTEMNAME=Linux
+
 gccnativetriplet=$(gcc -dumpmachine)
 
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
@@ -334,6 +343,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
 	-DLLVM_ENABLE_LLD=On \
+	-DLLVM_ENABLE_LIBCXX=On \
 	-DLLVM_ENABLE_LTO=thin \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
 	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
