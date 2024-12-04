@@ -38,28 +38,32 @@ mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 mkdir -p $TOOLCHAINS_BUILD
 mkdir -p $TOOLCHAINSPATH
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
-LLVMCOMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
-LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
-
-if [[ $1 == "clean" ]]; then
-	echo "restarting"
-	rm -rf "${currentpath}"
-	if [[ $NO_TOOLCHAIN_DELETION != "yes" ]]; then
-		rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
-	fi
-	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
-	echo "restart done"
-	exit 1
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp
 fi
 
-if [[ $1 == "restart" ]]; then
-	echo "restarting"
+if [[ $1 == "clean" || $1 == "restart" ]]; then
+	echo "cleaning"
 	rm -rf "${currentpath}"
 	if [[ $NO_TOOLCHAIN_DELETION != "yes" ]]; then
 		rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+	else
+		cd "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+		if [ $? -ne 0 ]; then
+			for item in *; do
+			if [ "$item" != "runtimes" ] && [ "$item" != "llvm" ]; then
+				echo rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/$item"
+			fi
+			done
+		fi
 	fi
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
-	echo "restart done"
+	echo "clean done"
+	if [[ $1 == "restart" ]]; then
+		echo "restart"
+	else
+		exit 1
+	fi
 fi
 
 BUILD_C_COMPILER=clang
@@ -90,6 +94,12 @@ then
     exit 1
 fi
 
+if ! command -v "clang" &> /dev/null
+then
+    echo "clang not exists"
+    exit 1
+fi
+
 gccnativetriplet=$(gcc -dumpmachine)
 
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
@@ -101,13 +111,14 @@ else
 SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
 fi
 CURRENTTRIPLEPATH=${currentpath}
-
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp
+fi
 
-
-if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.buildsuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -141,28 +152,15 @@ if [ $? -ne 0 ]; then
 echo "compiler-rt builtins ninja install failed"
 exit 1
 fi
-exit 1
 cd ${BUILTINSINSTALLPATH}/lib
 cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
 fi
-
-THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
-	-DLIBCXXABI_HAS_PTHREAD_API=Off \
-	-DLIBCXXABI_HAS_WIN32_THREAD_API=On \
-	-DLIBCXXABI_HAS_EXTERNAL_THREAD_API=Off \
-	-DLIBCXX_ENABLE_THREADS=On \
-	-DLIBCXX_HAS_PTHREAD_API=Off \
-	-DLIBCXX_HAS_WIN32_THREAD_API=On \
-	-DLIBCXX_HAS_EXTERNAL_THREAD_API=Off \
-	-DLIBUNWIND_ENABLE_THREADS=On \
-	-DLIBUNWIND_HAS_PTHREAD_API=Off \
-	-DLIBUNWIND_HAS_WIN32_THREAD_API=On \
-	-DLIBUNWIND_HAS_EXTERNAL_THREAD_API=Off"
 
 EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 ENABLE_EH=On
 
-if [ ! -d "${SYSROOTTRIPLEPATH}/include/c++/v1" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
 
 mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cd $CURRENTTRIPLEPATH/runtimes
@@ -220,7 +218,16 @@ if [ $? -ne 0 ]; then
 echo "llvm runtimes install/strip failed"
 exit 1
 fi
-cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTTRIPLEPATH}/"
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+mv runtimes_temp runtimes
+fi
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
 
 if [ ! -f "${COMPILERRTINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
@@ -239,11 +246,27 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
-ninja
-ninja install/strip
-${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+if [ $? -ne 0 ]; then
+echo "compiler-rt configure failed"
+exit 1
 fi
-
+ninja
+if [ $? -ne 0 ]; then
+echo "compiler-rt build failed"
+exit 1
+fi
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "compiler-rt install/strip failed"
+exit 1
+fi
+${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+if [ $? -ne 0 ]; then
+echo "copy compiler-rt not using sudo??"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
+fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibconfigure" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
@@ -293,9 +316,6 @@ fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
 fi
 
-function buildllvm
-{
-
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
 cd $CURRENTTRIPLEPATH/llvm
@@ -325,35 +345,10 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
-if [ $? -ne 0 ]; then
-rm -rf $CURRENTTRIPLEPATH/llvm
-mkdir -p "$CURRENTTRIPLEPATH/llvm"
-cd $CURRENTTRIPLEPATH/llvm
-cmake $LLVMPROJECTPATH/llvm \
-	-GNinja -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=$TARGETTRIPLE-gcc -DCMAKE_CXX_COMPILER=$TARGETTRIPLE-g++ -DCMAKE_ASM_COMPILER=$TARGETTRIPLE-gcc \
-	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$LLVMINSTALLPATH \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
-	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DBUILD_SHARED_LIBS=On \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
-	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DLLVM_ENABLE_ZLIB=FORCE_ON \
-	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
-	-DHAVE_ZLIB=On \
-	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
-	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
-if [ $? -ne 0 ]; then
-echo "llvm configure failure"
-exit 1
-fi
+	if [ $? -ne 0 ]; then
+	echo "llvm configure failure"
+	exit 1
+	fi
 fi
 echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.configuresuccess
 fi
@@ -378,131 +373,12 @@ fi
 echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.installsuccess
 fi
 
-}
-
-buildllvm
-
-if false ; then
-
-clang_path=`which clang`
-clang_directory=$(dirname "$clang_path")
-clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
-clang_major_version="${clang_version%%.*}"
-llvm_install_directory="$clang_directory/.."
-clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
-TARGETUNKNOWNTRIPLE=${TARGETTRIPLE_CPU}-linux-gnu
-
-if [ ! -f "${currentpath}/compiler-rt/.compilerrtconfigure" ]; then
-mkdir -p ${currentpath}/compiler-rt
-cd ${currentpath}/compiler-rt
-cmake -GNinja $LLVMPROJECTPATH/compiler-rt \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMCOMPILERRTINSTALLPATH} \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
-	-DLLVM_ENABLE_LLD=On \
-	-DLLVM_ENABLE_LTO=thin \
-	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
-	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCOMPILER_RT_DEFAULT_TARGET_ARCH=${TARGETTRIPLE_CPU_ALIAS} \
-	-DCMAKE_SYSROOT=$SYSROOTPATH \
-	-DCMAKE_CROSSCOMPILING=On
-if [ $? -ne 0 ]; then
-echo "compile-rt configure failure"
-exit 1
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp ]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+mv llvm_temp llvm
 fi
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtconfigure
-fi
-
-if [ ! -f "${currentpath}/compiler-rt/.compilerrtninja" ]; then
-cd "${currentpath}/compiler-rt"
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "ninja install/strip failure"
-exit 1
-fi
-fi
-
-if [ -d "$clangbuiltin" ]; then
-canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
-if [ ! -f "${canadianclangbuiltin}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
-${sudocommand} cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${canadianclangbuiltin}/"
-fi
-fi
-
-
-if [ ! -f "${currentpath}/runtimes/.runtimesconfigure" ]; then
-mkdir -p ${currentpath}/runtimes
-cd ${currentpath}/runtimes
-cmake -GNinja $LLVMPROJECTPATH/runtimes \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DLLVM_ENABLE_LLD=On -DLLVM_ENABLE_LTO=thin -DCMAKE_INSTALL_PREFIX=${LLVMRUNTIMESINSTALLPATH} \
-	-DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
-	-DLIBCXXABI_SILENT_TERMINATE=On \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
-	-DLLVM_ENABLE_LLD=On \
-	-DLLVM_ENABLE_LTO=thin \
-	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
-	-DCMAKE_C_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
-	-DCMAKE_SYSROOT=$SYSROOTPATH \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
-	-DLIBCXX_USE_COMPILER_RT=On \
-	-DLIBCXXABI_USE_COMPILER_RT=On \
-	-DLIBCXX_USE_LLVM_UNWINDER=On \
-	-DLIBCXXABI_USE_LLVM_UNWINDER=On \
-	-DLIBUNWIND_USE_COMPILER_RT=On
-if [ $? -ne 0 ]; then
-echo "runtimesconfigure build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesconfigure
-fi
-
-if [ ! -f "${currentpath}/runtimes/.runtimesbuild" ]; then
-cd ${currentpath}/runtimes
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "ninja install/strip failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesbuild
-fi
-
-if [ ! -f "${currentpath}/runtimes/.runtimesln" ]; then
-cd "${LLVMRUNTIMESINSTALLPATH}/lib"
-rm libc++.so
-ln -s libc++.so.1 libc++.so
-echo "$(date --iso-8601=seconds)" > ${currentpath}/runtimes/.runtimesln
-fi
-
-buildllvm
-
-if [ ! -f "${currentpath}/compiler-rt/.compilerrtcopy" ]; then
-clang_path=`which clang`
-clang_directory=$(dirname "$clang_path")
-clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
-clang_major_version="${clang_version%%.*}"
-llvm_install_directory="$clang_directory/.."
-clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
-cp -r --preserve=links "${LLVMCOMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
-if [ $? -ne 0 ]; then
-echo "compilerrt copy failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.compilerrtcopy
-fi
-
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
