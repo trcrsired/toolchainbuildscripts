@@ -166,7 +166,7 @@ cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
 fi
 
-EHBUILDLIBS="libcxx;libcxxabi;libunwind"
+EHBUILDLIBS="libcxx;libcxxabi;libunwind;compiler-rt"
 ENABLE_EH=On
 
 if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
@@ -198,6 +198,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
 	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
+	-DLLVM_ENABLE_LLD=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
 	-DLIBCXXABI_USE_LLVM_UNWINDER=On \
@@ -207,7 +208,11 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+	-DCOMPILER_RT_USE_LIBCXX=On \
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=$TARGETTRIPLE  \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
 if [ $? -ne 0 ]; then
 echo "llvm runtimes cmake failed"
 exit 1
@@ -257,6 +262,7 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
 	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Linux \
+	-DLLVM_ENABLE_LLD=On \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
@@ -351,10 +357,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
-	if [ $? -ne 0 ]; then
-	echo "llvm configure failure"
-	exit 1
-	fi
+if [ $? -ne 0 ]; then
+echo "llvm configure failure"
+exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/llvm/.configuresuccess
 fi
