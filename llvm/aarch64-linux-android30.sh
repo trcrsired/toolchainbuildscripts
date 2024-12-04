@@ -191,10 +191,10 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin --sysroot=${SYSROOTPATH} -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-unused-command-line-argument" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin --sysroot=${SYSROOTPATH} -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib -Wno-unused-command-line-argument" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin --sysroot=${SYSROOTPATH} -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin --sysroot=${SYSROOTPATH} -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-unused-command-line-argument" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-unused-command-line-argument" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib -Wno-unused-command-line-argument" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-unused-command-line-argument" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -257,6 +257,7 @@ for file in *-${TARGETTRIPLE_CPU}*; do
     mv "$file" "$new_name"
 done
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+fi
 
 if [ ! -f "${SYSROOTPATH}/lib/libz.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
