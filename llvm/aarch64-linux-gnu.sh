@@ -224,6 +224,8 @@ cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
 cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+fi
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
 mv runtimes_temp runtimes
 fi
 fi
@@ -377,6 +379,8 @@ if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp ]; then
 cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+fi
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp ]; then
 mv llvm_temp llvm
 fi
 fi
