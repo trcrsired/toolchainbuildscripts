@@ -114,11 +114,7 @@ gccnativetriplet=$(gcc -dumpmachine)
 gccpath=$(command -v "$TARGETTRIPLE-gcc")
 gccbinpath=$(dirname "$gccpath")
 SYSROOTPATH=$(dirname "$gccbinpath")
-if [ -f $SYSROOTPATH/bin/g++ ]; then
 SYSROOTTRIPLEPATH=$SYSROOTPATH
-else
-SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
-fi
 CURRENTTRIPLEPATH=${currentpath}
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
@@ -127,7 +123,7 @@ if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp
 fi
 
-if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.buildsuccess" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/builtins/.buildsuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
@@ -163,7 +159,7 @@ exit 1
 fi
 cd ${BUILTINSINSTALLPATH}/lib
 cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/builtins/.buildsuccess
 fi
 
 EHBUILDLIBS="libcxx;libcxxabi;libunwind;compiler-rt"
