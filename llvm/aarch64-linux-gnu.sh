@@ -227,7 +227,8 @@ if [ $? -ne 0 ]; then
 echo "llvm runtimes install/strip failed"
 exit 1
 fi
-cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTTRIPLEPATH}/"
+mkdir -p ${SYSROOTTRIPLEPATH}/usr
+cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTTRIPLEPATH}/usr/"
 if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
@@ -241,7 +242,7 @@ fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
 
-if [ ! -f "${COMPILERRTINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.buildsuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
@@ -252,7 +253,9 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCOMPILER_RT_USE_LIBCXX=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Linux \
 	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
@@ -288,6 +291,9 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=Linux \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
@@ -296,23 +302,8 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE
 if [ $? -ne 0 ]; then
-rm -rf $CURRENTTRIPLEPATH/zlib
-mkdir -p "$CURRENTTRIPLEPATH/zlib"
-cd $CURRENTTRIPLEPATH/zlib
-cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
-	-DCMAKE_C_COMPILER=$TARGETTRIPLE-gcc -DCMAKE_CXX_COMPILER=$TARGETTRIPLE-g++ -DCMAKE_ASM_COMPILER=$TARGETTRIPLE-gcc \
-	-DCMAKE_INSTALL_PREFIX=$SYSROOTTRIPLEPATH \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_SYSTEM_NAME=Linux \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
-	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE
-if [ $? -ne 0 ]; then
 echo "zlib configure failure"
 exit 1
-fi
 fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibconfigure
 fi
@@ -350,6 +341,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
 	-DHAVE_ZLIB=On \
