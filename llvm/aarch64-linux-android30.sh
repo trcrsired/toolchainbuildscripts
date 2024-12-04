@@ -256,6 +256,11 @@ for file in *-${TARGETTRIPLE_CPU}*; do
     new_name="${file//-${TARGETTRIPLE_CPU}-android/}"
     mv "$file" "$new_name"
 done
+for file in *.so; do
+	filename="${file%.so}"
+	ln -s "$file" "${filename}-${TARGETTRIPLE_CPU}-android.so"
+done
+
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
 
