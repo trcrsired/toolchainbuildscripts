@@ -4,6 +4,14 @@ if [ -z ${ARCH+x} ]; then
 ARCH=aarch64
 fi
 TARGETTRIPLE_CPU=${ARCH}
+if [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
+TARGETTRIPLE_CPU_ALIAS=aarch64
+else
+TARGETTRIPLE_CPU_ALIAS=${TARGETTRIPLE_CPU}
+fi
+if [ -z ${CMAKE_SIZEOF_VOID_P+x} ]; then
+CMAKE_SIZEOF_VOID_P=8
+fi
 if [ -z ${TARGETTRIPLE+x} ]; then
 TARGETTRIPLE=${TARGETTRIPLE_CPU}-linux-gnu
 fi
@@ -29,8 +37,6 @@ mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 
 mkdir -p $TOOLCHAINS_BUILD
 mkdir -p $TOOLCHAINSPATH
-
-
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
 LLVMCOMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 LLVMRUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
@@ -55,6 +61,10 @@ if [[ $1 == "restart" ]]; then
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 fi
+
+BUILD_C_COMPILER=clang
+BUILD_CXX_COMPILER=clang++
+BUILD_ASM_COMPILER=clang
 
 if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
@@ -91,6 +101,149 @@ else
 SYSROOTTRIPLEPATH=$SYSROOTPATH/$TARGETTRIPLE
 fi
 CURRENTTRIPLEPATH=${currentpath}
+
+BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
+COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
+RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+
+
+if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/builtins"
+cd $CURRENTTRIPLEPATH/builtins
+cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=$BUILD_C_COMPILER -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER -DCMAKE_ASM_COMPILER=$BUILD_ASM_COMPILER \
+	-DCMAKE_SYSROOT=$SYSROOTTRIPLEPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
+	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+	-DLLVM_ENABLE_LTO=thin \
+	-DLLVM_ENABLE_LLD=On \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins cmake failed"
+exit 1
+fi
+ninja
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins ninja failed"
+exit 1
+fi
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "compiler-rt builtins ninja install failed"
+exit 1
+fi
+exit 1
+cd ${BUILTINSINSTALLPATH}/lib
+cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+fi
+
+THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
+	-DLIBCXXABI_HAS_PTHREAD_API=Off \
+	-DLIBCXXABI_HAS_WIN32_THREAD_API=On \
+	-DLIBCXXABI_HAS_EXTERNAL_THREAD_API=Off \
+	-DLIBCXX_ENABLE_THREADS=On \
+	-DLIBCXX_HAS_PTHREAD_API=Off \
+	-DLIBCXX_HAS_WIN32_THREAD_API=On \
+	-DLIBCXX_HAS_EXTERNAL_THREAD_API=Off \
+	-DLIBUNWIND_ENABLE_THREADS=On \
+	-DLIBUNWIND_HAS_PTHREAD_API=Off \
+	-DLIBUNWIND_HAS_WIN32_THREAD_API=On \
+	-DLIBUNWIND_HAS_EXTERNAL_THREAD_API=Off"
+
+EHBUILDLIBS="libcxx;libcxxabi;libunwind"
+ENABLE_EH=On
+
+if [ ! -d "${SYSROOTTRIPLEPATH}/include/c++/v1" ]; then
+
+mkdir -p "$CURRENTTRIPLEPATH/runtimes"
+cd $CURRENTTRIPLEPATH/runtimes
+
+cmake $LLVMPROJECTPATH/runtimes \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTTRIPLEPATH -DCMAKE_INSTALL_PREFIX=${RUNTIMESINSTALLPATH} \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
+	-DLIBCXXABI_SILENT_TERMINATE=On \
+	-DLIBCXX_CXX_ABI=libcxxabi \
+	-DLIBCXX_ENABLE_SHARED=On \
+	-DLIBCXX_ABI_VERSION=1 \
+	-DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
+	-DLIBCXX_ENABLE_EXCEPTIONS=${ENABLE_EH} \
+	-DLIBCXXABI_ENABLE_EXCEPTIONS=${ENABLE_EH} \
+	-DLIBCXX_ENABLE_RTTI=${ENABLE_EH} \
+	-DLIBCXXABI_ENABLE_RTTI=${ENABLE_EH} \
+	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
+	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
+	-DLIBUNWIND_ENABLE_SHARED=On \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_USE_COMPILER_RT=On \
+	-DLIBCXXABI_USE_COMPILER_RT=On \
+	-DLIBCXX_USE_LLVM_UNWINDER=On \
+	-DLIBCXXABI_USE_LLVM_UNWINDER=On \
+	-DLIBUNWIND_USE_COMPILER_RT=On \
+	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
+	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+if [ $? -ne 0 ]; then
+echo "llvm runtimes cmake failed"
+exit 1
+fi
+ninja -C . cxx_static
+if [ $? -ne 0 ]; then
+echo "llvm runtimes build static failed"
+exit 1
+fi
+ninja
+if [ $? -ne 0 ]; then
+echo "llvm runtimes build failed"
+exit 1
+fi
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "llvm runtimes install/strip failed"
+exit 1
+fi
+cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+fi
+
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/linux/libclang_rt.builtins-${TARGETTRIPLE_CPU}.a" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
+cd $CURRENTTRIPLEPATH/compiler-rt
+cmake $LLVMPROJECTPATH/compiler-rt \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCOMPILER_RT_USE_LIBCXX=On \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -stdlib=libc++ -rtlib=compiler-rt -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-unused-command-line-argument" \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
+ninja
+ninja install/strip
+${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+fi
+
 
 if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibconfigure" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
