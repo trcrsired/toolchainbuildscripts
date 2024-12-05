@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if ! [ -x "$(command -v g++)" ];
+if ! [ -x "$(command -v clang++)" ];
 then
-        echo "g++ not found. build failure"
+        echo "clang++ not found. build failure"
         exit 1
 fi
 
-TARGETTRIPLE=$(g++ -dumpmachine)
+TARGETTRIPLE=$(clang++ -dumpmachine)
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 
 if [ -z ${ARCH+x} ]; then
