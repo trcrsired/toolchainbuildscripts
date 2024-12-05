@@ -55,7 +55,9 @@ if [[ $1 == "restart" ]]; then
 fi
 
 if [[ $SYSROOTPATH != "" ]]; then
+if [ -z ${SYSROOT_SETTING+x} ]; then
 SYSROOT_SETTING="-DCMAKE_SYSROOT=$SYSROOTPATH"
+fi
 fi
 
 cd "$TOOLCHAINS_BUILD"
