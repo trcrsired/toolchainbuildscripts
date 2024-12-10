@@ -68,6 +68,19 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
+if [ -z ${EXTRACFLAGS+x} ]; then 
+EXTRACFLAGS="-rtlib=compiler-rt --unwindlib=libunwind -lunwind"
+fi
+
+if [ -z ${EXTRACXXFLAGS+x} ]; then 
+EXTRACXXFLAGS="-rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi -lunwind"
+fi
+
+if [ -z ${EXTRAASMFLAGS+x} ]; then 
+EXTRAASMFLAGS=$EXTRACFLAGS
+fi
+
+
 if [[ $SYSROOTPATH != "" ]]; then
 SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 	-DCMAKE_FIND_ROOT_PATH=$LLVMINSTALLPATH \
