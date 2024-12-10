@@ -98,7 +98,7 @@ cmake "$TOOLCHAINS_BUILD/CMake" -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COM
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACXXFLAGS" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
 	-DCMAKE_INSTALL_PREFIX="$SOFTWARESPATH/$HOST" -DCMAKE_SYSTEM_PROCESSOR=$ARCH -DCMAKE_CROSSCOMPILING=On \
-	$SYSROOT_SETTING $EXTRAFLAGS
+	$SYSROOT_SETTING $EXTRAFLAGS -BUILD_TESTING=Off
 if [ $? -ne 0 ]; then
 echo "CMake configure failed"
 exit 1
@@ -118,7 +118,7 @@ fi
 
 if [ ! -f "${currentcmakepath}/.cmakeninjainstallstripsuccess" ]; then
 cd $currentcmakepath
-ninja install/strip
+cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 if [ $? -ne 0 ]; then
 echo "CMake install and strip failed"
 exit 1
