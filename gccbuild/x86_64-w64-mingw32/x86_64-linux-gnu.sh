@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${HOST+x} ]; then
-	HOST=x86_64-generic-linux-gnu
+	HOST=x86_64-linux-gnu
 fi
 if [ -z ${ARCH+x} ]; then
 	ARCH=x86_64
