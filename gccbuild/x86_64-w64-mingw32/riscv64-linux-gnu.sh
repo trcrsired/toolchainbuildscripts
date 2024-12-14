@@ -89,7 +89,7 @@ elif [[ ${MUSLLIBC} == "yes" ]]; then
 MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
 else
 if [[ ${ARCH} == "x86_64" ]]; then
-MULTILIBLISTS=
+MULTILIBLISTS="--with-multilib-list=m64"
 else
 MULTILIBLISTS=
 fi
@@ -447,11 +447,17 @@ else
 		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
 	elif [[ ${ARCH} == "x86_64" ]]; then
-		multilibs=(m64 m32 mx32)
-		multilibsoptions=(" -m64" " -m32" " -mx32")
-		multilibsdir=("lib64" "lib" "libx32")
-		multilibsingccdir=("" "32" "x32")
-		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+#		multilibs=(m64 m32 mx32)
+#		multilibsoptions=(" -m64" " -m32" " -mx32")
+#		multilibsdir=("lib64" "lib" "libx32")
+#		multilibsingccdir=("" "32" "x32")
+#		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+
+		multilibs=(m64)
+		multilibsoptions=(" -m64")
+		multilibsdir=("lib64")
+		multilibsingccdir=("")
+		multilibshost=("x86_64-linux-gnu")
 	else
 		multilibs=(default)
 		multilibsoptions=("")
