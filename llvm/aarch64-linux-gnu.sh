@@ -86,6 +86,16 @@ git clone git@github.com:trcrsired/zlib.git
 fi
 cd "$TOOLCHAINS_BUILD/zlib"
 git pull --quiet
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/libxml2" ]; then
+git clone https://gitlab.gnome.org/GNOME/libxml2.git
+if [ $? -ne 0 ]; then
+echo "libxml2 clone failure"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/libxml2"
+git pull --quiet
 
 
 if ! command -v "$TARGETTRIPLE-gcc" &> /dev/null
@@ -278,6 +288,44 @@ fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
 fi
 
+if [ ! -f "$CURRENTTRIPLEPATH/libxml2/.libxml2configure" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/libxml2"
+cd $CURRENTTRIPLEPATH/libxml2
+cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_INSTALL_PREFIX=$SYSROOTTRIPLEPATH \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_POSITION_INDEPENDENT_CODE=On \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
+	-DLIBXML2_WITH_ICONV=Off \
+	-DLIBXML2_WITH_PYTHON=Off
+if [ $? -ne 0 ]; then
+echo "libxml2 configure failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.libxml2configure
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/libxml2/.libxml2installconfigure" ]; then
+cd $CURRENTTRIPLEPATH/libxml2
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "libxml2 install/strip failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.libxml2installconfigure
+fi
+
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
 cd $CURRENTTRIPLEPATH/llvm
@@ -308,6 +356,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
 	-DHAVE_ZLIB=On \
 	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
+	-DLLVM_ENABLE_LIBXML2=FORCE_ON \
+	-DLIBXML2_INCLUDE_DIR=$SYSROOTPATH/include/libxml2 \
+	-DLIBXML2_LIBRARY=$SYSROOTPATH/lib/libxml2.a \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
