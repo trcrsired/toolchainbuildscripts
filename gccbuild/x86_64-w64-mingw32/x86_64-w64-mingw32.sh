@@ -155,7 +155,7 @@ cd gcc
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON $GMPMPFRMPC_EXTRAHOSTCONFIGURE
 fi
-if [ ! -f .buildgcc ]; then
+if [ ! -f ${currentpath}/hostbuild/$HOST/gcc/.buildgcc ]; then
 make all-gcc -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "make all-gcc failed"
