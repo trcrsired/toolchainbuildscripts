@@ -1,132 +1,5 @@
-[PATCH 1/2] Import GNU Readline 8.2
-Tom Tromey tom@tromey.com
-Sat Nov 16 20:49:51 GMT 2024
-Previous message (by thread): [PATCH 0/2] Upgrade to Readline 8.2
-Next message (by thread): [PATCH 1/2] Import GNU Readline 8.2
-Messages sorted by: [ date ] [ thread ] [ subject ] [ author ]
-This imports readline 8.2 patch 13.
-
-This time around I thought I would try to document the process.
-
-First I have a checkout of the upstream readline repository.  I make a
-local branch there, based on the previous upstream import.  In this
-case that was readline 8.1; see gdb commit b4f26d541aa.
-
-Then, I apply all readline changes from the gdb repository since the
-previous readline import.  In this case that is up to commit
-3dee0baea2e in the gdb repo.
-
-After this, I "git merge" from the relevant upstream commit.  In the
-past I feel like I used a tag, but readline is managed very strangely
-and I didn't see a tag.  So I just used the patch 13 commit, aka
-commit 037d85f1 upstream.
-
-Then I fixed all the merge conflicts.  Re-running autoconf requires a
-symlink from '../../config' into the gdb tree, due to the local
-m4_include addition.  It's possible other hacks like this are
-required, I don't remember how I set things up in the past.
-
-After this, I did a build + test of gdb.  I also did a mingw
-cross-hosted build, because that's caused build failures in past
-imports.
-
-Bug: https://sourceware.org/bugzilla/show_bug.cgi?id=32265
----
- readline/readline/CHANGELOG                  |   47 +-
- readline/readline/CHANGES                    |  124 ++-
- readline/readline/INSTALL                    |   46 +-
- readline/readline/MANIFEST                   |   10 +-
- readline/readline/Makefile.in                |    8 +-
- readline/readline/NEWS                       |   61 +-
- readline/readline/README                     |    4 +-
- readline/readline/aclocal.m4                 |  891 +++++++++---------
- readline/readline/bind.c                     |  204 ++++-
- readline/readline/callback.c                 |   16 +-
- readline/readline/chardefs.h                 |   31 +-
- readline/readline/colors.c                   |   23 +-
- readline/readline/compat.c                   |   22 +-
- readline/readline/complete.c                 |  128 +--
- readline/readline/config.h.in                |   27 +-
- readline/readline/configure                  |  779 ++++++++--------
- readline/readline/configure.ac               |   57 +-
- readline/readline/display.c                  |  145 +--
- readline/readline/doc/Makefile.in            |   11 +-
- readline/readline/doc/history.3              |    2 +-
- readline/readline/doc/history.texi           |    2 +-
- readline/readline/doc/hstech.texi            |    2 +-
- readline/readline/doc/hsuser.texi            |   22 +-
- readline/readline/doc/readline.3             |   99 +-
- readline/readline/doc/rlman.texi             |    2 +-
- readline/readline/doc/rltech.texi            |   85 +-
- readline/readline/doc/rluser.texi            |  110 ++-
- readline/readline/doc/rluserman.texi         |    2 +-
- readline/readline/doc/texi2dvi               |    0
- readline/readline/doc/texi2html              |    0
- readline/readline/doc/version.texi           |   13 +-
- readline/readline/examples/Makefile.in       |   11 +-
- readline/readline/examples/excallback.c      |    4 +
- readline/readline/examples/fileman.c         |    2 +-
- readline/readline/examples/rl-callbacktest.c |    4 +-
- readline/readline/examples/rl-test-timeout   |    6 +
- readline/readline/examples/rl-timeout.c      |  245 +++++
- readline/readline/examples/rl.c              |    8 +
- readline/readline/examples/rlbasic.c         |    8 +
- readline/readline/examples/rlcat.c           |    8 +
- readline/readline/examples/rlevent.c         |    8 +
- readline/readline/examples/rlptytest.c       |   11 +-
- readline/readline/examples/rltest.c          |    8 +
- readline/readline/funmap.c                   |    6 +-
- readline/readline/histexpand.c               |   45 +-
- readline/readline/histfile.c                 |   14 +-
- readline/readline/histlib.h                  |   11 +-
- readline/readline/history.c                  |   13 +-
- readline/readline/history.h                  |   79 +-
- readline/readline/history.pc.in              |   11 +
- readline/readline/histsearch.c               |    6 +-
- readline/readline/input.c                    |  355 +++++++-
- readline/readline/isearch.c                  |   31 +-
- readline/readline/keymaps.h                  |   18 +-
- readline/readline/kill.c                     |   46 +-
- readline/readline/m4/codeset.m4              |   24 +
- readline/readline/macro.c                    |    2 +
- readline/readline/mbutil.c                   |   36 +-
- readline/readline/misc.c                     |   68 +-
- readline/readline/nls.c                      |  100 ++-
- readline/readline/parens.c                   |    8 +-
- readline/readline/patchlevel                 |    2 +-
- readline/readline/posixdir.h                 |    2 +-
- readline/readline/posixtime.h                |   84 ++
- readline/readline/readline.c                 |  121 ++-
- readline/readline/readline.h                 |  597 +++++++------
- readline/readline/rldefs.h                   |    8 +-
- readline/readline/rlmbutil.h                 |   38 +-
- readline/readline/rlprivate.h                |  325 ++++---
- readline/readline/rlshell.h                  |   12 +-
- readline/readline/rltty.c                    |   41 +-
- readline/readline/rltypedefs.h               |   56 +-
- readline/readline/search.c                   |   90 +-
- readline/readline/shell.c                    |    4 +-
- readline/readline/signals.c                  |   71 +-
- readline/readline/support/config.guess       | 1238 ++++++++++++++------------
- readline/readline/support/config.rpath       |    0
- readline/readline/support/config.sub         |   82 +-
- readline/readline/support/install.sh         |    0
- readline/readline/support/mkdirs             |    0
- readline/readline/support/mkdist             |   13 +-
- readline/readline/support/mkinstalldirs      |    0
- readline/readline/support/shlib-install      |    0
- readline/readline/support/shobj-conf         |   12 +-
- readline/readline/terminal.c                 |  110 ++-
- readline/readline/text.c                     |  108 ++-
- readline/readline/tilde.h                    |   22 +-
- readline/readline/undo.c                     |    6 +-
- readline/readline/util.c                     |    7 +-
- readline/readline/vi_mode.c                  |  123 +--
- readline/readline/xmalloc.h                  |    8 +-
- 91 files changed, 4623 insertions(+), 2726 deletions(-)
-
 diff --git a/readline/readline/CHANGELOG b/readline/readline/CHANGELOG
-index 5c24e91e0ad1446754266ea7ec8045713dfdd62e..b2fcb534e0935b612983f7b8aba80b4d546c215e 100644
+index 5c24e91e0ad..b2fcb534e09 100644
 --- a/readline/readline/CHANGELOG
 +++ b/readline/readline/CHANGELOG
 @@ -1,4 +1,4 @@
@@ -185,7 +58,7 @@ index 5c24e91e0ad1446754266ea7ec8045713dfdd62e..b2fcb534e0935b612983f7b8aba80b4d
 +	  that configure finds. If the argument begins with `-l', use that
 +	  library instead; updated INSTALL accordingly
 diff --git a/readline/readline/CHANGES b/readline/readline/CHANGES
-index 747fa41962f2ee6604a6354b691ea5a136a7487d..eb54caa7db2bd14ff7c492db45fc88e2d63b2804 100644
+index 747fa41962f..eb54caa7db2 100644
 --- a/readline/readline/CHANGES
 +++ b/readline/readline/CHANGES
 @@ -1,3 +1,117 @@
@@ -352,7 +225,7 @@ index 747fa41962f2ee6604a6354b691ea5a136a7487d..eb54caa7db2bd14ff7c492db45fc88e2
  -------------------------------------------------------------------------------
  This document details the changes between this version, readline-4.2,
 diff --git a/readline/readline/INSTALL b/readline/readline/INSTALL
-index 4f0d7b0c0d5d9d2dabac9f80c8400c5923372232..293ef7061b5cb68d8e1f3f1b0c7728a277b4bcb0 100644
+index 4f0d7b0c0d5..293ef7061b5 100644
 --- a/readline/readline/INSTALL
 +++ b/readline/readline/INSTALL
 @@ -1,7 +1,7 @@
@@ -443,7 +316,7 @@ index 4f0d7b0c0d5d9d2dabac9f80c8400c5923372232..293ef7061b5cb68d8e1f3f1b0c7728a2
  Configure calls the script support/shobj-conf to test whether or
  not shared library creation is supported and to generate the values
 diff --git a/readline/readline/MANIFEST b/readline/readline/MANIFEST
-index ad49d6686b06400813a0b26f3bb16a1c75e858a8..db689b3779ab79d588b56c0c140896f1b4ea655d 100644
+index ad49d6686b0..db689b3779a 100644
 --- a/readline/readline/MANIFEST
 +++ b/readline/readline/MANIFEST
 @@ -7,6 +7,7 @@ examples/autoconf	d
@@ -495,7 +368,7 @@ index ad49d6686b06400813a0b26f3bb16a1c75e858a8..db689b3779ab79d588b56c0c140896f1
  examples/rlfe/extern.h		f
  examples/rlfe/os.h		f
 diff --git a/readline/readline/Makefile.in b/readline/readline/Makefile.in
-index c01da8d07a681e859f517005f99baaf2a17533e4..03934b3abc38a775d7e28ba4beeee408280e8154 100644
+index c01da8d07a6..03934b3abc3 100644
 --- a/readline/readline/Makefile.in
 +++ b/readline/readline/Makefile.in
 @@ -149,7 +149,7 @@ DOCUMENTATION = $(DOCSOURCE) $(DOCOBJECT) $(DOCSUPPORT)
@@ -531,7 +404,7 @@ index c01da8d07a681e859f517005f99baaf2a17533e4..03934b3abc38a775d7e28ba4beeee408
  	-( cd doc && $(MAKE) $(MFLAGS) $@ )
  
 diff --git a/readline/readline/NEWS b/readline/readline/NEWS
-index 56ab93aa1b98f5bfc988cbf798e14def60ae4586..1d88606a86efbb1528c0fd373063288dc1c467b4 100644
+index 56ab93aa1b9..1d88606a86e 100644
 --- a/readline/readline/NEWS
 +++ b/readline/readline/NEWS
 @@ -1,3 +1,60 @@
@@ -614,7 +487,7 @@ index 56ab93aa1b98f5bfc988cbf798e14def60ae4586..1d88606a86efbb1528c0fd373063288d
  
  f.  New bindable variable: skip-completed-text, active when completing in the
 diff --git a/readline/readline/README b/readline/readline/README
-index de985752374ece41c458366e46bf9f9cada954e6..83cdb23a1150b015b3428b12fdae2169658d99b2 100644
+index de985752374..83cdb23a115 100644
 --- a/readline/readline/README
 +++ b/readline/readline/README
 @@ -1,7 +1,7 @@
@@ -636,7 +509,7 @@ index de985752374ece41c458366e46bf9f9cada954e6..83cdb23a1150b015b3428b12fdae2169
  may be used without Readline in applications which desire its
  capabilities.
 diff --git a/readline/readline/aclocal.m4 b/readline/readline/aclocal.m4
-index 6899e8202ae191a98c74db831d3baac4793b2b48..cc97bd4b8461528958dbd009c7c563aa97945527 100644
+index 6899e8202ae..cc97bd4b846 100644
 --- a/readline/readline/aclocal.m4
 +++ b/readline/readline/aclocal.m4
 @@ -3,55 +3,8 @@ dnl Bash specific tests
@@ -2241,7 +2114,7 @@ index 6899e8202ae191a98c74db831d3baac4793b2b48..cc97bd4b8461528958dbd009c7c563aa
      bash_cv_fnmatch_equiv_fallback=no]
  )])
 diff --git a/readline/readline/bind.c b/readline/readline/bind.c
-index 87596dcec95ad161743c6adf84e25f15ba7401b3..880db8ccc94389f2dc399c708c237a05505d5844 100644
+index 87596dcec95..880db8ccc94 100644
 --- a/readline/readline/bind.c
 +++ b/readline/readline/bind.c
 @@ -1,6 +1,6 @@
@@ -2590,7 +2463,7 @@ index 87596dcec95ad161743c6adf84e25f15ba7401b3..880db8ccc94389f2dc399c708c237a05
    /* Now, if the character needs to be quoted with a backslash, do that. */
    if (c == '\\' || c == '"')
 diff --git a/readline/readline/callback.c b/readline/readline/callback.c
-index 93f23d97bc20ed43439ee01afb19005ff7d911b5..7209ec38215e942248dd71f3b8487d923eba0881 100644
+index 93f23d97bc2..7209ec38215 100644
 --- a/readline/readline/callback.c
 +++ b/readline/readline/callback.c
 @@ -115,7 +115,10 @@ rl_callback_handler_install (const char *prompt, rl_vcpfunc_t *linefunc)
@@ -2631,7 +2504,7 @@ index 93f23d97bc20ed43439ee01afb19005ff7d911b5..7209ec38215e942248dd71f3b8487d92
  	  /* If the user did not clear out the line, do it for him. */
  	  if (rl_line_buffer[0])
 diff --git a/readline/readline/chardefs.h b/readline/readline/chardefs.h
-index 3cf1326aab7515d572d405ad3330a4757735331c..24a25f1f105bb45b41c8eefc5ad9b34d93aa941b 100644
+index 3cf1326aab7..24a25f1f105 100644
 --- a/readline/readline/chardefs.h
 +++ b/readline/readline/chardefs.h
 @@ -1,6 +1,6 @@
@@ -2704,7 +2577,7 @@ index 3cf1326aab7515d572d405ad3330a4757735331c..24a25f1f105bb45b41c8eefc5ad9b34d
  
  #ifndef _rl_digit_value
 diff --git a/readline/readline/colors.c b/readline/readline/colors.c
-index 9e37527ef3509ce4ae33094fd26d67831c9551ce..4212c64c36d1f68499fbead576f4e4fde780bc38 100644
+index 9e37527ef35..4212c64c36d 100644
 --- a/readline/readline/colors.c
 +++ b/readline/readline/colors.c
 @@ -2,7 +2,7 @@
@@ -2767,7 +2640,7 @@ index 9e37527ef3509ce4ae33094fd26d67831c9551ce..4212c64c36d1f68499fbead576f4e4fd
          colored_filetype = C_CHR;
        else
 diff --git a/readline/readline/compat.c b/readline/readline/compat.c
-index 3ade3629aef440a4d8bec22cc1419e49704c4eef..fc2a48f4aafa2896647bb6e8087e8da21e94de76 100644
+index 3ade3629aef..fc2a48f4aaf 100644
 --- a/readline/readline/compat.c
 +++ b/readline/readline/compat.c
 @@ -1,6 +1,6 @@
@@ -2808,7 +2681,7 @@ index 3ade3629aef440a4d8bec22cc1419e49704c4eef..fc2a48f4aafa2896647bb6e8087e8da2
  /* Provide backwards-compatible entry points for old function names. */
  
 diff --git a/readline/readline/complete.c b/readline/readline/complete.c
-index fc5c3adb3564d6408214f74a0a3e64a0f0437cd4..70a0a608b85ddad06180a6eafbf8a04ec8b3aada 100644
+index fc5c3adb356..70a0a608b85 100644
 --- a/readline/readline/complete.c
 +++ b/readline/readline/complete.c
 @@ -1,6 +1,6 @@
@@ -3101,7 +2974,7 @@ index fc5c3adb3564d6408214f74a0a3e64a0f0437cd4..70a0a608b85ddad06180a6eafbf8a04e
        directory = opendir (dirname);
  
 diff --git a/readline/readline/config.h.in b/readline/readline/config.h.in
-index 6de47b5874396c2e79acd2080c3d30110898408d..521e7789ba79d1c11200824a1c15bd80c78557fc 100644
+index 6de47b58743..521e7789ba7 100644
 --- a/readline/readline/config.h.in
 +++ b/readline/readline/config.h.in
 @@ -1,6 +1,8 @@
@@ -3196,7 +3069,7 @@ index 6de47b5874396c2e79acd2080c3d30110898408d..521e7789ba79d1c11200824a1c15bd80
  
  #undef HAVE_POSIX_SIGNALS
 diff --git a/readline/readline/configure b/readline/readline/configure
-index 6ea4545e26f25e8ee923d02a9855f43088b5abc6..151009f1b0c7684daf3146334a34aa0eaabfe673 100755
+index 6ea4545e26f..151009f1b0c 100755
 --- a/readline/readline/configure
 +++ b/readline/readline/configure
 @@ -724,6 +724,7 @@ ac_subst_files=''
@@ -4479,7 +4352,7 @@ index 6ea4545e26f25e8ee923d02a9855f43088b5abc6..151009f1b0c7684daf3146334a34aa0e
    esac
  done # for ac_tag
 diff --git a/readline/readline/configure.ac b/readline/readline/configure.ac
-index f2900752e8d97b112b3fb7841fcd239fe6b102f8..518cae4c51f820f2ff7ef60777e772eb77d28365 100644
+index f2900752e8d..518cae4c51f 100644
 --- a/readline/readline/configure.ac
 +++ b/readline/readline/configure.ac
 @@ -5,7 +5,7 @@ dnl report bugs to chet@po.cwru.edu
@@ -4640,7 +4513,7 @@ index f2900752e8d97b112b3fb7841fcd239fe6b102f8..518cae4c51f820f2ff7ef60777e772eb
 +
 +AC_OUTPUT
 diff --git a/readline/readline/display.c b/readline/readline/display.c
-index 38b3d0e761369b3c7c71721c733af64805a72bb2..803d4cebadba81cf1c792da1bf6a6c726497c83f 100644
+index 38b3d0e7613..803d4cebadb 100644
 --- a/readline/readline/display.c
 +++ b/readline/readline/display.c
 @@ -1,6 +1,6 @@
@@ -5001,7 +4874,7 @@ index 38b3d0e761369b3c7c71721c733af64805a72bb2..803d4cebadba81cf1c792da1bf6a6c72
  	{
  	  /* In this case, the bytes are invalid or too short to compose a
 diff --git a/readline/readline/doc/Makefile.in b/readline/readline/doc/Makefile.in
-index a38bc9eb4a876c181fd6f134e5f4211f77ad7177..20a36184f7508a9cc114275cf211eef3be042788 100644
+index a38bc9eb4a8..20a36184f75 100644
 --- a/readline/readline/doc/Makefile.in
 +++ b/readline/readline/doc/Makefile.in
 @@ -154,15 +154,16 @@ history.ps:	history.dvi
@@ -5027,7 +4900,7 @@ index a38bc9eb4a876c181fd6f134e5f4211f77ad7177..20a36184f7508a9cc114275cf211eef3
  readline.0: readline.3
  
 diff --git a/readline/readline/doc/history.3 b/readline/readline/doc/history.3
-index df6cd376c4763d5bae658bb9f626f7458d707452..06419cff564359ef8b3f633a1de83ca148bedfc3 100644
+index df6cd376c47..06419cff564 100644
 --- a/readline/readline/doc/history.3
 +++ b/readline/readline/doc/history.3
 @@ -291,7 +291,7 @@ in new commands.  The basic history manipulation commands are
@@ -5040,7 +4913,7 @@ index df6cd376c4763d5bae658bb9f626f7458d707452..06419cff564359ef8b3f633a1de83ca1
  advantage of command line editing.
  .PP
 diff --git a/readline/readline/doc/history.texi b/readline/readline/doc/history.texi
-index 7a3a4767e7a591ded5f14e0b4879cd4a28358e37..721118bce1e8bfb9a9bbf75da627c22fb5ef458e 100644
+index 7a3a4767e7a..721118bce1e 100644
 --- a/readline/readline/doc/history.texi
 +++ b/readline/readline/doc/history.texi
 @@ -12,7 +12,7 @@ This document describes the GNU History library
@@ -5053,7 +4926,7 @@ index 7a3a4767e7a591ded5f14e0b4879cd4a28358e37..721118bce1e8bfb9a9bbf75da627c22f
  @quotation
  Permission is granted to copy, distribute and/or modify this document
 diff --git a/readline/readline/doc/hstech.texi b/readline/readline/doc/hstech.texi
-index 7ac11953df304255a3f64424ab073656ab731e84..da6417b48fda487e24853fab3d7176912ba89e10 100644
+index 7ac11953df3..da6417b48fd 100644
 --- a/readline/readline/doc/hstech.texi
 +++ b/readline/readline/doc/hstech.texi
 @@ -1,7 +1,7 @@
@@ -5066,7 +4939,7 @@ index 7ac11953df304255a3f64424ab073656ab731e84..da6417b48fda487e24853fab3d717691
  
  Permission is granted to make and distribute verbatim copies of this manual
 diff --git a/readline/readline/doc/hsuser.texi b/readline/readline/doc/hsuser.texi
-index 5e30ded7896e753141d6be32f54c90b82b2381f8..2d291763f200f760c41cea8f06b29811fded3035 100644
+index 5e30ded7896..2d291763f20 100644
 --- a/readline/readline/doc/hsuser.texi
 +++ b/readline/readline/doc/hsuser.texi
 @@ -1,7 +1,7 @@
@@ -5120,7 +4993,7 @@ index 5e30ded7896e753141d6be32f54c90b82b2381f8..2d291763f200f760c41cea8f06b29811
  character on the input line.
  
 diff --git a/readline/readline/doc/readline.3 b/readline/readline/doc/readline.3
-index 179c7814bcd384110e37df8e072a6841e08693f2..77ef02a6a9f8b70f829543cd9b97a421a07c90ab 100644
+index 179c7814bcd..77ef02a6a9f 100644
 --- a/readline/readline/doc/readline.3
 +++ b/readline/readline/doc/readline.3
 @@ -6,9 +6,9 @@
@@ -5324,7 +5197,7 @@ index 179c7814bcd384110e37df8e072a6841e08693f2..77ef02a6a9f8b70f829543cd9b97a421
  .B skip\-csi\-sequence
  Read enough characters to consume a multi-key sequence such as those
 diff --git a/readline/readline/doc/rlman.texi b/readline/readline/doc/rlman.texi
-index ec7487b7a78812f10d236078f88fd1b431aa03c5..d046b87d1fbdfa5bcfe15cd8f64979104b56cadb 100644
+index ec7487b7a78..d046b87d1fb 100644
 --- a/readline/readline/doc/rlman.texi
 +++ b/readline/readline/doc/rlman.texi
 @@ -13,7 +13,7 @@ This manual describes the GNU Readline Library
@@ -5337,7 +5210,7 @@ index ec7487b7a78812f10d236078f88fd1b431aa03c5..d046b87d1fbdfa5bcfe15cd8f6497910
  @quotation
  Permission is granted to copy, distribute and/or modify this document
 diff --git a/readline/readline/doc/rltech.texi b/readline/readline/doc/rltech.texi
-index 797e34d95e053fba57c5a1e25794a54ab0708c59..a93f77dabf81de0d9575aaf0947747f3f0bc96d5 100644
+index 797e34d95e0..a93f77dabf8 100644
 --- a/readline/readline/doc/rltech.texi
 +++ b/readline/readline/doc/rltech.texi
 @@ -7,7 +7,7 @@ This document describes the GNU Readline Library, a utility for aiding
@@ -5564,7 +5437,7 @@ index 797e34d95e053fba57c5a1e25794a54ab0708c59..a93f77dabf81de0d9575aaf0947747f3
  
    initialize_readline ();	/* Bind our completer. */
 diff --git a/readline/readline/doc/rluser.texi b/readline/readline/doc/rluser.texi
-index 26b0ff072c7a8503f3e9e567ca4cfecdd3dcc506..cbcbb45cf4c033aeac748bf44debb78ce392e2a2 100644
+index 26b0ff072c7..cbcbb45cf4c 100644
 --- a/readline/readline/doc/rluser.texi
 +++ b/readline/readline/doc/rluser.texi
 @@ -9,7 +9,7 @@ use these features.  There is a document entitled "readline.texinfo"
@@ -5843,7 +5716,7 @@ index 26b0ff072c7a8503f3e9e567ca4cfecdd3dcc506..cbcbb45cf4c033aeac748bf44debb78c
  for words beginning with @samp{$} or @samp{$@{}, completions containing pathname
  expansion patterns (@pxref{Filename Expansion}), and so on.
 diff --git a/readline/readline/doc/rluserman.texi b/readline/readline/doc/rluserman.texi
-index 6e8e848b6e5ae993259eb3a964e8573fe3a73fc5..ae9ec6eb4f8f267d80202adccfe193aa622b7fd1 100644
+index 6e8e848b6e5..ae9ec6eb4f8 100644
 --- a/readline/readline/doc/rluserman.texi
 +++ b/readline/readline/doc/rluserman.texi
 @@ -12,7 +12,7 @@ This manual describes the end user interface of the GNU Readline Library
@@ -5862,7 +5735,7 @@ diff --git a/readline/readline/doc/texi2html b/readline/readline/doc/texi2html
 old mode 100755
 new mode 100644
 diff --git a/readline/readline/doc/version.texi b/readline/readline/doc/version.texi
-index abb9cb6ba573493530f878612d271b4c80848fce..d310273405152877ce211fe53d644851f6fad667 100644
+index abb9cb6ba57..d3102734051 100644
 --- a/readline/readline/doc/version.texi
 +++ b/readline/readline/doc/version.texi
 @@ -1,10 +1,11 @@
@@ -5884,7 +5757,7 @@ index abb9cb6ba573493530f878612d271b4c80848fce..d310273405152877ce211fe53d644851
 +
 +@set LASTCHANGE Mon Sep 19 11:15:16 EDT 2022
 diff --git a/readline/readline/examples/Makefile.in b/readline/readline/examples/Makefile.in
-index 4a7c39e0a4fb306dd2b1e3f1c10fc080183fd885..291c6b7adf8256de95e0ab47a806c199bd284cc3 100644
+index 4a7c39e0a4f..291c6b7adf8 100644
 --- a/readline/readline/examples/Makefile.in
 +++ b/readline/readline/examples/Makefile.in
 @@ -72,17 +72,17 @@ TERMCAP_LIB = @TERMCAP_LIB@
@@ -5932,7 +5805,7 @@ index 4a7c39e0a4fb306dd2b1e3f1c10fc080183fd885..291c6b7adf8256de95e0ab47a806c199
  rl-callbacktest.o: $(top_srcdir)/readline.h $(top_srcdir)/history.h
 +rl-timeout.o: $(top_srcdir)/readline.h $(top_srcdir)/history.h
 diff --git a/readline/readline/examples/excallback.c b/readline/readline/examples/excallback.c
-index 4206acfca4a518c8081d1e5389e2fdcb1b51bb8c..923c9238b6ecaf9d799171ec6aa9002f4089c1a5 100644
+index 4206acfca4a..923c9238b6e 100644
 --- a/readline/readline/examples/excallback.c
 +++ b/readline/readline/examples/excallback.c
 @@ -50,6 +50,8 @@ Copyright (C) 1999 Jeff Solomon
@@ -5954,7 +5827,7 @@ index 4206acfca4a518c8081d1e5389e2fdcb1b51bb8c..923c9238b6ecaf9d799171ec6aa9002f
       * canonical mode processing and set the input character time flag to be
       * non-blocking.
 diff --git a/readline/readline/examples/fileman.c b/readline/readline/examples/fileman.c
-index f8d0be73eef1cba00906cb919b133783063c66a0..2a8b097ad146b74abce85369c906a6cf426280ac 100644
+index f8d0be73eef..2a8b097ad14 100644
 --- a/readline/readline/examples/fileman.c
 +++ b/readline/readline/examples/fileman.c
 @@ -417,7 +417,7 @@ com_help (arg)
@@ -5967,7 +5840,7 @@ index f8d0be73eef1cba00906cb919b133783063c66a0..2a8b097ad146b74abce85369c906a6cf
        for (i = 0; commands[i].name; i++)
          {
 diff --git a/readline/readline/examples/rl-callbacktest.c b/readline/readline/examples/rl-callbacktest.c
-index 3525ffd99935c4d3e841a1a69ca703adede08451..7febacd14c47f69ddc9f71cfbc2d6e9b6791b8b8 100644
+index 3525ffd9993..7febacd14c4 100644
 --- a/readline/readline/examples/rl-callbacktest.c
 +++ b/readline/readline/examples/rl-callbacktest.c
 @@ -2,7 +2,6 @@
@@ -5995,271 +5868,8 @@ index 3525ffd99935c4d3e841a1a69ca703adede08451..7febacd14c47f69ddc9f71cfbc2d6e9b
    setlocale (LC_ALL, "");
  
    /* Handle SIGWINCH */
-diff --git a/readline/readline/examples/rl-test-timeout b/readline/readline/examples/rl-test-timeout
-new file mode 100644
-index 0000000000000000000000000000000000000000..2c9de1a7b41bbb2e2560ea7c9e3bfff0e33a117c
---- /dev/null
-+++ b/readline/readline/examples/rl-test-timeout
-@@ -0,0 +1,6 @@
-+./rl-timeout readline1 0.5
-+./rl-timeout readline2 0.25
-+
-+./rl-timeout callback1 0.5
-+./rl-timeout callback2 0.5
-+
-diff --git a/readline/readline/examples/rl-timeout.c b/readline/readline/examples/rl-timeout.c
-new file mode 100644
-index 0000000000000000000000000000000000000000..b8a24bafb94fcd8670a73ba977f8ca6eaf6e0907
---- /dev/null
-+++ b/readline/readline/examples/rl-timeout.c
-@@ -0,0 +1,245 @@
-+/* rl-timeout: test various readline builtin timeouts. */
-+
-+/* Copyright (C) 2021 Free Software Foundation, Inc.
-+
-+   This file is part of the GNU Readline Library (Readline), a library for
-+   reading lines of text with interactive input and history editing.
-+
-+   Readline is free software: you can redistribute it and/or modify
-+   it under the terms of the GNU General Public License as published by
-+   the Free Software Foundation, either version 3 of the License, or
-+   (at your option) any later version.
-+
-+   Readline is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+   GNU General Public License for more details.
-+
-+   You should have received a copy of the GNU General Public License
-+   along with readline.  If not, see <http://www.gnu.org/licenses/>.
-+*/
-+
-+/* Standard include files. stdio.h is required. */
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <limits.h>
-+
-+/* Used for select(2) */
-+#include <sys/types.h>
-+#include <sys/select.h>
-+
-+#include <errno.h>
-+#include <stdio.h>
-+
-+/* Standard readline include files. */
-+#if defined (READLINE_LIBRARY)
-+#  include "readline.h"
-+#  include "history.h"
-+#else
-+#  include <readline/readline.h>
-+#  include <readline/history.h>
-+#endif
-+
-+extern int errno;
-+
-+static void cb_linehandler (char *);
-+
-+int timeout_secs = 1, timeout_usecs = 0;
-+int running;
-+const char *prompt = "rl-timeout$ ";
-+
-+/* **************************************************************** */
-+/*								    */
-+/* Example 1: readline () with rl_readline_state		    */
-+/*								    */
-+/* **************************************************************** */
-+
-+void
-+rltest_timeout_readline1 ()
-+{
-+  const char *temp;
-+
-+  rl_set_timeout (timeout_secs, timeout_usecs);
-+  temp = readline (prompt);
-+  if (RL_ISSTATE (RL_STATE_TIMEOUT))
-+    printf ("timeout\n");
-+  else if (temp == NULL)
-+    printf ("no input line\n");
-+  else
-+    printf ("input line: %s\n", temp);
-+  free ((void *) temp);
-+}
-+
-+/* **************************************************************** */
-+/*								    */
-+/* Example 2: readline () with rl_timeout_event_hook		    */
-+/*								    */
-+/* **************************************************************** */
-+
-+static int
-+timeout_handler ()
-+{
-+  printf ("timeout\n");
-+  return READERR;
-+}
-+
-+void
-+rltest_timeout_readline2 ()
-+{
-+  const char *temp;
-+
-+  rl_set_timeout (timeout_secs, timeout_usecs);
-+  rl_timeout_event_hook = timeout_handler;
-+  temp = readline (prompt);
-+  if (temp == NULL)
-+    printf ("no input line\n");
-+  else
-+    printf ("input line: %s\n", temp);
-+  free ((void *)temp);
-+}
-+
-+/* **************************************************************** */
-+/*								    */
-+/* Example 3: rl_callback_* () with rl_timeout_remaining	    */
-+/*								    */
-+/* **************************************************************** */
-+
-+/* Callback function called for each line when accept-line executed, EOF
-+   seen, or EOF character read.  This sets a flag and returns; it could
-+   also call exit(3). */
-+static void
-+cb_linehandler (char *line)
-+{
-+  /* Can use ^D (stty eof) or `exit' to exit. */
-+  if (line == NULL || strcmp (line, "exit") == 0)
-+    {
-+      if (line == 0)
-+	printf ("\n");
-+      printf ("exit\n");
-+      /* This function needs to be called to reset the terminal settings,
-+	 and calling it from the line handler keeps one extra prompt from
-+	 being displayed. */
-+      rl_callback_handler_remove ();
-+
-+      running = 0;
-+    }
-+  else
-+    {
-+      if (*line)
-+	add_history (line);
-+      printf ("input line: %s\n", line);
-+      free (line);
-+    }
-+}
-+
-+void
-+rltest_timeout_callback1 ()
-+{
-+  fd_set fds;
-+  int r;
-+  unsigned sec, usec;
-+
-+  rl_set_timeout (timeout_secs, timeout_usecs);
-+  rl_callback_handler_install (prompt, cb_linehandler);
-+  running = 1;
-+  while (running)
-+    {
-+      FD_ZERO (&fds);
-+      FD_SET (fileno (rl_instream), &fds);
-+      r = rl_timeout_remaining (&sec, &usec);
-+      if (r == 1)
-+	{
-+	  struct timeval timeout = {sec, usec};
-+	  r = select (FD_SETSIZE, &fds, NULL, NULL, &timeout);
-+	}
-+      if (r < 0 && errno != EINTR)
-+	{
-+	  perror ("rl-timeout: select");
-+	  rl_callback_handler_remove ();
-+	  break;
-+	}
-+      else if (r == 0)
-+	{
-+	  printf ("rl-timeout: timeout\n");
-+	  rl_callback_handler_remove ();
-+	  break;
-+	}
-+
-+      if (FD_ISSET (fileno (rl_instream), &fds))
-+	rl_callback_read_char ();
-+    }
-+
-+  printf ("rl-timeout: Event loop has exited\n");
-+}
-+
-+/* **************************************************************** */
-+/*								    */
-+/* Example 4: rl_callback_* () with rl_timeout_event_hook	    */
-+/*								    */
-+/* **************************************************************** */
-+
-+static int
-+cb_timeouthandler ()
-+{
-+  printf ("timeout\n");
-+  rl_callback_handler_remove ();
-+  running = 0;
-+  return READERR;
-+}
-+
-+void
-+rltest_timeout_callback2 ()
-+{
-+  int r;
-+
-+  rl_set_timeout (timeout_secs, timeout_usecs);
-+  rl_timeout_event_hook = cb_timeouthandler;
-+  rl_callback_handler_install (prompt, cb_linehandler);
-+  running = 1;
-+  while (running)
-+    rl_callback_read_char ();
-+
-+  printf ("rl-timeout: Event loop has exited\n");
-+}
-+
-+int
-+main (int argc, char **argv)
-+{
-+  if (argc >= 2)
-+    {
-+      if (argc >= 3)
-+	{
-+	  double timeout = atof (argv[2]);
-+	  if (timeout <= 0.0)
-+	    {
-+	      fprintf (stderr, "rl-timeout: specify a positive number for timeout.\n");
-+	      return 2;
-+	    }
-+	  else if (timeout > UINT_MAX)
-+	    {
-+	      fprintf (stderr, "rl-timeout: timeout too large.\n");
-+	      return 2;
-+	    }
-+	  timeout_secs = (unsigned) timeout;
-+	  timeout_usecs = (unsigned) ((timeout - timeout_secs) * 1000000 + 0.5);
-+	}
-+
-+      if (strcmp (argv[1], "readline1") == 0)
-+	rltest_timeout_readline1 ();
-+      else if (strcmp (argv[1], "readline2") == 0)
-+	rltest_timeout_readline2 ();
-+      else if (strcmp (argv[1], "callback1") == 0)
-+	rltest_timeout_callback1 ();
-+      else if (strcmp (argv[1], "callback2") == 0)
-+	rltest_timeout_callback2 ();
-+      else
-+	return 2;
-+    }
-+  else
-+    {
-+      fprintf (stderr, "usage: rl-timeout [readline1 | readline2 | callback1 | callback2] [timeout]\n");
-+      return 2;
-+    }
-+  return 0;
-+}
 diff --git a/readline/readline/examples/rl.c b/readline/readline/examples/rl.c
-index a5cf276cb943afcf88a12691c2d7c160dcb11262..39e5b8ebb5d1be6b748a9d8bab3d3feb190e0784 100644
+index a5cf276cb94..39e5b8ebb5d 100644
 --- a/readline/readline/examples/rl.c
 +++ b/readline/readline/examples/rl.c
 @@ -38,6 +38,10 @@
@@ -6285,7 +5895,7 @@ index a5cf276cb943afcf88a12691c2d7c160dcb11262..39e5b8ebb5d1be6b748a9d8bab3d3feb
    prompt = "readline$ ";
    fd = nch = 0;
 diff --git a/readline/readline/examples/rlbasic.c b/readline/readline/examples/rlbasic.c
-index 6a9601f52a699caa033273abf85e9689406ad07a..1ce4da973d902005e25672cd7838fc6614e3cd9a 100644
+index 6a9601f52a6..1ce4da973d9 100644
 --- a/readline/readline/examples/rlbasic.c
 +++ b/readline/readline/examples/rlbasic.c
 @@ -3,6 +3,10 @@
@@ -6311,7 +5921,7 @@ index 6a9601f52a699caa033273abf85e9689406ad07a..1ce4da973d902005e25672cd7838fc66
  		input = readline ((char *)NULL);
  		if (input == 0)
 diff --git a/readline/readline/examples/rlcat.c b/readline/readline/examples/rlcat.c
-index b4942413f8bebb6d08b83e035ce7dde3a9c52bf7..f1b036260cdc28211c4906fd9ec9807b91fb5b1a 100644
+index b4942413f8b..f1b036260cd 100644
 --- a/readline/readline/examples/rlcat.c
 +++ b/readline/readline/examples/rlcat.c
 @@ -45,6 +45,10 @@
@@ -6337,7 +5947,7 @@ index b4942413f8bebb6d08b83e035ce7dde3a9c52bf7..f1b036260cdc28211c4906fd9ec9807b
    if (progname == 0)
      progname = argv[0];
 diff --git a/readline/readline/examples/rlevent.c b/readline/readline/examples/rlevent.c
-index 8143cb02aa0742a4dd4e040515a11bcdb6740138..1b7f4eb25a433f8bcd4a872313c99129f06d044d 100644
+index 8143cb02aa0..1b7f4eb25a4 100644
 --- a/readline/readline/examples/rlevent.c
 +++ b/readline/readline/examples/rlevent.c
 @@ -44,6 +44,10 @@ extern int sleep();
@@ -6363,7 +5973,7 @@ index 8143cb02aa0742a4dd4e040515a11bcdb6740138..1b7f4eb25a433f8bcd4a872313c99129
    if (progname == 0)
      progname = argv[0];
 diff --git a/readline/readline/examples/rlptytest.c b/readline/readline/examples/rlptytest.c
-index 9c42f8a2795385dc0ae49eb339264a72f77f8ead..d170f62ff822cc12d66319e6dec2af2633d37bb4 100644
+index 9c42f8a2795..d170f62ff82 100644
 --- a/readline/readline/examples/rlptytest.c
 +++ b/readline/readline/examples/rlptytest.c
 @@ -25,6 +25,10 @@
@@ -6399,7 +6009,7 @@ index 9c42f8a2795385dc0ae49eb339264a72f77f8ead..d170f62ff822cc12d66319e6dec2af26
    if (val == -1)
      return -1;
 diff --git a/readline/readline/examples/rltest.c b/readline/readline/examples/rltest.c
-index 65abe87cc044d39175d58408d60ad27674c3e8be..8b7c00c8c49a0e7f071c09f1d93d818b597afd23 100644
+index 65abe87cc04..8b7c00c8c49 100644
 --- a/readline/readline/examples/rltest.c
 +++ b/readline/readline/examples/rltest.c
 @@ -36,6 +36,10 @@
@@ -6425,7 +6035,7 @@ index 65abe87cc044d39175d58408d60ad27674c3e8be..8b7c00c8c49a0e7f071c09f1d93d818b
    prompt = "readline$ ";
    done = 0;
 diff --git a/readline/readline/funmap.c b/readline/readline/funmap.c
-index eca49a3e4f61c0e57289d10352219830c59214ba..8b1cb4028db7fb0afe1e677d08d2a0ee12cac007 100644
+index eca49a3e4f6..8b1cb4028db 100644
 --- a/readline/readline/funmap.c
 +++ b/readline/readline/funmap.c
 @@ -1,6 +1,6 @@
@@ -6462,7 +6072,7 @@ index eca49a3e4f61c0e57289d10352219830c59214ba..8b1cb4028db7fb0afe1e677d08d2a0ee
    { "vi-yank-arg", rl_vi_yank_arg },
    { "vi-yank-pop", rl_vi_yank_pop },
 diff --git a/readline/readline/histexpand.c b/readline/readline/histexpand.c
-index b986dba0513f4cf4e28c167953df53f3ae5fa505..8ab68091e64cd750c58d785f2aa1a05a061a3d9b 100644
+index b986dba0513..8ab68091e64 100644
 --- a/readline/readline/histexpand.c
 +++ b/readline/readline/histexpand.c
 @@ -1,6 +1,6 @@
@@ -6544,7 +6154,7 @@ index b986dba0513f4cf4e28c167953df53f3ae5fa505..8ab68091e64cd750c58d785f2aa1a05a
  	  /* There is something that is listed as a `word specifier' in csh
  	     documentation which means `the expanded text to this point'.
 diff --git a/readline/readline/histfile.c b/readline/readline/histfile.c
-index f0fa5ce15fe1a90d2e6c28e9f0729893e5589fee..3bfec5500db515ebafc2310555019711bdd93f4a 100644
+index f0fa5ce15fe..3bfec5500db 100644
 --- a/readline/readline/histfile.c
 +++ b/readline/readline/histfile.c
 @@ -114,8 +114,6 @@ extern int errno;
@@ -6583,7 +6193,7 @@ index f0fa5ce15fe1a90d2e6c28e9f0729893e5589fee..3bfec5500db515ebafc2310555019711
        return 0;	/* don't waste time if we don't have to */
      }
 diff --git a/readline/readline/histlib.h b/readline/readline/histlib.h
-index 9627b24500012e03eefa8ad0e7dc056b756ed246..29fc4d2e5781dc24d6885f6317f2604695799002 100644
+index 9627b245000..29fc4d2e578 100644
 --- a/readline/readline/histlib.h
 +++ b/readline/readline/histlib.h
 @@ -1,6 +1,6 @@
@@ -6610,7 +6220,7 @@ index 9627b24500012e03eefa8ad0e7dc056b756ed246..29fc4d2e5781dc24d6885f6317f26046
  
  #endif /* !_HISTLIB_H_ */
 diff --git a/readline/readline/history.c b/readline/readline/history.c
-index 67158b14bc711b73462dca023f69873bde271459..81d4c1687b659045f9da5b3b82c58ff9bb4d37b7 100644
+index 67158b14bc7..81d4c1687b6 100644
 --- a/readline/readline/history.c
 +++ b/readline/readline/history.c
 @@ -1,6 +1,6 @@
@@ -6654,7 +6264,7 @@ index 67158b14bc711b73462dca023f69873bde271459..81d4c1687b659045f9da5b3b82c58ff9
  
    return (old_value);
 diff --git a/readline/readline/history.h b/readline/readline/history.h
-index cc3de29a64231d083d7b282e2eb247d692dbe521..5208f9a463b2a18c5a6e9ee32d120980e989eaaf 100644
+index cc3de29a642..5208f9a463b 100644
 --- a/readline/readline/history.h
 +++ b/readline/readline/history.h
 @@ -1,6 +1,6 @@
@@ -6887,25 +6497,8 @@ index cc3de29a64231d083d7b282e2eb247d692dbe521..5208f9a463b2a18c5a6e9ee32d120980
  
  /* Exported history variables. */
  extern int history_base;
-diff --git a/readline/readline/history.pc.in b/readline/readline/history.pc.in
-new file mode 100644
-index 0000000000000000000000000000000000000000..8a80775ded8a564ebfc5dc8846cfe23e824e9a31
---- /dev/null
-+++ b/readline/readline/history.pc.in
-@@ -0,0 +1,11 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name: History
-+Description: Gnu History library for managing previously-entered lines
-+URL: http://tiswww.cwru.edu/php/chet/readline/rltop.html
-+Version: @LIBVERSION@
-+Libs: -L${libdir} -lhistory
-+Cflags: -I${includedir}
 diff --git a/readline/readline/histsearch.c b/readline/readline/histsearch.c
-index 7a426c96781429785f1b44ad3241da43e63df545..b62c06b7bf066a32fcc4b24bc8b3aa8c8910488c 100644
+index 7a426c96781..b62c06b7bf0 100644
 --- a/readline/readline/histsearch.c
 +++ b/readline/readline/histsearch.c
 @@ -1,6 +1,6 @@
@@ -6935,7 +6528,7 @@ index 7a426c96781429785f1b44ad3241da43e63df545..b62c06b7bf066a32fcc4b24bc8b3aa8c
  }
  	
 diff --git a/readline/readline/input.c b/readline/readline/input.c
-index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f4464d421db1 100644
+index 61b0fde3c87..131d0a72a72 100644
 --- a/readline/readline/input.c
 +++ b/readline/readline/input.c
 @@ -1,6 +1,6 @@
@@ -7086,7 +6679,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  #else
  
  #if defined (FIONREAD)
-@@ -463,6 +507,242 @@ rl_clear_pending_input (void)
+@@ -463,6 +507,247 @@ rl_clear_pending_input (void)
    return 0;
  }
  
@@ -7125,13 +6718,18 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
 +  if (*secs == 0 || *usecs >= USEC_PER_SEC / 2)
 +    (*secs)++;
 +  *usecs = 0;
-+
-+  return alarm (*secs);
++#if defined (__MINGW32__)
++  return 0;
++#else
++  return alarm (*secs);  
++#endif
 +}
 +static void
 +reset_alarm ()
 +{
++#if !defined (__MINGW32__)
 +  alarm (0);
++#endif
 +}
 +#  endif
 +#endif
@@ -7329,7 +6927,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  /* **************************************************************** */
  /*								    */
  /*			     Character Input			    */
-@@ -497,6 +777,7 @@ rl_read_key (void)
+@@ -497,6 +782,7 @@ rl_read_key (void)
  	      if ((r = rl_gather_tyi ()) < 0)	/* XXX - EIO */
  		{
  		  rl_done = 1;
@@ -7337,7 +6935,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  		  return (errno == EIO ? (RL_ISSTATE (RL_STATE_READCMD) ? READERR : EOF) : '\n');
  		}
  	      else if (r > 0)			/* read something */
-@@ -523,37 +804,57 @@ rl_read_key (void)
+@@ -523,37 +809,60 @@ rl_read_key (void)
  int
  rl_getc (FILE *stream)
  {
@@ -7374,8 +6972,11 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  
  #if defined (__MINGW32__)
 -      if (isatty (fileno (stream)))
++#if 0
 +      if (isatty (fd)
  	return (_getch ());	/* "There is no error return." */
++#endif
++  return EOF;
  #endif
        result = 0;
 -#if defined (HAVE_PSELECT)
@@ -7403,7 +7004,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  
        if (result == sizeof (unsigned char))
  	return (c);
-@@ -582,7 +883,7 @@ rl_getc (FILE *stream)
+@@ -582,7 +891,7 @@ rl_getc (FILE *stream)
  
        if (errno == X_EWOULDBLOCK || errno == X_EAGAIN)
  	{
@@ -7412,7 +7013,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  	    return (EOF);
  	  continue;
  	}
-@@ -593,6 +894,9 @@ rl_getc (FILE *stream)
+@@ -593,6 +902,9 @@ rl_getc (FILE *stream)
  /* fprintf(stderr, "rl_getc: result = %d errno = %d\n", result, errno); */
  
  handle_error:
@@ -7422,7 +7023,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
        /* If the error that we received was EINTR, then try again,
  	 this is simply an interrupted system call to read ().  We allow
  	 the read to be interrupted if we caught SIGHUP, SIGTERM, or any
-@@ -633,8 +937,17 @@ handle_error:
+@@ -633,8 +945,17 @@ handle_error:
          RL_CHECK_SIGNALS ();
  #endif  /* SIGALRM */
  
@@ -7440,7 +7041,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
      }
  }
  
-@@ -645,7 +958,7 @@ _rl_read_mbchar (char *mbchar, int size)
+@@ -645,7 +966,7 @@ _rl_read_mbchar (char *mbchar, int size)
  {
    int mb_len, c;
    size_t mbchar_bytes_length;
@@ -7449,7 +7050,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
    mbstate_t ps, ps_back;
  
    memset(&ps, 0, sizeof (mbstate_t));
-@@ -661,7 +974,7 @@ _rl_read_mbchar (char *mbchar, int size)
+@@ -661,7 +982,7 @@ _rl_read_mbchar (char *mbchar, int size)
  
        mbchar[mb_len++] = c;
  
@@ -7459,7 +7060,7 @@ index 61b0fde3c87f25644fd9ff7ec1ef0e02d14c403c..f68fcac553c33a1a75e4c43912d4f446
  	break;		/* invalid byte sequence for the current locale */
        else if (mbchar_bytes_length == (size_t)(-2))
 diff --git a/readline/readline/isearch.c b/readline/readline/isearch.c
-index 941078f790e33696b97fed672f575cb65412bc34..c445c12a64f0237e55ff79877906e58a76656e1c 100644
+index 941078f790e..c445c12a64f 100644
 --- a/readline/readline/isearch.c
 +++ b/readline/readline/isearch.c
 @@ -6,7 +6,7 @@
@@ -7553,7 +7154,7 @@ index 941078f790e33696b97fed672f575cb65412bc34..c445c12a64f0237e55ff79877906e58a
  
      /* Add character to search string and continue search. */
 diff --git a/readline/readline/keymaps.h b/readline/readline/keymaps.h
-index 1fa853d8c1e6a68a9e06d79c880e7d246759ced6..2903814838620ffaa72cc4bbbb93e4a9c63ab172 100644
+index 1fa853d8c1e..29038148386 100644
 --- a/readline/readline/keymaps.h
 +++ b/readline/readline/keymaps.h
 @@ -1,6 +1,6 @@
@@ -7607,7 +7208,7 @@ index 1fa853d8c1e6a68a9e06d79c880e7d246759ced6..2903814838620ffaa72cc4bbbb93e4a9
  #ifdef __cplusplus
  }
 diff --git a/readline/readline/kill.c b/readline/readline/kill.c
-index 50c3fdead765bc71b0e3e2d1ef81e4155982aa8a..4cf933b20096ec0ceafa573fa3f06d43f4a178af 100644
+index 50c3fdead76..4cf933b2009 100644
 --- a/readline/readline/kill.c
 +++ b/readline/readline/kill.c
 @@ -1,6 +1,6 @@
@@ -7695,38 +7296,8 @@ index 50c3fdead765bc71b0e3e2d1ef81e4155982aa8a..4cf933b20096ec0ceafa573fa3f06d43
        rl_kill_index--;
        if (rl_kill_index < 0)
  	rl_kill_index = rl_kill_ring_length - 1;
-diff --git a/readline/readline/m4/codeset.m4 b/readline/readline/m4/codeset.m4
-new file mode 100644
-index 0000000000000000000000000000000000000000..280f556fe83dfb4ac832f8533cfc5610feb57275
---- /dev/null
-+++ b/readline/readline/m4/codeset.m4
-@@ -0,0 +1,24 @@
-+# codeset.m4 serial 5 (gettext-0.18.2)
-+dnl Copyright (C) 2000-2002, 2006, 2008-2014, 2016, 2019 Free Software
-+dnl Foundation, Inc.
-+dnl This file is free software; the Free Software Foundation
-+dnl gives unlimited permission to copy and/or distribute it,
-+dnl with or without modifications, as long as this notice is preserved.
-+
-+dnl From Bruno Haible.
-+
-+AC_DEFUN([AM_LANGINFO_CODESET],
-+[
-+  AC_CACHE_CHECK([for nl_langinfo and CODESET], [am_cv_langinfo_codeset],
-+    [AC_LINK_IFELSE(
-+       [AC_LANG_PROGRAM(
-+          [[#include <langinfo.h>]],
-+          [[char* cs = nl_langinfo(CODESET); return !cs;]])],
-+       [am_cv_langinfo_codeset=yes],
-+       [am_cv_langinfo_codeset=no])
-+    ])
-+  if test $am_cv_langinfo_codeset = yes; then
-+    AC_DEFINE([HAVE_LANGINFO_CODESET], [1],
-+      [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
-+  fi
-+])
 diff --git a/readline/readline/macro.c b/readline/readline/macro.c
-index 92cc55c36dc001e78ddddd1e488dee0b1d42ab8a..231a24bcda3d2a865f7c4890010cfd0e8dcd5ca5 100644
+index 92cc55c36dc..231a24bcda3 100644
 --- a/readline/readline/macro.c
 +++ b/readline/readline/macro.c
 @@ -276,6 +276,8 @@ rl_end_kbd_macro (int count, int ignore)
@@ -7739,7 +7310,7 @@ index 92cc55c36dc001e78ddddd1e488dee0b1d42ab8a..231a24bcda3d2a865f7c4890010cfd0e
  
    RL_UNSETSTATE(RL_STATE_MACRODEF);
 diff --git a/readline/readline/mbutil.c b/readline/readline/mbutil.c
-index 7da3ff17bb53d86085b22ec94b21cb673054c62b..f0f28ce747ffd6eb983c05c46cea69e1a17bd4b7 100644
+index 7da3ff17bb5..f0f28ce747f 100644
 --- a/readline/readline/mbutil.c
 +++ b/readline/readline/mbutil.c
 @@ -1,6 +1,6 @@
@@ -7860,7 +7431,7 @@ index 7da3ff17bb53d86085b22ec94b21cb673054c62b..f0f28ce747ffd6eb983c05c46cea69e1
  }
  #endif /* HANDLE_MULTIBYTE */
 diff --git a/readline/readline/misc.c b/readline/readline/misc.c
-index 3d9a674ca59d9a4de961ac846cd66fe221c4f2c6..4bca9c586101954061d5ccae5ac2153ac6526186 100644
+index 3d9a674ca59..4bca9c58610 100644
 --- a/readline/readline/misc.c
 +++ b/readline/readline/misc.c
 @@ -1,6 +1,6 @@
@@ -7999,7 +7570,7 @@ index 3d9a674ca59d9a4de961ac846cd66fe221c4f2c6..4bca9c586101954061d5ccae5ac2153a
    _rl_internal_startup_hook = set_saved_history;
  
 diff --git a/readline/readline/nls.c b/readline/readline/nls.c
-index d2f67e0d3e1ac1a9f085d3e10fbc7af0c129d8e0..8c027d6be500d06d90a7549e70127c3ba16093a6 100644
+index d2f67e0d3e1..8c027d6be50 100644
 --- a/readline/readline/nls.c
 +++ b/readline/readline/nls.c
 @@ -1,6 +1,6 @@
@@ -8180,7 +7751,7 @@ index d2f67e0d3e1ac1a9f085d3e10fbc7af0c129d8e0..8c027d6be500d06d90a7549e70127c3b
 +  xfree (ol);
 +}
 diff --git a/readline/readline/parens.c b/readline/readline/parens.c
-index af4797736293d4cefa2d9c57784a1c83a03b434c..57ce70458dad86f8532d009a5d2a1a9643067470 100644
+index af479773629..57ce70458da 100644
 --- a/readline/readline/parens.c
 +++ b/readline/readline/parens.c
 @@ -1,6 +1,6 @@
@@ -8213,7 +7784,7 @@ index af4797736293d4cefa2d9c57784a1c83a03b434c..57ce70458dad86f8532d009a5d2a1a96
  #else /* !HAVE_SELECT */
        _rl_insert_char (count, invoking_key);
 diff --git a/readline/readline/patchlevel b/readline/readline/patchlevel
-index d8c9df7e6bb19b63a7c7f1c4f192a91529e40699..fa58ba54d82a04548ac0deea07d8e7b1500daf11 100644
+index d8c9df7e6bb..fa58ba54d82 100644
 --- a/readline/readline/patchlevel
 +++ b/readline/readline/patchlevel
 @@ -1,3 +1,3 @@
@@ -8222,7 +7793,7 @@ index d8c9df7e6bb19b63a7c7f1c4f192a91529e40699..fa58ba54d82a04548ac0deea07d8e7b1
 -0
 +13
 diff --git a/readline/readline/posixdir.h b/readline/readline/posixdir.h
-index af5be8012b347eee3b62ba0e78f36109619999e0..b737bd7d1ce1e9a06fccc1bbf369119d772f85ee 100644
+index af5be8012b3..b737bd7d1ce 100644
 --- a/readline/readline/posixdir.h
 +++ b/readline/readline/posixdir.h
 @@ -1,6 +1,6 @@
@@ -8233,98 +7804,8 @@ index af5be8012b347eee3b62ba0e78f36109619999e0..b737bd7d1ce1e9a06fccc1bbf369119d
  
     This file is part of GNU Bash, the Bourne Again SHell.
  
-diff --git a/readline/readline/posixtime.h b/readline/readline/posixtime.h
-new file mode 100644
-index 0000000000000000000000000000000000000000..e70ebec67cf08e756b0f32af79234ff11de103d8
---- /dev/null
-+++ b/readline/readline/posixtime.h
-@@ -0,0 +1,84 @@
-+/* posixtime.h -- wrapper for time.h, sys/times.h mess. */
-+
-+/* Copyright (C) 1999-2021 Free Software Foundation, Inc.
-+
-+   This file is part of GNU Bash, the Bourne Again SHell.
-+
-+   Bash is free software: you can redistribute it and/or modify
-+   it under the terms of the GNU General Public License as published by
-+   the Free Software Foundation, either version 3 of the License, or
-+   (at your option) any later version.
-+
-+   Bash is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+   GNU General Public License for more details.
-+
-+   You should have received a copy of the GNU General Public License
-+   along with Bash.  If not, see <http://www.gnu.org/licenses/>.
-+*/
-+
-+#ifndef _POSIXTIME_H_
-+#define _POSIXTIME_H_
-+
-+/* include this after config.h */
-+/* Some systems require this, mostly for the definition of `struct timezone'.
-+   For example, Dynix/ptx has that definition in <time.h> rather than
-+      sys/time.h */
-+#if defined (HAVE_SYS_TIME_H)
-+#  include <sys/time.h>
-+#endif
-+#include <time.h>
-+
-+#if !defined (HAVE_SYSCONF) || !defined (_SC_CLK_TCK)
-+#  if !defined (CLK_TCK)
-+#    if defined (HZ)
-+#      define CLK_TCK	HZ
-+#    else
-+#      define CLK_TCK	60			/* 60HZ */
-+#    endif
-+#  endif /* !CLK_TCK */
-+#endif /* !HAVE_SYSCONF && !_SC_CLK_TCK */
-+
-+#if !HAVE_TIMEVAL
-+struct timeval
-+{
-+  time_t tv_sec;
-+  long int tv_usec;
-+};
-+#endif
-+
-+#if !HAVE_GETTIMEOFDAY
-+extern int gettimeofday PARAMS((struct timeval *, void *));
-+#endif
-+
-+/* These exist on BSD systems, at least. */
-+#if !defined (timerclear)
-+#  define timerclear(tvp)	do { (tvp)->tv_sec = 0; (tvp)->tv_usec = 0; } while (0)
-+#endif
-+#if !defined (timerisset)
-+#  define timerisset(tvp)	((tvp)->tv_sec || (tvp)->tv_usec)
-+#endif
-+#if !defined (timercmp)
-+#  define timercmp(a, b, CMP) \
-+	(((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_usec CMP (b)->tv_usec) \
-+				      : ((a)->tv_sec CMP (b)->tv_sec))
-+#endif
-+
-+/* These are non-standard. */
-+#if !defined (timerisunset)
-+#  define timerisunset(tvp)	((tvp)->tv_sec == 0 && (tvp)->tv_usec == 0)
-+#endif
-+#if !defined (timerset)
-+#  define timerset(tvp, s, u)	do { tvp->tv_sec = s; tvp->tv_usec = u; } while (0)
-+#endif
-+
-+#ifndef TIMEVAL_TO_TIMESPEC
-+#  define TIMEVAL_TO_TIMESPEC(tv, ts) \
-+  do { \
-+    (ts)->tv_sec = (tv)->tv_sec; \
-+    (ts)->tv_nsec = (tv)->tv_usec * 1000; \
-+  } while (0)
-+#endif
-+
-+#endif /* _POSIXTIME_H_ */
 diff --git a/readline/readline/readline.c b/readline/readline/readline.c
-index 0e33587f23409157a784635f0c85f721dbbecbeb..d649af541e8889901d5533199a2fc327cbb29914 100644
+index 0e33587f234..d649af541e8 100644
 --- a/readline/readline/readline.c
 +++ b/readline/readline/readline.c
 @@ -72,35 +72,34 @@ extern int errno;
@@ -8573,7 +8054,7 @@ index 0e33587f23409157a784635f0c85f721dbbecbeb..d649af541e8889901d5533199a2fc327
 +    rl_key_sequence_length--;
 +}
 diff --git a/readline/readline/readline.h b/readline/readline/readline.h
-index 9f79810f290a6651177d2433417f8e0c2bedd74f..cac269f0b433ca795a929e0c4c4ebde42446f7de 100644
+index 9f79810f290..cac269f0b43 100644
 --- a/readline/readline/readline.h
 +++ b/readline/readline/readline.h
 @@ -39,9 +39,9 @@ extern "C" {
@@ -9360,7 +8841,7 @@ index 9f79810f290a6651177d2433417f8e0c2bedd74f..cac269f0b433ca795a929e0c4c4ebde4
  #ifdef __cplusplus
  }
 diff --git a/readline/readline/rldefs.h b/readline/readline/rldefs.h
-index dab1beba1d72fbc6288f361b8c59fe2e3c78582e..98577a64b98d6c5997775874d7e1d75835862439 100644
+index dab1beba1d7..98577a64b98 100644
 --- a/readline/readline/rldefs.h
 +++ b/readline/readline/rldefs.h
 @@ -2,7 +2,7 @@
@@ -9391,7 +8872,7 @@ index dab1beba1d72fbc6288f361b8c59fe2e3c78582e..98577a64b98d6c5997775874d7e1d758
  
  #if !defined (emacs_mode)
 diff --git a/readline/readline/rlmbutil.h b/readline/readline/rlmbutil.h
-index 4d3e90706a2534e3d8cb524b99ff78ebe9cf96aa..d9060572e5821f6811d1482b741b8490357c85cb 100644
+index 4d3e90706a2..d9060572e58 100644
 --- a/readline/readline/rlmbutil.h
 +++ b/readline/readline/rlmbutil.h
 @@ -1,6 +1,6 @@
@@ -9466,7 +8947,7 @@ index 4d3e90706a2534e3d8cb524b99ff78ebe9cf96aa..d9060572e5821f6811d1482b741b8490
    switch (wc)
      {
 diff --git a/readline/readline/rlprivate.h b/readline/readline/rlprivate.h
-index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab80eb83870 100644
+index 02838ae21ae..d75e23a3321 100644
 --- a/readline/readline/rlprivate.h
 +++ b/readline/readline/rlprivate.h
 @@ -1,10 +1,10 @@
@@ -9482,7 +8963,18 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
     Readline is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-@@ -78,7 +78,7 @@ typedef struct  __rl_search_context
+@@ -28,6 +28,10 @@
+ #include "posixjmp.h"	/* defines procenv_t */
+ #include "rlmbutil.h"	/* for HANDLE_MULTIBYTE */
+ 
++#ifdef _WIN32
++#undef _POSIXSELECT_H_
++#endif
++
+ /*************************************************************************
+  *									 *
+  * Convenience definitions						 *
+@@ -78,7 +82,7 @@ typedef struct  __rl_search_context
    int search_string_size;
  
    char **lines;
@@ -9491,7 +8983,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
    int hlen;
    int hindex;
  
-@@ -169,16 +169,16 @@ typedef struct __rl_vimotion_context
+@@ -169,16 +173,16 @@ typedef struct __rl_vimotion_context
  
  /* fill in more as needed */
  /* `Generic' callback data and functions */
@@ -9511,7 +9003,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /*************************************************************************
   *									 *
-@@ -221,16 +221,16 @@ extern int rl_blink_matching_paren;
+@@ -221,16 +225,16 @@ extern int rl_blink_matching_paren;
   *************************************************************************/
  
  /* kill.c */
@@ -9532,7 +9024,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /*************************************************************************
   *									 *
-@@ -250,66 +250,73 @@ extern char *_rl_savestring PARAMS((const char *));
+@@ -250,66 +254,73 @@ extern char *_rl_savestring PARAMS((const char *));
  #if defined(READLINE_CALLBACKS)
  
  /* readline.c */
@@ -9649,7 +9141,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /* kill.c */
  #ifndef BRACKETED_PASTE_DEFAULT
-@@ -325,110 +332,117 @@ extern int _rl_search_getchar PARAMS((_rl_search_cxt *));
+@@ -325,110 +336,117 @@ extern int _rl_search_getchar PARAMS((_rl_search_cxt *));
  #define BRACK_PASTE_INIT	"\033[?2004h"
  #define BRACK_PASTE_FINI	"\033[?2004l\r"
  
@@ -9726,17 +9218,17 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
 +extern int _rl_dispatch (int, Keymap);
 +extern int _rl_dispatch_subseq (int, Keymap, int);
 +extern void _rl_internal_char_cleanup (void);
-+
-+extern void _rl_init_executing_keyseq (void);
-+extern void _rl_term_executing_keyseq (void);
-+extern void _rl_end_executing_keyseq (void);
-+extern void _rl_add_executing_keyseq (int);
-+extern void _rl_del_executing_keyseq (void);
  
 -extern void _rl_init_executing_keyseq PARAMS((void));
 -extern void _rl_term_executing_keyseq PARAMS((void));
 -extern void _rl_end_executing_keyseq PARAMS((void));
 -extern void _rl_add_executing_keyseq PARAMS((int)); 
++extern void _rl_init_executing_keyseq (void);
++extern void _rl_term_executing_keyseq (void);
++extern void _rl_end_executing_keyseq (void);
++extern void _rl_add_executing_keyseq (int);
++extern void _rl_del_executing_keyseq (void);
++
 +extern rl_command_func_t *_rl_executing_func;
  
  /* rltty.c */
@@ -9839,7 +9331,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /* util.c */
  #if defined (USE_VARARGS) && defined (PREFER_STDARG)
-@@ -440,31 +454,37 @@ extern void _rl_ttymsg ();
+@@ -440,31 +458,37 @@ extern void _rl_ttymsg ();
  extern void _rl_errmsg ();
  extern void _rl_trace ();
  #endif
@@ -9900,7 +9392,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /*************************************************************************
   * Undocumented private variables					 *
-@@ -537,6 +557,8 @@ extern int _rl_echo_control_chars;
+@@ -537,6 +561,8 @@ extern int _rl_echo_control_chars;
  extern int _rl_show_mode_in_prompt;
  extern int _rl_enable_bracketed_paste;
  extern int _rl_enable_active_region;
@@ -9909,7 +9401,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  extern char *_rl_comment_begin;
  extern unsigned char _rl_parsing_conditionalized_out;
  extern Keymap _rl_keymap;
-@@ -554,6 +576,7 @@ extern rl_hook_func_t *_rl_internal_startup_hook;
+@@ -554,6 +580,7 @@ extern rl_hook_func_t *_rl_internal_startup_hook;
  
  /* search.c */
  extern _rl_search_cxt *_rl_nscxt;
@@ -9917,7 +9409,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
  
  /* signals.c */
  extern int volatile _rl_caught_signal;
-@@ -601,4 +624,10 @@ extern int _rl_vi_last_command;
+@@ -601,4 +628,10 @@ extern int _rl_vi_last_command;
  extern int _rl_vi_redoing;
  extern _rl_vimotion_cxt *_rl_vimvcxt;
  
@@ -9929,7 +9421,7 @@ index 02838ae21ae704c2c6e0ba0db07fbd55357c419d..d87d07a72ee19c06b24338ac2f7c4ab8
 +
  #endif /* _RL_PRIVATE_H_ */
 diff --git a/readline/readline/rlshell.h b/readline/readline/rlshell.h
-index 3e17d8bc7f1ff78494979eb77fd1772a881bfc1e..6055b1442ff9a1712c8501784c1df30ad067cf0f 100644
+index 3e17d8bc7f1..6055b1442ff 100644
 --- a/readline/readline/rlshell.h
 +++ b/readline/readline/rlshell.h
 @@ -1,6 +1,6 @@
@@ -9957,7 +9449,7 @@ index 3e17d8bc7f1ff78494979eb77fd1772a881bfc1e..6055b1442ff9a1712c8501784c1df30a
  
  #endif /* _RL_SHELL_H_ */
 diff --git a/readline/readline/rltty.c b/readline/readline/rltty.c
-index 11997b7c9d816ce48fa5feff7ab87301e18785c8..a4863acb31efa7c1f9a2d509209e647894bb6908 100644
+index 11997b7c9d8..a4863acb31e 100644
 --- a/readline/readline/rltty.c
 +++ b/readline/readline/rltty.c
 @@ -52,7 +52,7 @@ extern int errno;
@@ -10041,7 +9533,7 @@ index 11997b7c9d816ce48fa5feff7ab87301e18785c8..a4863acb31efa7c1f9a2d509209e6478
      }
  
 diff --git a/readline/readline/rltypedefs.h b/readline/readline/rltypedefs.h
-index f9f5cd3a5b64d8b1a64c6eeaf6c17ddba1f7e6ff..163654921e61e1f8c16b864e3fcab4ea177c153e 100644
+index f9f5cd3a5b6..163654921e6 100644
 --- a/readline/readline/rltypedefs.h
 +++ b/readline/readline/rltypedefs.h
 @@ -1,6 +1,6 @@
@@ -10137,7 +9629,7 @@ index f9f5cd3a5b64d8b1a64c6eeaf6c17ddba1f7e6ff..163654921e61e1f8c16b864e3fcab4ea
  #endif /* _RL_FUNCTION_TYPEDEF */
  
 diff --git a/readline/readline/search.c b/readline/readline/search.c
-index 38a29361d7020897ebbc7cea7d7eeb4559223359..eea2301115ef6b9e757b50db93b98c20cab7215a 100644
+index 38a29361d70..eea2301115e 100644
 --- a/readline/readline/search.c
 +++ b/readline/readline/search.c
 @@ -1,6 +1,6 @@
@@ -10376,7 +9868,7 @@ index 38a29361d7020897ebbc7cea7d7eeb4559223359..eea2301115ef6b9e757b50db93b98c20
    return (rl_history_search_internal (abs (count), (count > 0) ? -1 : 1));
  }
 diff --git a/readline/readline/shell.c b/readline/readline/shell.c
-index 7fe2e97c983360641288ca4ecca254932c6bf053..36c91484c94f64dcdb154c829958a3907c363ebd 100644
+index 7fe2e97c983..36c91484c94 100644
 --- a/readline/readline/shell.c
 +++ b/readline/readline/shell.c
 @@ -1,7 +1,7 @@
@@ -10398,7 +9890,7 @@ index 7fe2e97c983360641288ca4ecca254932c6bf053..36c91484c94f64dcdb154c829958a390
  
  #ifndef NULL
 diff --git a/readline/readline/signals.c b/readline/readline/signals.c
-index 8fedc370a1ae05890b7b128a6515f0dfa3b5885a..9df365e48e4cd5b0602668e579f1274a43c647d8 100644
+index 8fedc370a1a..9df365e48e4 100644
 --- a/readline/readline/signals.c
 +++ b/readline/readline/signals.c
 @@ -1,6 +1,6 @@
@@ -10562,7 +10054,7 @@ index 8fedc370a1ae05890b7b128a6515f0dfa3b5885a..9df365e48e4cd5b0602668e579f1274a
 diff --git a/readline/readline/support/config.guess b/readline/readline/support/config.guess
 old mode 100755
 new mode 100644
-index cc7a81070119c7500643623fb70626b7adf31261..b66eb09d6150b196c2fbd8534f0d03b337a116e9
+index cc7a8107011..b66eb09d615
 --- a/readline/readline/support/config.guess
 +++ b/readline/readline/support/config.guess
 @@ -1,12 +1,14 @@
@@ -12461,7 +11953,7 @@ new mode 100644
 diff --git a/readline/readline/support/config.sub b/readline/readline/support/config.sub
 old mode 100755
 new mode 100644
-index 7384e9198b4051ce9e3e079d50d8adb5060b1771..9b62e37c43c6d67efb7a7de7ee1f19e0bc9bc311
+index 7384e9198b4..9b62e37c43c
 --- a/readline/readline/support/config.sub
 +++ b/readline/readline/support/config.sub
 @@ -2,11 +2,13 @@
@@ -12742,7 +12234,7 @@ new mode 100644
 diff --git a/readline/readline/support/mkdist b/readline/readline/support/mkdist
 old mode 100755
 new mode 100644
-index 282431d4ad319017c5ed9ecb694313b90868fcce..463bdc163fc66a36fe2214e30e81fcff2fa522f5
+index 282431d4ad3..463bdc163fc
 --- a/readline/readline/support/mkdist
 +++ b/readline/readline/support/mkdist
 @@ -78,7 +78,7 @@ fi
@@ -12786,7 +12278,7 @@ diff --git a/readline/readline/support/shlib-install b/readline/readline/support
 old mode 100755
 new mode 100644
 diff --git a/readline/readline/support/shobj-conf b/readline/readline/support/shobj-conf
-index 5a3f9776e910ba0bc8e521effca06989bd984903..cd7634dfa6247f021a640e2df74f7ed843ff66ad 100755
+index 5a3f9776e91..cd7634dfa62 100755
 --- a/readline/readline/support/shobj-conf
 +++ b/readline/readline/support/shobj-conf
 @@ -10,7 +10,7 @@
@@ -12834,8 +12326,33 @@ index 5a3f9776e910ba0bc8e521effca06989bd984903..cd7634dfa6247f021a640e2df74f7ed8
  	SHOBJ_XLDFLAGS='-G'
  
  	SHLIB_XLDFLAGS='-bM:SRE'
+diff --git a/readline/readline/tcap.h b/readline/readline/tcap.h
+index 859e6eed5aa..81f257bc8fb 100644
+--- a/readline/readline/tcap.h
++++ b/readline/readline/tcap.h
+@@ -46,14 +46,12 @@ extern char *UP, *BC;
+ 
+ extern short ospeed;
+ 
+-extern int tgetent ();
+-extern int tgetflag ();
+-extern int tgetnum ();
+-extern char *tgetstr ();
+-
+-extern int tputs ();
+-
+-extern char *tgoto ();
++int tgetent(char *bp, const char *name);
++int tgetflag(char *id);
++int tgetnum(char *id);
++char *tgetstr(char *id, char **area);
++char *tgoto(const char *cap, int col, int row);
++int tputs(const char *str, int affcnt, int (*putc)(int));
+ 
+ #endif /* HAVE_TERMCAP_H */
+ 
 diff --git a/readline/readline/terminal.c b/readline/readline/terminal.c
-index 05415dc42de1dca338d4047b168bc8b5aedd12ae..9997161f818e934875d12fec50e7f1caccfd5ec0 100644
+index 05415dc42de..9997161f818 100644
 --- a/readline/readline/terminal.c
 +++ b/readline/readline/terminal.c
 @@ -1,6 +1,6 @@
@@ -13054,7 +12571,7 @@ index 05415dc42de1dca338d4047b168bc8b5aedd12ae..9997161f818e934875d12fec50e7f1ca
  /*								    */
  /*	 	Controlling the Meta Key and Keypad		    */
 diff --git a/readline/readline/text.c b/readline/readline/text.c
-index 2567dea268ae2412dda65d9c9fbd898e1ac11e86..a01143fc7bf95f62da937455b84981e0e671b0f5 100644
+index 2567dea268a..a01143fc7bf 100644
 --- a/readline/readline/text.c
 +++ b/readline/readline/text.c
 @@ -1,6 +1,6 @@
@@ -13361,7 +12878,7 @@ index 2567dea268ae2412dda65d9c9fbd898e1ac11e86..a01143fc7bf95f62da937455b84981e0
    _rl_callback_func = 0;
    _rl_want_redisplay = 1;
 diff --git a/readline/readline/tilde.h b/readline/readline/tilde.h
-index e26dd0476f7b3369ff842c26716640b7a4b99b89..bc8022afc329f3997a7f43548a73f212d09a0952 100644
+index e26dd0476f7..bc8022afc32 100644
 --- a/readline/readline/tilde.h
 +++ b/readline/readline/tilde.h
 @@ -1,6 +1,6 @@
@@ -13412,7 +12929,7 @@ index e26dd0476f7b3369ff842c26716640b7a4b99b89..bc8022afc329f3997a7f43548a73f212
  #ifdef __cplusplus
  }
 diff --git a/readline/readline/undo.c b/readline/readline/undo.c
-index 147999119a6123532e8d932f2ccb1783e4c1a7a7..e4c457dce328a210c0a77e94903421f3f3251b74 100644
+index 147999119a6..e4c457dce32 100644
 --- a/readline/readline/undo.c
 +++ b/readline/readline/undo.c
 @@ -1,6 +1,6 @@
@@ -13435,7 +12952,7 @@ index 147999119a6123532e8d932f2ccb1783e4c1a7a7..e4c457dce328a210c0a77e94903421f3
  /* Non-zero tells rl_delete_text and rl_insert_text to not add to
     the undo list. */
 diff --git a/readline/readline/util.c b/readline/readline/util.c
-index 1576b55d50d53cf2a61b32a879697b9a338f5647..2e986db0a5ed34350ce5155ec66468adfc7e8de2 100644
+index 1576b55d50d..2e986db0a5e 100644
 --- a/readline/readline/util.c
 +++ b/readline/readline/util.c
 @@ -72,7 +72,7 @@ static const char * const pathname_alphabetic_chars = "/-_=~.#$";
@@ -13467,7 +12984,7 @@ index 1576b55d50d53cf2a61b32a879697b9a338f5647..2e986db0a5ed34350ce5155ec66468ad
    _rl_reset_argument ();
    rl_clear_pending_input ();
 diff --git a/readline/readline/vi_mode.c b/readline/readline/vi_mode.c
-index 742341e362836fb72f361465856992e586a0fb6a..3a033bab46f8eb9c3eca32145adc0fe325bdf0be 100644
+index 742341e3628..3a033bab46f 100644
 --- a/readline/readline/vi_mode.c
 +++ b/readline/readline/vi_mode.c
 @@ -1,7 +1,7 @@
@@ -13723,7 +13240,7 @@ index 742341e362836fb72f361465856992e586a0fb6a..3a033bab46f8eb9c3eca32145adc0fe3
      }
  
 diff --git a/readline/readline/xmalloc.h b/readline/readline/xmalloc.h
-index f40d7a596a287c3024598f47f769b0694eaf44a5..0fb9df9c00b4973c61da6f53a5519505e4dc6ae5 100644
+index f40d7a596a2..0fb9df9c00b 100644
 --- a/readline/readline/xmalloc.h
 +++ b/readline/readline/xmalloc.h
 @@ -1,6 +1,6 @@
@@ -13746,6 +13263,3 @@ index f40d7a596a287c3024598f47f769b0694eaf44a5..0fb9df9c00b4973c61da6f53a5519505
 +extern void xfree (void *);
  
  #endif /* _XMALLOC_H_ */
-
--- 
-2.46.1
