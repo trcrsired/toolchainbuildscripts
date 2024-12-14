@@ -297,7 +297,7 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMA
 ninja install/strip
 fi
 
-if [ ! -f "${SYSROOTPATH}/lib/libxml2.a" ]; then
+if [ ! -f "${SYSROOTPATH}/lib/libxml2.so" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/libxml2"
 cd $CURRENTTRIPLEPATH/libxml2
 cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
