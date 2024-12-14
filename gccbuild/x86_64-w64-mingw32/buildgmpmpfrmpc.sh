@@ -29,17 +29,13 @@ if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	exit 1
 fi
 
-if [ -z ${GMPMPFRMPC_EXTRAHOSTCONFIGURE+x} ]; then
-	GMPMPFRMPC_EXTRAHOSTCONFIGURE="--with-gmp=$GMPMPFRMPCPREFIX --with-mpfr=$GMPMPFRMPCPREFIX --with-mpc=$GMPMPFRMPCPREFIX"
-fi
-
 if [ -z ${GMPMPFRMPCHOSTALTERNATIVE+x} ]; then
 GMPMPFRMPCHOSTALTERNATIVE=$(echo $GMPMPFRMPCHOST | sed 's/^[^-]*/none/')
 fi
 
 echo "GMPMPFRMPCHOSTALTERNATIVE" $GMPMPFRMPCHOSTALTERNATIVE
 
-GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --disable-option-checking --prefix=${GMPMPFRMPCPREFIX} --disable-shared --enable-static --disable-multilib --disable-assembly  $GMPMPFRMPC_EXTRAHOSTCONFIGURE  --host=$GMPMPFRMPCHOSTALTERNATIVE"
+GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --disable-option-checking --prefix=${GMPMPFRMPCPREFIX} --disable-shared --enable-static --disable-multilib --disable-assembly --host=$GMPMPFRMPCHOSTALTERNATIVE"
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
