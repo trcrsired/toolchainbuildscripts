@@ -120,6 +120,8 @@ make -j$(nproc)
 make install-strip -j$(nproc)
 fi
 
+TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ./buildgmpmpfrmpc.sh
+
 mkdir -p ${currentpath}/hostbuild
 mkdir -p ${currentpath}/hostbuild/$HOST
 cd ${currentpath}/hostbuild/$HOST
