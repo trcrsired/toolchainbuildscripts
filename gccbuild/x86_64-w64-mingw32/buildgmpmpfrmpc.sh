@@ -29,7 +29,7 @@ if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	exit 1
 fi
 
-GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --disable-shared --enable-static"
+GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --target=${GMPMPFRMPCHOST} --disable-shared --enable-static"
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
