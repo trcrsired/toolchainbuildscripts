@@ -97,12 +97,28 @@ fi
 cd "$TOOLCHAINS_BUILD/libxml2"
 git pull --quiet
 
-
-if ! command -v "$TARGETTRIPLE-gcc" &> /dev/null
-then
-    echo "$TARGETTRIPLE-gcc not exists"
-    exit 1
+if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone git://sourceware.org/git/glibc.git
+if [ $? -ne 0 ]; then
+echo "glibc clone failed"
+exit 1
 fi
+fi
+cd "$TOOLCHAINS_BUILD/glibc"
+git pull --quiet
+
+if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+if [ $? -ne 0 ]; then
+echo "linux clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/linux"
+git pull --quiet
+
 
 if ! command -v "clang" &> /dev/null
 then
@@ -119,13 +135,8 @@ clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
 SYSTEMNAME=Linux
 
-gccnativetriplet=$(gcc -dumpmachine)
-
-gccpath=$(command -v "$TARGETTRIPLE-gcc")
-gccbinpath=$(dirname "$gccpath")
-SYSROOTPATH=$(dirname "$gccbinpath")
-SYSROOTTRIPLEPATH=$SYSROOTPATH
 CURRENTTRIPLEPATH=${currentpath}
+SYSROOTPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/${TARGETTRIPLE}
 BUILTINSINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/builtins
 COMPILERRTINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/compiler-rt
 RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
@@ -139,7 +150,7 @@ cd $CURRENTTRIPLEPATH/builtins
 cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=$BUILD_C_COMPILER -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER -DCMAKE_ASM_COMPILER=$BUILD_ASM_COMPILER \
-	-DCMAKE_SYSROOT=$SYSROOTTRIPLEPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
@@ -172,6 +183,80 @@ cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/builtins/.buildsuccess
 fi
 
+
+if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
+	glibcfiles=(libm.a libm.so libc.so)
+
+	mkdir -p $CURRENTTRIPLEPATH/build/glibc
+	mkdir -p $SYSROOTPATH/usr
+
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess ]; then
+		cd "$TOOLCHAINS_BUILD/linux"
+		make headers_install ARCH=$ARCH -j$(nproc) INSTALL_HDR_PATH=$SYSROOTPATH/usr
+		if [ $? -ne 0 ]; then
+		echo "linux kernel headers install failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		CC="clang --target=$HOST --sysroot=$SYSROOTPATH" CXX="clang++ --target=$HOST --sysroot=$SYSROOTPATH" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
+		if [ $? -ne 0 ]; then
+			echo "glibc configure failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		make -j$(nproc)		
+		if [ $? -ne 0 ]; then
+			echo "glibc make failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		make install -j$(nproc)	
+		if [ $? -ne 0 ]; then
+			echo "glibc install failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess ]; then
+		canadianreplacedstring=$SYSROOTTRIPLEPATH/usr/lib/
+		for file in "${glibcfiles[@]}"; do
+			filepath=$canadianreplacedstring/$file
+			if [ -f "$filepath" ]; then
+				getfilesize=$(wc -c <"$filepath")
+				echo $getfilesize
+				if [ $getfilesize -lt 1024 ]; then
+					sed -i "s%${canadianreplacedstring}%%g" $filepath
+					echo "removed hardcoded path: $filepath"
+				fi
+			fi
+			unset filepath
+		done
+		unset canadianreplacedstring
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess ]; then
+		llvm-strip --strip-unneeded $SYSROOTPATH/usr/lib/* $SYSROOTPATH/usr/lib/audit/* $SYSROOTPATH/usr/lib/gconv/*
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess
+	fi
+	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.glibcinstallsuccess
+fi
+exit 1
+
 EHBUILDLIBS="libcxx;libcxxabi;libunwind;compiler-rt"
 ENABLE_EH=On
 
@@ -183,7 +268,7 @@ cd $CURRENTTRIPLEPATH/runtimes
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT=$SYSROOTTRIPLEPATH -DCMAKE_INSTALL_PREFIX=${RUNTIMESINSTALLPATH} \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${RUNTIMESINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -257,7 +342,7 @@ mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_INSTALL_PREFIX=$SYSROOTTRIPLEPATH \
+	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -293,7 +378,7 @@ mkdir -p "$CURRENTTRIPLEPATH/libxml2"
 cd $CURRENTTRIPLEPATH/libxml2
 cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_INSTALL_PREFIX=$SYSROOTTRIPLEPATH \
+	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -353,12 +438,12 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
 	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
-	-DZLIB_INCLUDE_DIR=$SYSROOTTRIPLEPATH/include \
+	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/usr/include \
 	-DHAVE_ZLIB=On \
-	-DZLIB_LIBRARY=$SYSROOTTRIPLEPATH/lib/libz.a \
+	-DZLIB_LIBRARY=$SYSROOTPATH/usr/lib/libz.a \
 	-DLLVM_ENABLE_LIBXML2=FORCE_ON \
-	-DLIBXML2_INCLUDE_DIR=$SYSROOTPATH/include/libxml2 \
-	-DLIBXML2_LIBRARY=$SYSROOTPATH/lib/libxml2.a \
+	-DLIBXML2_INCLUDE_DIR=$SYSROOTPATH/usr/include/libxml2 \
+	-DLIBXML2_LIBRARY=$SYSROOTPATH/usr/lib/libxml2.a \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
