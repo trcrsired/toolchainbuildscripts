@@ -235,11 +235,11 @@ if [[ ${USE_GETTEXT} == "yes" ]]; then
 	fi
 fi
 
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
+if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/isl" ]; then
 cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s $TOOLCHAINS_BUILD/gmp gmp
-ln -s $TOOLCHAINS_BUILD/mpfr mpfr
-ln -s $TOOLCHAINS_BUILD/mpc mpc
+#ln -s $TOOLCHAINS_BUILD/gmp gmp
+#ln -s $TOOLCHAINS_BUILD/mpfr mpfr
+#ln -s $TOOLCHAINS_BUILD/mpc mpc
 ln -s $TOOLCHAINS_BUILD/isl isl
 fi
 
