@@ -12,6 +12,7 @@ fi
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
+
 relpath=$(realpath .)
 currentpath=$relpath/.gnuartifacts/$HOST
 mkdir -p $currentpath
@@ -24,9 +25,16 @@ export PATH=$PREFIX/bin:$PATH
 
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
-BINUTILSCONFIGUREFLAGSCOMMON="--disable-gdb"
+BINUTILSCONFIGUREFLAGSCOMMON=""
+if [[ x$HOST == x"x86_64-w64-mingw32" ]]; then
+MINGWW64FLAGS=""
+elif [[ x$HOST== x"aarch64-w64-mingw32" ]]; then
+MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
+elif [[ x$HOST== x"i686-w64-mingw32" ]]; then
+MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64"
+fi
 
-if [[ ${BUILD} == ${HOST} ]]; then
+if [[ x${BUILD} == x${HOST} ]]; then
 	echo "Native compilation not supported"
 	exit 1
 fi
@@ -91,7 +99,7 @@ cd ${currentpath}/build
 mkdir -p mingw-w64-headers
 cd mingw-w64-headers
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-headers
+$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-headers $MINGWW64FLAGS
 fi
 make -j$(nproc)
 make install-strip -j$(nproc)
@@ -103,13 +111,15 @@ cd ${currentpath}/build
 mkdir -p mingw-w64-crt
 cd mingw-w64-crt
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-crt
+$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure --host=$HOST --prefix=${currentpath}/installs/mingw-w64-crt $MINGWW64FLAGS
 fi
 make -j$(nproc) 2>err.txt
 make install-strip -j$(nproc)8 2>err.txt
 cp -r ${currentpath}/installs/mingw-w64-crt/* $PREFIXTARGET/
 cd $PREFIXTARGET/lib
+if [[ x$HOST == x"x86_64-w64-mingw32" ]]; then
 ln -s ../lib32 32
+fi
 fi
 
 cd ${currentpath}/targetbuild/$HOST
