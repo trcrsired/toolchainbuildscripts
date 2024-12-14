@@ -195,7 +195,7 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
 	cd ${CURRENTTRIPLEPATH}
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess ]; then
-		canadianreplacedstring=$SYSROOTTRIPLEPATH/usr/lib/
+		canadianreplacedstring=$SYSROOTPATH/usr/lib/
 		for file in "${glibcfiles[@]}"; do
 			filepath=$canadianreplacedstring/$file
 			if [ -f "$filepath" ]; then
@@ -325,8 +325,8 @@ if [ $? -ne 0 ]; then
 echo "llvm runtimes install/strip failed"
 exit 1
 fi
-mkdir -p ${SYSROOTTRIPLEPATH}/usr
-cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTTRIPLEPATH}/usr/"
+mkdir -p ${SYSROOTPATH}/usr
+cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
 if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
@@ -347,7 +347,7 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_CROSSCOMPILING=On \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
@@ -383,7 +383,7 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_R
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_CROSSCOMPILING=On \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
@@ -428,7 +428,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_SYSTEM_NAME=Linux \
 	-DBUILD_SHARED_LIBS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTTRIPLEPATH} \
+	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DLLVM_ENABLE_LLD=On \
 	-DLLVM_ENABLE_LIBCXX=On \
 	-DLLVM_ENABLE_LTO=thin \
