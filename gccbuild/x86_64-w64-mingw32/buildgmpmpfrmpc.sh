@@ -5,24 +5,26 @@ echo "GMPMPFRMPCPREFIX" $GMPMPFRMPCPREFIX
 echo "GMPMPFRMPCBUILD" $GMPMPFRMPCBUILD
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$HOME/toolchains_build
+	echo "GMP MPFR MPC no $TOOLCHAINS_BUILD defined"
+	exit 1
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$HOME/toolchains
+	echo "GMP MPFR MPC no $TOOLCHAINSPATH defined"
+	exit 1
 fi
 
-if [ -n ${GMPMPFRMPCHOST+x} ]; then
+if [ -z ${GMPMPFRMPCHOST+x} ]; then
 	echo "GMP MPFR MPC no host"
 	exit 1
 fi
 
-if [ -n ${GMPMPFRMPCPREFIX+x} ]; then
+if [ -z ${GMPMPFRMPCPREFIX+x} ]; then
 	echo "GMP MPFR MPC no PREFIX"
 	exit 1
 fi
 
-if [ -n ${GMPMPFRMPCBUILD+x} ]; then
+if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	echo "GMP MPFR MPC no build"
 	exit 1
 fi
