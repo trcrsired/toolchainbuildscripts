@@ -91,7 +91,17 @@ echo "zlib clone failure"
 exit 1
 fi
 fi
-cd "$TOOLCHAINS_BUILD/zlib"
+cd "$TOOLCHAINS_BUILD/libxml2"
+git pull --quiet
+cd "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/libxml2" ]; then
+git clone https://gitlab.gnome.org/GNOME/libxml2.git
+if [ $? -ne 0 ]; then
+echo "libxml2 clone failure"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/libxml2"
 git pull --quiet
 
 cd "$TOOLCHAINS_BUILD"
@@ -302,6 +312,34 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 ninja install/strip
 fi
 
+if [ ! -d "${SYSROOTPATH}/include/libxml2" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/libxml2"
+cd $CURRENTTRIPLEPATH/libxml2
+cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
+	-DCMAKE_INSTALL_PREFIX=${SYSROOTPATH} \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Windows \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_RC_FLAGS="--target=$TARGETTRIPLE -I${SYSROOTPATH}/include" \
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -flto=thin -lc++abi" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin" \
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+	-DCMAKE_C_LINKER_DEPFILE_SUPPORTED=FALSE \
+	-DCMAKE_CXX_LINKER_DEPFILE_SUPPORTED=FALSE \
+	-DCMAKE_ASM_LINKER_DEPFILE_SUPPORTED=FALSE
+ninja install/strip
+fi
+
+
 if [ ! -f "${SYSROOTPATH}/bin/cppwinrt.exe" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/cppwinrt"
 cd $CURRENTTRIPLEPATH/cppwinrt
@@ -356,6 +394,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
 	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libzlibstatic.a \
+	-DLLVM_ENABLE_LIBXML2=FORCE_ON \
+	-DLIBXML2_INCLUDE_DIR=$SYSROOTPATH/include \
+	-DLIBXML2_LIBRARY=$SYSROOTPATH/lib/libxml2static.a \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
