@@ -120,17 +120,7 @@ make -j$(nproc)
 make install-strip -j$(nproc)
 fi
 
-GMPMPFRMPCPREFIX=${currentpath}/installs/gmp-mpfr-mpc
-GMPMPFRMPC_EXTRAHOSTCONFIGURE="--with-gmp=$GMPMPFRMPCPREFIX \
-	--with-gmp-include=$GMPMPFRMPCPREFIX/include \
-	--with-gmp-lib=$GMPMPFRMPCPREFIX/lib \
-	--with-mpfr=$GMPMPFRMPCPREFIX \
-	--with-mpfr-include=$GMPMPFRMPCPREFIX/include \
-	--with-mpfr-lib=$GMPMPFRMPCPREFIX/lib \
-	--with-mpc=$GMPMPFRMPCPREFIX \
-	--with-mpc-include=$GMPMPFRMPCPREFIX/include \
-	--with-mpc-lib=$GMPMPFRMPCPREFIX/lib"
-TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$GMPMPFRMPCPREFIX GMPMPFRMPC_EXTRAHOSTCONFIGURE=$GMPMPFRMPC_EXTRAHOSTCONFIGURE ${relpath}/buildgmpmpfrmpc.sh
+TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ${relpath}/buildgmpmpfrmpc.sh
 if [ $? -ne 0 ]; then
 	exit 1
 fi
@@ -141,7 +131,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $BINUTILSCONFIGUREFLAGSCOMMON $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX $GMPMPFRMPC_EXTRAHOSTCONFIGURE
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $BINUTILSCONFIGUREFLAGSCOMMON $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
@@ -161,7 +151,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON $GMPMPFRMPC_EXTRAHOSTCONFIGURE
+$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 fi
 if [ ! -f ${currentpath}/hostbuild/$HOST/gcc/.buildgcc ]; then
 make all-gcc -j$(nproc)
