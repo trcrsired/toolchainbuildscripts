@@ -333,9 +333,9 @@ if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
 cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
 fi
+fi
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
 mv runtimes_temp runtimes
-fi
 fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
@@ -345,7 +345,7 @@ mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
 cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
+	-DCMAKE_INSTALL_PREFIX=${RUNTIMESINSTALLPATH} \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -363,6 +363,7 @@ if [ $? -ne 0 ]; then
 echo "zlib configure failure"
 exit 1
 fi
+
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibconfigure
 fi
 
@@ -373,6 +374,20 @@ if [ $? -ne 0 ]; then
 echo "zlib install/strip failure"
 exit 1
 fi
+
+mkdir -p ${SYSROOTPATH}/usr
+cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+fi
+fi
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
+mv runtimes_temp runtimes
+fi
+
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
 fi
 
@@ -381,7 +396,7 @@ mkdir -p "$CURRENTTRIPLEPATH/libxml2"
 cd $CURRENTTRIPLEPATH/libxml2
 cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
+	-DCMAKE_INSTALL_PREFIX=$RUNTIMESINSTALLPATH \
 	-DCMAKE_CROSSCOMPILING=On \
 	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
@@ -410,6 +425,18 @@ ninja install/strip
 if [ $? -ne 0 ]; then
 echo "libxml2 install/strip failure"
 exit 1
+fi
+mkdir -p ${SYSROOTPATH}/usr
+cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
+if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
+fi
+fi
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
+mv runtimes_temp runtimes
 fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.libxml2installconfigure
 fi
