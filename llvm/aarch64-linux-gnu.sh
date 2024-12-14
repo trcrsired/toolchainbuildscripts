@@ -144,6 +144,42 @@ if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp
 fi
 
+if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcheadersinstallsuccess ]; then
+	glibcfiles=(libm.a libm.so libc.so)
+
+	mkdir -p $CURRENTTRIPLEPATH/build/glibc
+	mkdir -p $SYSROOTPATH/usr
+
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess ]; then
+		cd "$TOOLCHAINS_BUILD/linux"
+		make headers_install ARCH=$ARCH -j$(nproc) INSTALL_HDR_PATH=$SYSROOTPATH/usr
+		if [ $? -ne 0 ]; then
+		echo "linux kernel headers install failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		CC="clang --target=$HOST --sysroot=$SYSROOTPATH" CXX="clang++ --target=$HOST --sysroot=$SYSROOTPATH" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
+		if [ $? -ne 0 ]; then
+			echo "glibc configure failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess
+	fi
+
+	cd "$CURRENTTRIPLEPATH/build/glibc"
+	make install-bootstrap-headers=yes install-headers -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "glibc configure failed"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.glibcheadersinstallsuccess
+fi
+
 if [ ! -f "$CURRENTTRIPLEPATH/builtins/.buildsuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
@@ -191,26 +227,6 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
 	mkdir -p $CURRENTTRIPLEPATH/build/glibc
 	mkdir -p $SYSROOTPATH/usr
 
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess ]; then
-		cd "$TOOLCHAINS_BUILD/linux"
-		make headers_install ARCH=$ARCH -j$(nproc) INSTALL_HDR_PATH=$SYSROOTPATH/usr
-		if [ $? -ne 0 ]; then
-		echo "linux kernel headers install failure"
-		exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess
-	fi
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
-		cd "$CURRENTTRIPLEPATH/build/glibc"
-		CC="clang --target=$HOST --sysroot=$SYSROOTPATH" CXX="clang++ --target=$HOST --sysroot=$SYSROOTPATH" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
-		if [ $? -ne 0 ]; then
-			echo "glibc configure failed"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess
-	fi
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess ]; then
 		cd "$CURRENTTRIPLEPATH/build/glibc"
