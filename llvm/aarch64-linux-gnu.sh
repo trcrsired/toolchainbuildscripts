@@ -382,6 +382,9 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 	-DCOMPILER_RT_USE_LIBCXX=Off \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -Wno-unused-command-line-argument -lc++abi -lunwind" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt --unwindlib=libunwind -Wno-unused-command-line-argument" \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=$TARGETTRIPLE
 if [ $? -ne 0 ]; then
 echo "compiler-rt cmake failed"
