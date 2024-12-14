@@ -163,7 +163,7 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcheadersinstallsuccess ]; then
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
 		cd "$CURRENTTRIPLEPATH/build/glibc"
-		CC="clang --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH" CXX="clang++ --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
+		CC="clang --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH" CXX="clang++ --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=ld.lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
 		if [ $? -ne 0 ]; then
 			echo "glibc configure failed"
 			exit 1
