@@ -247,6 +247,6 @@ if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
 cd $TOOLCHAINS_BUILD/gcc
 ln -s $TOOLCHAINS_BUILD/gmp gmp
 ln -s $TOOLCHAINS_BUILD/mpfr mpfr
-ln -s $TOOLCHAINS_BUILD/mpc mpc
+#ln -s $TOOLCHAINS_BUILD/mpc mpc
 ln -s $TOOLCHAINS_BUILD/isl isl
 fi
