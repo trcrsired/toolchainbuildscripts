@@ -29,12 +29,22 @@ if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	exit 1
 fi
 
-GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --target=${GMPMPFRMPCHOST} --disable-shared --enable-static --disable-multilib"
+if [ -z ${GMPMPFRMPCHOSTALTERNATIVE+x} ]; then
+GMPMPFRMPCHOSTALTERNATIVE=$(echo $GMPMPFRMPCHOST | sed 's/^[^-]*/none/')
+fi
+
+echo "GMPMPFRMPCHOSTALTERNATIVE" $GMPMPFRMPCHOSTALTERNATIVE
+
+rm -rf ${GMPMPFRMPCBUILD}/gmp
+rm -rf ${GMPMPFRMPCBUILD}/mpfr
+rm -rf ${GMPMPFRMPCBUILD}/mpc
+
+GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --disable-option-checking --prefix=${GMPMPFRMPCPREFIX} --disable-shared --enable-static --disable-multilib --disable-assembly"
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
 cd ${GMPMPFRMPCBUILD}/gmp
-$TOOLCHAINS_BUILD/gmp/configure $GMPMPFRMPCCONFIGURE
+GMP_CC_WORKS=On GMP_CXX_WORKS=On CFLAGS="-O2" CC=$GMPMPFRMPCHOST-gcc CXX=$GMPMPFRMPCHOST-g++ CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ CPP="$GMPMPFRMPCHOST-gcc -E" CXXCPP="$GMPMPFRMPCHOST-g++ -E" DLLTOOL="$GMPMPFRHOST-dlltool" $TOOLCHAINS_BUILD/gmp/configure $GMPMPFRMPCCONFIGURE --host=$GMPMPFRMPCHOSTALTERNATIVE
 if [ $? -ne 0 ]; then
 	echo "GMP configure failed"
 	exit 1
@@ -67,7 +77,7 @@ fi
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.configurempfr ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/mpfr
 cd ${GMPMPFRMPCBUILD}/mpfr
-$TOOLCHAINS_BUILD/mpfr/configure $GMPMPFRMPCCONFIGURE
+CC=$GMPMPFRMPCHOST-gcc CXX=$GMPMPFRMPCHOST-g++ CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ CPP="$GMPMPFRMPCHOST-gcc -E" CXXCPP="$GMPMPFRMPCHOST-g++ -E" DLLTOOL="$GMPMPFRHOST-dlltool" HOST=$GMPMPFRMPCHOSTALTERNATIVE $TOOLCHAINS_BUILD/mpfr/configure $GMPMPFRMPCCONFIGURE --host=$GMPMPFRMPCHOSTALTERNATIVE
 if [ $? -ne 0 ]; then
 	echo "MPFR configure failed"
 	exit 1
@@ -100,7 +110,7 @@ fi
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.configurempc ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/mpc
 cd ${GMPMPFRMPCBUILD}/mpc
-$TOOLCHAINS_BUILD/mpc/configure $GMPMPFRMPCCONFIGURE
+CC=$GMPMPFRMPCHOST-gcc CXX=$GMPMPFRMPCHOST-g++ CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ CPP="$GMPMPFRMPCHOST-gcc -E" CXXCPP="$GMPMPFRMPCHOST-g++ -E" DLLTOOL="$GMPMPFRHOST-dlltool" HOST=$GMPMPFRMPCHOSTALTERNATIVE $TOOLCHAINS_BUILD/mpc/configure $GMPMPFRMPCCONFIGURE --host=$GMPMPFRMPCHOSTALTERNATIVE
 if [ $? -ne 0 ]; then
 	echo "MPC configure failed"
 	exit 1

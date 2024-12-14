@@ -120,7 +120,9 @@ make -j$(nproc)
 make install-strip -j$(nproc)
 fi
 
-TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ${relpath}/buildgmpmpfrmpc.sh
+GMPMPFRMPCPREFIX=${currentpath}/installs/gmp-mpfr-mpc
+GMPMPFRMPC_EXTRAHOSTCONFIGURE="--with-gmp=$GMPMPFRMPCPREFIX --with-mpfr=$GMPMPFRMPCPREFIX --with-mpc=$GMPMPFRMPCPREFIX"
+TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$GMPMPFRMPCPREFIX ${relpath}/buildgmpmpfrmpc.sh
 if [ $? -ne 0 ]; then
 	exit 1
 fi
@@ -131,7 +133,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $BINUTILSCONFIGUREFLAGSCOMMON $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $BINUTILSCONFIGUREFLAGSCOMMON $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX $GMPMPFRMPC_EXTRAHOSTCONFIGURE
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
@@ -151,7 +153,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p gcc
 cd gcc
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+$TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/include/c++/v1 --prefix=$HOSTPREFIX $CANADIANTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON $GMPMPFRMPC_EXTRAHOSTCONFIGURE
 fi
 if [ ! -f .buildgcc ]; then
 make all-gcc -j$(nproc)
