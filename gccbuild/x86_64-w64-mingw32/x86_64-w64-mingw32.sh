@@ -26,15 +26,15 @@ export PATH=$PREFIX/bin:$PATH
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
 BINUTILSCONFIGUREFLAGSCOMMON=""
-if [[ x$HOST == "xx86_64-w64-mingw32" ]]; then
+if [[ $HOST == "x86_64-w64-mingw32" ]]; then
 MINGWW64FLAGS=""
-elif [[ x$HOST== "xaarch64-w64-mingw32" ]]; then
+elif [[ $HOST== "aarch64-w64-mingw32" ]]; then
 MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
-elif [[ x$HOST== "xi686-w64-mingw32" ]]; then
+elif [[ $HOST== "i686-w64-mingw32" ]]; then
 MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64"
 fi
 
-if [[ x${BUILD} == x${HOST} ]]; then
+if [[ ${BUILD} == ${HOST} ]]; then
 	echo "Native compilation not supported"
 	exit 1
 fi
@@ -117,7 +117,7 @@ make -j$(nproc) 2>err.txt
 make install-strip -j$(nproc)8 2>err.txt
 cp -r ${currentpath}/installs/mingw-w64-crt/* $PREFIXTARGET/
 cd $PREFIXTARGET/lib
-if [[ x$HOST == "xx86_64-w64-mingw32" ]]; then
+if [[ $HOST == "x86_64-w64-mingw32" ]]; then
 ln -s ../lib32 32
 fi
 fi
