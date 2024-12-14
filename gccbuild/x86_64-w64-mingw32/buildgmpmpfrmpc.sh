@@ -37,10 +37,6 @@ echo "GMPMPFRMPCHOSTALTERNATIVE" $GMPMPFRMPCHOSTALTERNATIVE
 
 GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --disable-option-checking --prefix=${GMPMPFRMPCPREFIX} --disable-shared --enable-static --disable-multilib --disable-assembly --host=$GMPMPFRMPCHOSTALTERNATIVE"
 
-rm -rf ${GMPMPFRMPCBUILD}/gmp
-rm -rf ${GMPMPFRMPCBUILD}/mpfr
-rm -rf ${GMPMPFRMPCBUILD}/mpc
-
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
 cd ${GMPMPFRMPCBUILD}/gmp
