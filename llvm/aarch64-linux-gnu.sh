@@ -261,7 +261,7 @@ fi
 
 
 
-EHBUILDLIBS="libcxx;libcxxabi;libunwind;compiler-rt"
+EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 ENABLE_EH=On
 
 if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
@@ -339,6 +339,70 @@ mv runtimes_temp runtimes
 fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
+
+
+if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.buildsuccess" ]; then
+
+mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
+cd $CURRENTTRIPLEPATH/compiler-rt
+
+cmake $LLVMPROJECTPATH/compiler-rt \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${COMPILERRTINSTALLPATH} \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Linux \
+	-DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
+	-DLIBCXXABI_SILENT_TERMINATE=On \
+	-DLIBCXX_CXX_ABI=libcxxabi \
+	-DLIBCXX_ENABLE_SHARED=On \
+	-DLIBCXX_ABI_VERSION=1 \
+	-DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
+	-DLIBCXX_ENABLE_EXCEPTIONS=${ENABLE_EH} \
+	-DLIBCXXABI_ENABLE_EXCEPTIONS=${ENABLE_EH} \
+	-DLIBCXX_ENABLE_RTTI=${ENABLE_EH} \
+	-DLIBCXXABI_ENABLE_RTTI=${ENABLE_EH} \
+	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
+	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
+	-DLIBUNWIND_ENABLE_SHARED=On \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-user-defined-literals" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" -DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_USE_COMPILER_RT=On \
+	-DLIBCXXABI_USE_COMPILER_RT=On \
+	-DLIBCXX_USE_LLVM_UNWINDER=On \
+	-DLIBCXXABI_USE_LLVM_UNWINDER=On \
+	-DLIBUNWIND_USE_COMPILER_RT=On \
+	-DLLVM_HOST_TRIPLE=$TARGETTRIPLE \
+	-DLLVM_DEFAULT_TARGET_TRIPLE=$TARGETTRIPLE \
+	-DCMAKE_CROSSCOMPILING=On \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+	-DCOMPILER_RT_USE_LIBCXX=Off \
+	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
+	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=$TARGETTRIPLE
+if [ $? -ne 0 ]; then
+echo "compiler-rt cmake failed"
+exit 1
+fi
+ninja
+if [ $? -ne 0 ]; then
+echo "compiler-rt ninja failed"
+exit 1
+fi
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "compiler-rt ninja install failed"
+exit 1
+fi
+cd ${COMPILERRTINSTALLPATH}/lib
+cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
+fi
+
+
 
 if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibconfigure" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
