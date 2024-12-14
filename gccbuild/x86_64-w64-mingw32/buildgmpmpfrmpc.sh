@@ -29,12 +29,12 @@ if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	exit 1
 fi
 
-
+GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --disable-shared --enable-static"
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
 cd ${GMPMPFRMPCBUILD}/gmp
-$TOOLCHAINS_BUILD/gmp/configure --disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --disable-shared --enable-static
+$TOOLCHAINS_BUILD/gmp/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
 	echo "GMP configure failed"
 	exit 1
@@ -67,7 +67,7 @@ fi
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.configurempfr ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/mpfr
 cd ${GMPMPFRMPCBUILD}/mpfr
-$TOOLCHAINS_BUILD/mpfr/configure --disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --disable-shared --enable-static
+$TOOLCHAINS_BUILD/mpfr/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
 	echo "MPFR configure failed"
 	exit 1
@@ -100,7 +100,7 @@ fi
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.configurempc ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/mpc
 cd ${GMPMPFRMPCBUILD}/mpc
-$TOOLCHAINS_BUILD/mpc/configure --disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --disable-shared --enable-static
+$TOOLCHAINS_BUILD/mpc/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
 	echo "MPC configure failed"
 	exit 1
