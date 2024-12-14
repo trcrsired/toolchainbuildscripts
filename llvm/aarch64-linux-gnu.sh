@@ -153,7 +153,7 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.linuxkernelheadersinstallsuccess ]; then
 		cd "$TOOLCHAINS_BUILD/linux"
-		make headers_install ARCH=$ARCH -j$(nproc) INSTALL_HDR_PATH=$SYSROOTPATH/usr
+		make headers_install ARCH=$TARGETTRIPLE_CPU_ALIAS -j$(nproc) INSTALL_HDR_PATH=$SYSROOTPATH/usr
 		if [ $? -ne 0 ]; then
 		echo "linux kernel headers install failure"
 		exit 1
