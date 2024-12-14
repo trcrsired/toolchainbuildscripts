@@ -89,14 +89,14 @@ elif [[ ${MUSLLIBC} == "yes" ]]; then
 MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
 else
 if [[ ${ARCH} == "x86_64" ]]; then
-MULTILIBLISTS="--with-multilib-list=m64"
+MULTILIBLISTS=
 else
 MULTILIBLISTS=
 fi
 if [[ ${ARCH} == "sparc" ]]; then
 MULTILIBLISTS="--disable-multilib"
 else
-MULTILIBLISTS="--enable-multilib $MULTILIBLISTS"
+MULTILIBLISTS="--disable-multilib $MULTILIBLISTS"
 fi
 fi
 
