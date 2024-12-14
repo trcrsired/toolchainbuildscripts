@@ -153,7 +153,7 @@ make all-gcc -j$(nproc)
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/hostbuild/$HOST/gcc/include/limits.h
 make -j$(nproc)
 make install-strip -j$(nproc)
-echo "$(data --iso-8601=seconds)" > ${currentpath}/hostbuild/$HOST/gcc/.buildgcc
+echo "$(date --iso-8601=seconds)" > ${currentpath}/hostbuild/$HOST/gcc/.buildgcc
 fi
 
 if [ ! -f $HOSTPREFIXTARGET/include/stdio.h ]; then
