@@ -121,6 +121,9 @@ make install-strip -j$(nproc)
 fi
 
 TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ${relpath}/buildgmpmpfrmpc.sh
+if [ $? -ne 0 ]; then
+	exit 1
+fi
 
 mkdir -p ${currentpath}/hostbuild
 mkdir -p ${currentpath}/hostbuild/$HOST
