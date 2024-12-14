@@ -121,7 +121,15 @@ make install-strip -j$(nproc)
 fi
 
 GMPMPFRMPCPREFIX=${currentpath}/installs/gmp-mpfr-mpc
-GMPMPFRMPC_EXTRAHOSTCONFIGURE="--with-gmp=$GMPMPFRMPCPREFIX --with-mpfr=$GMPMPFRMPCPREFIX --with-mpc=$GMPMPFRMPCPREFIX"
+GMPMPFRMPC_EXTRAHOSTCONFIGURE="--with-gmp=$GMPMPFRMPCPREFIX \
+	--with-gmp-include=$GMPMPFRMPCPREFIX/include \
+	--with-gmp-lib=$GMPMPFRMPCPREFIX/lib \
+	--with-mpfr=$GMPMPFRMPCPREFIX \
+	--with-mpfr-include=$GMPMPFRMPCPREFIX/include \
+	--with-mpfr-lib=$GMPMPFRMPCPREFIX/lib \
+	--with-mpc=$GMPMPFRMPCPREFIX \
+	--with-mpc-include=$GMPMPFRMPCPREFIX/include \
+	--with-mpc-lib=$GMPMPFRMPCPREFIX/lib"
 TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$GMPMPFRMPCPREFIX GMPMPFRMPC_EXTRAHOSTCONFIGURE=$GMPMPFRMPC_EXTRAHOSTCONFIGURE ${relpath}/buildgmpmpfrmpc.sh
 if [ $? -ne 0 ]; then
 	exit 1
