@@ -163,7 +163,7 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
 		cd "$CURRENTTRIPLEPATH/build/glibc"
-		(export -n LD_LIBRARY_PATH; CC="$TARGETTRIPLE-gcc" CXX="$TARGETTRIPLE-gcc" $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr)
+		(export -n LD_LIBRARY_PATH; CC="$TARGETTRIPLE-gcc" CXX="$TARGETTRIPLE-gcc" $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$TARGETTRIPLE --host=$TARGETTRIPLE --prefix=$SYSROOTPATH/usr)
 		if [ $? -ne 0 ]; then
 			echo "glibc configure failed"
 			exit 1
