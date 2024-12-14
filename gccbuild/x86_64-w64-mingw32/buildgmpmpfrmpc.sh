@@ -43,7 +43,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/gmp/.configuregmp
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.buildgmp ]; then
-cd ${GMPMPFRMPCPREFIX}/gmp
+cd ${GMPMPFRMPCBUILD}/gmp
 make -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "GMP build"
@@ -53,7 +53,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/gmp/.buildgmp
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.installgmp ]; then
-cd ${GMPMPFRMPCPREFIX}/gmp
+cd ${GMPMPFRMPCBUILD}/gmp
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "GMP install/strip"
@@ -76,7 +76,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpfr/.configurempfr
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.buildmpfr ]; then
-cd ${GMPMPFRMPCPREFIX}/mpfr
+cd ${GMPMPFRMPCBUILD}/mpfr
 make -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "MPFR build"
@@ -86,7 +86,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpfr/.buildmpfr
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.installmpfr ]; then
-cd ${GMPMPFRMPCPREFIX}/mpfr
+cd ${GMPMPFRMPCBUILD}/mpfr
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "MPFR install/strip"
@@ -109,7 +109,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.configurempc
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.buildmpc ]; then
-cd ${GMPMPFRMPCPREFIX}/mpc
+cd ${GMPMPFRMPCBUILD}/mpc
 make -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "MPC build"
@@ -119,7 +119,7 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.buildmpc
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.installmpc ]; then
-cd ${GMPMPFRMPCPREFIX}/mpc
+cd ${GMPMPFRMPCBUILD}/mpc
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 	echo "MPC install/strip"
