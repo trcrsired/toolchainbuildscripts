@@ -131,7 +131,15 @@ fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "host binutils-gdb build failure"
+exit 1
+fi
 make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "host binutils-gdb install-strip failure"
+exit
+fi
 fi
 cd ${currentpath}/hostbuild/$HOST
 
