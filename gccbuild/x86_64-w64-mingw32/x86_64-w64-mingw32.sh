@@ -24,6 +24,7 @@ export PATH=$PREFIX/bin:$PATH
 
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
+BINUTILSCONFIGUREFLAGSCOMMON="--disable-readline" 
 
 if [[ ${BUILD} == ${HOST} ]]; then
 	echo "Native compilation not supported"
@@ -62,7 +63,7 @@ cd ${currentpath}/targetbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $BINUTILSCONFIGUREFLAGSCOMMON $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 fi
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
 make -j$(nproc)
@@ -125,7 +126,7 @@ cd ${currentpath}/hostbuild/$HOST
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $BINUTILSCONFIGUREFLAGSCOMMON $CANADIANTRIPLETTRIPLETS --prefix=$HOSTPREFIX
 fi
 
 if [ ! -d $HOSTPREFIX/lib/bfd-plugins ]; then
