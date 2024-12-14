@@ -313,7 +313,7 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_C
 ninja install/strip
 fi
 
-if [ ! -d "${SYSROOTPATH}/include/libxml2" ]; then
+if [ ! -f $CURRENTTRIPLEPATH/libxml2/.installsuccess ]; then
 mkdir -p "$CURRENTTRIPLEPATH/libxml2"
 cd $CURRENTTRIPLEPATH/libxml2
 cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
@@ -337,7 +337,16 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/libxml2 -DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_R
 	-DCMAKE_C_LINKER_DEPFILE_SUPPORTED=FALSE \
 	-DCMAKE_CXX_LINKER_DEPFILE_SUPPORTED=FALSE \
 	-DCMAKE_ASM_LINKER_DEPFILE_SUPPORTED=FALSE
+if [ $? -ne 0 ]; then
+echo "cmake failed"
+exit 1
+fi
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "ninja install/strip failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.installsuccess
 fi
 
 
