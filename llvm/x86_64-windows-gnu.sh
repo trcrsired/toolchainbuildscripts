@@ -91,8 +91,9 @@ echo "zlib clone failure"
 exit 1
 fi
 fi
-cd "$TOOLCHAINS_BUILD/libxml2"
+cd "$TOOLCHAINS_BUILD/zlib"
 git pull --quiet
+
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/libxml2" ]; then
 git clone https://gitlab.gnome.org/GNOME/libxml2.git
