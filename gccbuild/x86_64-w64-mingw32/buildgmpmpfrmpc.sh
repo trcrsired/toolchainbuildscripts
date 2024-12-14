@@ -29,12 +29,12 @@ if [ -z ${GMPMPFRMPCBUILD+x} ]; then
 	exit 1
 fi
 
-GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --target=${GMPMPFRMPCHOST} --disable-shared --enable-static"
+GMPMPFRMPCCONFIGURE="--disable-nls --disable-werror --prefix=${GMPMPFRMPCPREFIX} --host=${GMPMPFRMPCHOST} --target=${GMPMPFRMPCHOST} --disable-shared --enable-static --disable-multilib"
 
 if [ ! -f ${GMPMPFRMPCBUILD}/gmp/.configuregmp ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/gmp
 cd ${GMPMPFRMPCBUILD}/gmp
-CC=${GMPMPFRMPCHOST}-gcc CXX=${GMPMPFRMPCHOST}-g++ STRIP=${GMPMPFRMPCHOST}-strip $TOOLCHAINS_BUILD/gmp/configure $GMPMPFRMPCCONFIGURE
+$TOOLCHAINS_BUILD/gmp/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
 	echo "GMP configure failed"
 	exit 1
@@ -67,7 +67,7 @@ fi
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.configurempfr ]; then
 mkdir -p ${GMPMPFRMPCBUILD}/mpfr
 cd ${GMPMPFRMPCBUILD}/mpfr
-CC=${GMPMPFRMPCHOST}-gcc CXX=${GMPMPFRMPCHOST}-g++ STRIP=${GMPMPFRMPCHOST}-strip $TOOLCHAINS_BUILD/mpfr/configure $GMPMPFRMPCCONFIGURE
+$TOOLCHAINS_BUILD/mpfr/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
 	echo "MPFR configure failed"
 	exit 1
@@ -98,7 +98,7 @@ fi
 
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.configurempc ]; then
-CC=${GMPMPFRMPCHOST}-gcc CXX=${GMPMPFRMPCHOST}-g++ STRIP=${GMPMPFRMPCHOST}-strip mkdir -p ${GMPMPFRMPCBUILD}/mpc
+mkdir -p ${GMPMPFRMPCBUILD}/mpc
 cd ${GMPMPFRMPCBUILD}/mpc
 $TOOLCHAINS_BUILD/mpc/configure $GMPMPFRMPCCONFIGURE
 if [ $? -ne 0 ]; then
