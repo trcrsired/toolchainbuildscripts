@@ -138,7 +138,7 @@ fi
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "host binutils-gdb install-strip failure"
-exit
+exit 1
 fi
 fi
 cd ${currentpath}/hostbuild/$HOST
@@ -150,9 +150,21 @@ $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$HOSTPREFIXTARGET/
 fi
 if [ ! -f .buildgcc ]; then
 make all-gcc -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "make all-gcc failed"
+exit 1
+fi
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/hostbuild/$HOST/gcc/include/limits.h
 make -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "make gcc failed"
+exit 1
+fi
 make install-strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "make install failed"
+exit 1
+fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/hostbuild/$HOST/gcc/.buildgcc
 fi
 
