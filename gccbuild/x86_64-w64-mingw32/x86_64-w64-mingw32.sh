@@ -26,11 +26,11 @@ export PATH=$PREFIX/bin:$PATH
 HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
 BINUTILSCONFIGUREFLAGSCOMMON=""
-if [[ x$HOST == x"x86_64-w64-mingw32" ]]; then
+if [[ x$HOST == "xx86_64-w64-mingw32" ]]; then
 MINGWW64FLAGS=""
-elif [[ x$HOST== x"aarch64-w64-mingw32" ]]; then
+elif [[ x$HOST== "xaarch64-w64-mingw32" ]]; then
 MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
-elif [[ x$HOST== x"i686-w64-mingw32" ]]; then
+elif [[ x$HOST== "xi686-w64-mingw32" ]]; then
 MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64"
 fi
 
@@ -117,7 +117,7 @@ make -j$(nproc) 2>err.txt
 make install-strip -j$(nproc)8 2>err.txt
 cp -r ${currentpath}/installs/mingw-w64-crt/* $PREFIXTARGET/
 cd $PREFIXTARGET/lib
-if [[ x$HOST == x"x86_64-w64-mingw32" ]]; then
+if [[ x$HOST == "xx86_64-w64-mingw32" ]]; then
 ln -s ../lib32 32
 fi
 fi
