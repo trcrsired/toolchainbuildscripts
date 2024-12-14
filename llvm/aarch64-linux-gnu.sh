@@ -5,7 +5,7 @@ ARCH=aarch64
 fi
 TARGETTRIPLE_CPU=${ARCH}
 if [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
-TARGETTRIPLE_CPU_ALIAS=aarch64
+TARGETTRIPLE_CPU_ALIAS=arm64
 else
 TARGETTRIPLE_CPU_ALIAS=${TARGETTRIPLE_CPU}
 fi
@@ -230,7 +230,7 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++" \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	-DLLVM_ENABLE_LTO=thin \
