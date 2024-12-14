@@ -31,7 +31,7 @@ MINGWW64FLAGS=""
 elif [[ $HOST== "aarch64-w64-mingw32" ]]; then
 MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
 elif [[ $HOST== "i686-w64-mingw32" ]]; then
-MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64"
+MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64 --with-default-msvcrt=msvcrt"
 fi
 
 if [[ ${BUILD} == ${HOST} ]]; then
