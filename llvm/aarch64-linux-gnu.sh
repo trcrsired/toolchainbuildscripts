@@ -144,7 +144,7 @@ if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp
 fi
 
-if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcheadersinstallsuccess ]; then
+if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
 	glibcfiles=(libm.a libm.so libc.so)
 
 	mkdir -p $CURRENTTRIPLEPATH/build/glibc
@@ -163,7 +163,7 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcheadersinstallsuccess ]; then
 
 	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess ]; then
 		cd "$CURRENTTRIPLEPATH/build/glibc"
-		CC="clang --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH -fuse-ld=lld" CXX="clang++ --target=$TARGETTRIPLE --sysroot=$SYSROOTPATH -fuse-ld=lld" AS=llvm-as RANLIB=llvm-ranlib STRIP=llvm-strip NM=llvm-nm LD=ld.lld AR=llvm-ar CXXFILT=llvm-cxxfilt $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr
+		(export -n LD_LIBRARY_PATH; CC="$TARGETTRIPLE-gcc" CXX="$TARGETTRIPLE-gcc" $HOME/toolchains_build/glibc/configure --disable-nls --disable-werror --build=$HOST --host=$HOST --prefix=$SYSROOTPATH/usr)
 		if [ $? -ne 0 ]; then
 			echo "glibc configure failed"
 			exit 1
@@ -171,13 +171,52 @@ if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcheadersinstallsuccess ]; then
 		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.configuresuccess
 	fi
 
-	cd "$CURRENTTRIPLEPATH/build/glibc"
-	make install-bootstrap-headers=yes install-headers -j$(nproc)
-	if [ $? -ne 0 ]; then
-		echo "glibc configure failed"
-		exit 1
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		(export -n LD_LIBRARY_PATH; make -j$(nproc))		
+		if [ $? -ne 0 ]; then
+			echo "glibc make failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess
 	fi
-	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.glibcheadersinstallsuccess
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess ]; then
+		cd "$CURRENTTRIPLEPATH/build/glibc"
+		(export -n LD_LIBRARY_PATH; make install -j$(nproc))	
+		if [ $? -ne 0 ]; then
+			echo "glibc install failed"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess
+	fi
+
+
+	cd ${CURRENTTRIPLEPATH}
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess ]; then
+		canadianreplacedstring=$SYSROOTTRIPLEPATH/usr/lib/
+		for file in "${glibcfiles[@]}"; do
+			filepath=$canadianreplacedstring/$file
+			if [ -f "$filepath" ]; then
+				getfilesize=$(wc -c <"$filepath")
+				echo $getfilesize
+				if [ $getfilesize -lt 1024 ]; then
+					sed -i "s%${canadianreplacedstring}%%g" $filepath
+					echo "removed hardcoded path: $filepath"
+				fi
+			fi
+			unset filepath
+		done
+		unset canadianreplacedstring
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess
+	fi
+
+	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess ]; then
+		$TARGETTRIPLE-strip --strip-unneeded $SYSROOTPATH/usr/bin/* $SYSROOTPATH/usr/lib/* $SYSROOTPATH/usr/lib/audit/* $SYSROOTPATH/usr/lib/gconv/*
+		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess
+	fi
+	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.glibcinstallsuccess
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/builtins/.buildsuccess" ]; then
@@ -190,8 +229,8 @@ cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCOMPILER_RT_BAREMTAL_BUILD=On \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++" \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	-DLLVM_ENABLE_LTO=thin \
@@ -221,58 +260,6 @@ echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/builtins/.buildsuccess
 fi
 
 
-if [ ! -f $CURRENTTRIPLEPATH/build/glibc/.glibcinstallsuccess ]; then
-	glibcfiles=(libm.a libm.so libc.so)
-
-	mkdir -p $CURRENTTRIPLEPATH/build/glibc
-	mkdir -p $SYSROOTPATH/usr
-
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess ]; then
-		cd "$CURRENTTRIPLEPATH/build/glibc"
-		make -j$(nproc)		
-		if [ $? -ne 0 ]; then
-			echo "glibc make failed"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.makesuccess
-	fi
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess ]; then
-		cd "$CURRENTTRIPLEPATH/build/glibc"
-		make install -j$(nproc)	
-		if [ $? -ne 0 ]; then
-			echo "glibc install failed"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.installsuccess
-	fi
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess ]; then
-		canadianreplacedstring=$SYSROOTTRIPLEPATH/usr/lib/
-		for file in "${glibcfiles[@]}"; do
-			filepath=$canadianreplacedstring/$file
-			if [ -f "$filepath" ]; then
-				getfilesize=$(wc -c <"$filepath")
-				echo $getfilesize
-				if [ $getfilesize -lt 1024 ]; then
-					sed -i "s%${canadianreplacedstring}%%g" $filepath
-					echo "removed hardcoded path: $filepath"
-				fi
-			fi
-			unset filepath
-		done
-		unset canadianreplacedstring
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.removehardcodedpathsuccess
-	fi
-
-	if [ ! -f ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess ]; then
-		llvm-strip --strip-unneeded $SYSROOTPATH/usr/lib/* $SYSROOTPATH/usr/lib/audit/* $SYSROOTPATH/usr/lib/gconv/*
-		echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.stripsuccess
-	fi
-	echo "$(date --iso-8601=seconds)" > ${CURRENTTRIPLEPATH}/build/glibc/.glibcinstallsuccess
-fi
-exit 1
 
 EHBUILDLIBS="libcxx;libcxxabi;libunwind;compiler-rt"
 ENABLE_EH=On
