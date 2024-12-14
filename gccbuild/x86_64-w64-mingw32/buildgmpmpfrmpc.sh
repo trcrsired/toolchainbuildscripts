@@ -112,7 +112,7 @@ if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.buildmpc ]; then
 cd ${GMPMPFRMPCBUILD}/mpc
 make -j$(nproc)
 if [ $? -ne 0 ]; then
-	echo "MPC build"
+	echo "MPC build failed"
 	exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.buildmpc
@@ -122,7 +122,7 @@ if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.installmpc ]; then
 cd ${GMPMPFRMPCBUILD}/mpc
 make install-strip -j$(nproc)
 if [ $? -ne 0 ]; then
-	echo "MPC install/strip"
+	echo "MPC install/strip failed"
 	exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.installmpc
