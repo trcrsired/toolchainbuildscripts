@@ -12,17 +12,17 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
-if [ !-z ${GMPMPFRMPCHOST+x} ]; then
+if [ -n ${GMPMPFRMPCHOST+x} ]; then
 	echo "GMP MPFR MPC no host"
 	exit 1
 fi
 
-if [ !-z ${GMPMPFRMPCPREFIX+x} ]; then
+if [ -n ${GMPMPFRMPCPREFIX+x} ]; then
 	echo "GMP MPFR MPC no PREFIX"
 	exit 1
 fi
 
-if [ !-z ${GMPMPFRMPCBUILD+x} ]; then
+if [ -n ${GMPMPFRMPCBUILD+x} ]; then
 	echo "GMP MPFR MPC no build"
 	exit 1
 fi
