@@ -194,38 +194,34 @@ if [ "$SETLLVMENV" == "yes" ]; then
     }
 
     {
-        echo ""
-        echo "# LLVM environment variables"
         if [ -n "$ARCH" ]; then
             if [[ "$TRIPLE" == *"android"* ]]; then
-                WINEPATH_LINE1="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
-                WINEPATH_LINE2="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib"
-                WINEPATH_LINE3="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/llvm/bin"
+                WINEPATH_LINE1="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
+                WINEPATH_LINE2="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
+                WINEPATH_LINE3="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
             else
-                WINEPATH_LINE1="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
-                WINEPATH_LINE2="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib"
-                WINEPATH_LINE3="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin"
+                WINEPATH_LINE1="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
+                WINEPATH_LINE2="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
+                WINEPATH_LINE3="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
             ! line_exists_in_bashrc "$WINEPATH_LINE2" && echo "$WINEPATH_LINE2"
             ! line_exists_in_bashrc "$WINEPATH_LINE3" && echo "$WINEPATH_LINE3"
-        else
-            echo "ARCH is not set or does not exist. Skipping WINEPATH setup."
         fi
         if [ -n "$TRIPLE" ]; then
-            PATH_LINE="export PATH=\$PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/bin"
-            LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/lib"
+            PATH_LINE="export PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/bin:\$PATH"
+            LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$PATH_LINE" && echo "$PATH_LINE"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE1" && echo "$LD_LIBRARY_PATH_LINE1"
             if [[ "$TRIPLE" == *"gnu" ]]; then
-                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/linux"
-                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/runtimes/lib"
+                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
             elif [[ "$TRIPLE" == *"android"* ]]; then
                 TRIPLEUNKNOWN="${parts[2]}"
-                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN"
-                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/$TRIPLE/lib"
+                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/$TRIPLE/lib:\$LD_LIBRARY_PATH"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE4" && echo "$LD_LIBRARY_PATH_LINE4"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE5" && echo "$LD_LIBRARY_PATH_LINE5"
             fi
@@ -238,9 +234,9 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 elif [ "$ARCH_VARIANT" == "x86_64" ]; then
                     NDK_ARCH="x86_64"
                 fi
-                WINE_PATH_LINE="export PATH=\$PATH:$SOFTWAREPATH/wine/$TRIPLE/wine/$NDK_ARCH/bin"
+                WINE_PATH_LINE="export PATH=$SOFTWAREPATH/wine/$TRIPLE/wine/$NDK_ARCH/bin:\$PATH"
             else
-                WINE_PATH_LINE="export PATH=\$PATH:$SOFTWAREPATH/wine/$TRIPLE/wine/bin"
+                WINE_PATH_LINE="export PATH=$SOFTWAREPATH/wine/$TRIPLE/wine/bin:\$PATH"
             fi
             ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
         fi
