@@ -15,7 +15,7 @@ fi
 mkdir -p $TOOLCHAINSPATH
 TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
 mkdir -p $TOOLCHAINS_LLVMPATH
-TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/sysroots/wasm-sysroots"
+TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/wasm-sysroots"
 
 mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 
@@ -47,7 +47,7 @@ if [[ $1 == "restart" ]]; then
 fi
 
 if [ -z ${LLVMPROJECTPATH+x} ]; then
-LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project-wasmlibunwindfix
+LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
 
 if [ -z ${WASILIBCPATH+x} ]; then
@@ -61,7 +61,7 @@ cd $LLVMPROJECTPATH
 git pull --quiet
 
 if [ ! -d ${WASILIBCPATH} ]; then
-git clone -b mt-2 git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
+git clone -b mt-2-msvc git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
 fi
 cd $WASILIBCPATH
 git pull --quiet
@@ -261,7 +261,7 @@ createsysroot wasm-noeh-sysroot Off Off
 createsysroot wasm-noeh-memtag-sysroot Off On
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
-	cd $TOOLCHAINS_LLVMPATH/sysroots
+	cd $TOOLCHAINS_LLVMPATH
 	XZ_OPT=-e9T0 tar cJf wasm-sysroots.tar.xz wasm-sysroots
 	chmod 755 wasm-sysroots.tar.xz
 fi
