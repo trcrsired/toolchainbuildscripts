@@ -110,6 +110,8 @@ download_file() {
 
 if [ "x$NODOWNLOADLLVM" != "xyes" ]; then
 
+rm $TOOLCHAINSPATH_LLVM/*.tar.xz
+
 for file in "${FILES[@]}"; do
     echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
     download_file "$BASE_URL/$file" "$TOOLCHAINSPATH_LLVM/$file"
