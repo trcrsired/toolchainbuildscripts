@@ -85,8 +85,7 @@ done
 
 # Check if any command is missing and decide whether to continue
 if [ "$missing_commands" = true ]; then
-    echo "Some commands are not installed. Please install all required commands before proceeding."
-    exit 1  # Exit with status code 1 indicating failure
+    echo "Some commands not installed?"
 fi
 
 BUILD=$(${CC_FOR_BUILD} -dumpmachine)
