@@ -246,9 +246,9 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 elif [ "$ARCH_VARIANT" == "x86_64" ]; then
                     NDK_ARCH="x86_64"
                 fi
-                WINE_PATH_LINE="export PATH=$SOFTWAREPATH/wine/$TRIPLE/wine/$NDK_ARCH/bin:\$PATH"
+                WINE_PATH_LINE="export PATH=\$SOFTWAREPATH/wine/$TRIPLE/wine/$NDK_ARCH/bin:\$PATH"
             else
-                WINE_PATH_LINE="export PATH=$SOFTWAREPATH/wine/$TRIPLE/wine/bin:\$PATH"
+                WINE_PATH_LINE="export PATH=\$SOFTWAREPATH/wine/$TRIPLE/wine/bin:\$PATH"
             fi
             ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
         fi
