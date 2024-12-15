@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# Check if the argument is provided
-if [ -z "$1" ]; then
-    echo "Usage: $0 <release_version>"
-    exit 1
-fi
-
-# Release version passed as argument
-RELEASE_VERSION="$1"
-
 # Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
 if [ -z ${TOOLCHAINSPATH+x} ]; then
     TOOLCHAINSPATH="$HOME/toolchains"
@@ -24,6 +15,16 @@ fi
 
 # Create necessary directories
 mkdir -p "$TOOLCHAINSPATH_LLVM"
+
+# Get the latest release version if not set
+if [ -z ${RELEASE_VERSION+x} ]; then
+    if command -v git > /dev/null; then
+        RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk -F'/' '{print $3}' | sort -V | tail -n1)
+    else
+        echo "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+        exit 1
+    fi
+fi
 
 # Set the base URL for downloads
 BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
@@ -42,12 +43,33 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
 else
     # Determine TRIPLE if not set
     if [ -z ${TRIPLE+x} ]; then
+        # Try to get TRIPLE from clang or gcc
         if command -v clang > /dev/null; then
             TRIPLE=$(clang -dumpmachine)
         elif command -v gcc > /dev/null; then
             TRIPLE=$(gcc -dumpmachine)
         else
-            echo "Neither clang nor gcc is installed. Please install one of them or set the TRIPLE environment variable."
+            # Fall back to uname -a
+            UNAME=$(uname -a)
+            if [[ "$UNAME" == *"Linux"* ]]; then
+                if [ -n "${ANDROID_ROOT+x}" ]; then
+                    if [[ "$UNAME" == *"aarch64"* ]]; then
+                        TRIPLE="aarch64-linux-android30"
+                    elif [[ "$UNAME" == *"x86_64"* ]]; then
+                        TRIPLE="x86_64-linux-android30"
+                    fi
+                else
+                    if [[ "$UNAME" == *"x86_64"* ]]; then
+                        TRIPLE="x86_64-linux-gnu"
+                    elif [[ "$UNAME" == *"aarch64"* ]]; then
+                        TRIPLE="aarch64-linux-gnu"
+                    fi
+                fi
+            fi
+        fi
+
+        if [ -z "$TRIPLE" ]; then
+            echo "Could not determine TRIPLE. Please set the TRIPLE environment variable."
             exit 1
         fi
     fi
@@ -93,3 +115,101 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 # Run the script to extract and copy files
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
 ./llvmbuiltins.sh
+
+# Add environment variables to .bashrc if SETLLVMENV is set to yes
+if [ "$SETLLVMENV" == "yes" ]; then
+    # Set WINEDEBUG if not set
+    if ! grep -q "export WINEDEBUG=" ~/.bashrc; then
+        echo "export WINEDEBUG=-all" >> ~/.bashrc
+    fi
+
+    # Ensure SOFTWAREPATH is set
+    if [ -z ${SOFTWAREPATH+x} ]; then
+        SOFTWAREPATH="$HOME/softwares"
+    fi
+
+    # Create necessary directories
+    mkdir -p "$SOFTWAREPATH/wine"
+
+    # Get the latest Wine release version
+    if command -v git > /dev/null; then
+        WINE_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wine-release.git | awk -F'/' '{print $3}' | sort -V | tail -n1)
+    else
+        echo "Git is not installed. Please install it to proceed."
+        exit 1
+    fi
+
+    # Download and extract the Wine release
+    WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
+    echo "Downloading $TRIPLE Wine release to $SOFTWAREPATH/wine"
+    download_file "$WINE_URL" "$SOFTWAREPATH/wine/$TRIPLE.tar.xz"
+    echo "Extracting $TRIPLE Wine release to $SOFTWAREPATH/wine"
+    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
+
+    # If TRIPLE is Android, move toolchains to Wine's virtual C drive and create a symlink
+    if [[ "$TRIPLE" == *"android"* ]]; then
+        mkdir -p "$HOME/.wine/drive_c"
+        mv "$HOME/toolchains" "$HOME/.wine/drive_c/toolchains"
+        ln -s "$HOME/.wine/drive_c/toolchains" "$HOME/toolchains"
+    fi
+
+    # Function to check if a line exists in .bashrc
+    line_exists_in_bashrc() {
+        grep -Fxq "$1" ~/.bashrc
+    }
+
+    {
+        echo ""
+        echo "# LLVM environment variables"
+        if [ -n "$ARCH" ]; then
+            if [[ "$TRIPLE" == *"android"* ]]; then
+                WINEPATH_LINE1="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
+                WINEPATH_LINE2="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib"
+                WINEPATH_LINE3="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/llvm/bin"
+            else
+                WINEPATH_LINE1="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
+                WINEPATH_LINE2="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib"
+                WINEPATH_LINE3="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin"
+            fi
+            ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
+            ! line_exists_in_bashrc "$WINEPATH_LINE2" && echo "$WINEPATH_LINE2"
+            ! line_exists_in_bashrc "$WINEPATH_LINE3" && echo "$WINEPATH_LINE3"
+        else
+            echo "ARCH is not set or does not exist. Skipping WINEPATH setup."
+        fi
+        if [ -n "$TRIPLE" ]; then
+            PATH_LINE="export PATH=\$PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/bin"
+            LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/lib"
+            ! line_exists_in_bashrc "$PATH_LINE" && echo "$PATH_LINE"
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE1" && echo "$LD_LIBRARY_PATH_LINE1"
+            if [[ "$TRIPLE" == *"gnu" ]]; then
+                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/linux"
+                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/runtimes/lib"
+                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
+                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
+            elif [[ "$TRIPLE" == *"android"* ]]; then
+                TRIPLEUNKNOWN="${parts[2]}"
+                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN"
+                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$TOOLCHAINSPATH_LLVM/$TRIPLE/$TRIPLE/lib"
+                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE4" && echo "$LD_LIBRARY_PATH_LINE4"
+                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE5" && echo "$LD_LIBRARY_PATH_LINE5"
+            fi
+
+            # Add Wine paths
+            if [[ "$TRIPLE" == *"android"* ]]; then
+                ARCH_VARIANT=$(uname -m)
+                if [ "$ARCH_VARIANT" == "aarch64" ]; then
+                    NDK_ARCH="arm64-v8a"
+                elif [ "$ARCH_VARIANT" == "x86_64" ]; then
+                    NDK_ARCH="x86_64"
+                fi
+                WINE_PATH_LINE="export PATH=\$PATH:$SOFTWAREPATH/wine/$TRIPLE/wine/$NDK_ARCH/bin"
+            else
+                WINE_PATH_LINE="export PATH=\$PATH:$SOFTWAREPATH/wine/$TRIPLE/wine/bin"
+            fi
+            ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
+        fi
+    } >> ~/.bashrc
+
+    echo "Environment variables added to ~/.bashrc"
+fi
