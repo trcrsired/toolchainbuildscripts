@@ -207,9 +207,9 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 WINEPATH_LINE1="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
                 WINEPATH_LINE2="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
                 WINEPATH_LINE3="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
-                WINEPATH_LINE4="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"$TOOLCHAINSPATH/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
                 if [[ "$ARCH" == "x86_64" ]]; then
-                WINEPATH_LINE5="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE5="export WINEPATH=\"$TOOLCHAINSPATH/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
                 fi
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
