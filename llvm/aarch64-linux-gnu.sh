@@ -38,6 +38,20 @@ mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
 mkdir -p $TOOLCHAINS_BUILD
 mkdir -p $TOOLCHAINSPATH
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm
+
+clang_path=$(command -v clang)
+
+if [[ -z $clang_path ]]; then
+    echo "clang not exists"
+    exit 1
+fi
+
+if [ -z ${NO_TOOLCHAIN_DELETION+x} ]; then
+if [[ $clang_path == "${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm/bin/clang" ]]; then
+NO_TOOLCHAIN_DELETION="yes"
+fi
+fi
+
 if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
 LLVMINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp
 fi
@@ -119,14 +133,6 @@ fi
 cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
 
-
-if ! command -v "clang" &> /dev/null
-then
-    echo "clang not exists"
-    exit 1
-fi
-
-clang_path=`which clang`
 clang_directory=$(dirname "$clang_path")
 clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
 clang_major_version="${clang_version%%.*}"
