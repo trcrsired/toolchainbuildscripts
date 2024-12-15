@@ -17,7 +17,7 @@ fi
 mkdir -p "$TOOLCHAINSPATH_LLVM"
 
 # Extract and clean up tar.xz files
-for tar_file in "$TOOLCHAINSPATH"/*.tar.xz; do
+for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
     # Skip if no tar.xz files found
     [ -e "$tar_file" ] || continue
 
