@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${ARCH+x} ]; then
-	ARCH=loongarch64
+	ARCH=riscv64
 fi
 if [ -z ${TARGETTRIPLE+x} ]; then
 	TARGETTRIPLE=$ARCH-linux-gnu
