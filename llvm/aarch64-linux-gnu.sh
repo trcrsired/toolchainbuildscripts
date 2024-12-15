@@ -327,19 +327,8 @@ exit 1
 fi
 mkdir -p ${SYSROOTPATH}/usr
 cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
-if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
-if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
-rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
-fi
-fi
-if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
-mv runtimes_temp runtimes
-fi
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
-
 
 if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.buildsuccess" ]; then
 
@@ -406,7 +395,6 @@ echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
 fi
 
 
-
 if [ ! -f "$CURRENTTRIPLEPATH/zlib/.zlibconfigure" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
@@ -444,17 +432,6 @@ fi
 
 mkdir -p ${SYSROOTPATH}/usr
 cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
-if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
-if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
-rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
-fi
-fi
-if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
-mv runtimes_temp runtimes
-fi
-
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/zlib/.zlibinstallconfigure
 fi
 
@@ -495,17 +472,17 @@ exit 1
 fi
 mkdir -p ${SYSROOTPATH}/usr
 cp -r --preserve=links "${RUNTIMESINSTALLPATH}"/* "${SYSROOTPATH}/usr/"
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.libxml2installconfigure
+fi
+
 if [[ $NO_TOOLCHAIN_DELETION == "yes" ]]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
+if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes ]; then
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 rm -rf ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes
 fi
-fi
-if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp ]; then
+cd ${TOOLCHAINS_LLVMSYSROOTSPATH}
 mv runtimes_temp runtimes
 fi
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/libxml2/.libxml2installconfigure
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
