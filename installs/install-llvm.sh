@@ -199,14 +199,26 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 WINEPATH_LINE1="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
                 WINEPATH_LINE2="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
                 WINEPATH_LINE3="export WINEPATH=\"c:/toolchains/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                if [[ "$ARCH" == "x86_64" ]]; then
+                WINEPATH_LINE5="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                fi
             else
                 WINEPATH_LINE1="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
                 WINEPATH_LINE2="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
                 WINEPATH_LINE3="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                if [[ "$ARCH" == "x86_64" ]]; then
+                WINEPATH_LINE5="export WINEPATH=\"$TOOLCHAINSPATH_LLVM/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                fi
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
             ! line_exists_in_bashrc "$WINEPATH_LINE2" && echo "$WINEPATH_LINE2"
             ! line_exists_in_bashrc "$WINEPATH_LINE3" && echo "$WINEPATH_LINE3"
+            ! line_exists_in_bashrc "$WINEPATH_LINE4" && echo "$WINEPATH_LINE4"
+            if [ -n "$WINEPATH_LINE5" ]; then
+                ! line_exists_in_bashrc "$WINEPATH_LINE5" && echo "$WINEPATH_LINE5"
+            fi
         fi
         if [ -n "$TRIPLE" ]; then
             PATH_LINE="export PATH=$TOOLCHAINSPATH_LLVM/$TRIPLE/llvm/bin:\$PATH"
