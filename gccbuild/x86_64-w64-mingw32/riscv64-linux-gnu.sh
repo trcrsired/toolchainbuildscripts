@@ -238,7 +238,7 @@ if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc
 cd ${currentpath}/targetbuild/$HOST/gcc
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 if [ $? -ne 0 ]; then
 echo "gcc configure failure"
 exit 1
@@ -266,7 +266,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
 	fi
 
-	SYSROOT=${currentpath}/install/sysroot
+	SYSROOT=${PREFIXTARGET}
 	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 	mkdir -p $SYSROOT
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
@@ -315,12 +315,12 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		fi
 	else
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied ]; then
-			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
 			echo "copy build sysroot include failed"
 			exit 1
 			fi
-			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
 			echo "copy build sysroot lib failed"
 			exit 1
@@ -527,7 +527,7 @@ else
 		glibcfiles=(libm.a libm.so libc.so)
 
 		mkdir -p ${currentpath}/build/glibc
-		mkdir -p ${currentpath}/install/sysroot
+		mkdir -p ${currentpath}/install/sysroot/usr
 
 		for i in "${!multilibs[@]}"; do
 			item=${multilibs[$i]}
@@ -585,9 +585,9 @@ else
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 			fi
 			if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
-				cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/
-				mkdir -p $SYSROOT/$libdir
-				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/$libdir
+				cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/usr/
+				mkdir -p $SYSROOT/usr/$libdir
+				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/usr/$libdir
 				mkdir -p $GCCSYSROOT/$libingccdir
 				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
@@ -605,7 +605,7 @@ else
 	if [[ $isnativebuild != "yes" ]]; then
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	cp -r --preserve=links $SYSROOT/include $PREFIXTARGET/
+	cp -r --preserve=links $SYSROOT/usr/include $PREFIXTARGET/
 	cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
 	if [ $? -ne 0 ]; then
 	echo "gcc phase1 copysysroot failure"
