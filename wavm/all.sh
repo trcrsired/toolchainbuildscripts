@@ -1,6 +1,6 @@
-./wavm.sh "$@"
+./x86_64-linux-gnu.sh "$@"
 if [ $? -ne 0 ]; then
-echo "WAVM native failed"
+echo "WAVM x86_64-linux-gnu failed"
 exit 1
 fi
 ./x86_64-windows-gnu.sh "$@"
