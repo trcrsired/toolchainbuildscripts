@@ -32,27 +32,19 @@ fi
 
 # Determine TRIPLE if not set
 if [ -z ${TRIPLE+x} ]; then
-    # Try to get TRIPLE from clang or gcc
-    if command -v clang > /dev/null; then
-        TRIPLE=$(clang -dumpmachine)
-    elif command -v gcc > /dev/null; then
-        TRIPLE=$(gcc -dumpmachine)
-    else
-        # Fall back to uname -a
-        UNAME=$(uname -a)
-        if [[ "$UNAME" == *"Linux"* ]]; then
-            if [ -n "${ANDROID_ROOT+x}" ]; then
-                if [[ "$UNAME" == *"aarch64"* ]]; then
-                    TRIPLE="aarch64-linux-android30"
-                elif [[ "$UNAME" == *"x86_64"* ]]; then
-                    TRIPLE="x86_64-linux-android30"
-                fi
-            else
-                if [[ "$UNAME" == *"x86_64"* ]]; then
-                    TRIPLE="x86_64-linux-gnu"
-                elif [[ "$UNAME" == *"aarch64"* ]]; then
-                    TRIPLE="aarch64-linux-gnu"
-                fi
+    UNAME=$(uname -a)
+    if [[ "$UNAME" == *"Linux"* ]]; then
+        if [ -n "${ANDROID_ROOT+x}" ]; then
+            if [[ "$UNAME" == *"aarch64"* ]]; then
+                TRIPLE="aarch64-linux-android30"
+            elif [[ "$UNAME" == *"x86_64"* ]]; then
+                TRIPLE="x86_64-linux-android30"
+            fi
+        else
+            if [[ "$UNAME" == *"x86_64"* ]]; then
+                TRIPLE="x86_64-linux-gnu"
+            elif [[ "$UNAME" == *"aarch64"* ]]; then
+                TRIPLE="aarch64-linux-gnu"
             fi
         fi
     fi
