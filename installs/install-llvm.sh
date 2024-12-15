@@ -108,12 +108,16 @@ download_file() {
     fi
 }
 
+if [ "x$NODOWNLOADLLVM" != "xyes" ]; then
+
 for file in "${FILES[@]}"; do
     echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
     download_file "$BASE_URL/$file" "$TOOLCHAINSPATH_LLVM/$file"
 done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
+
+fi
 
 # Run the script to extract and copy files
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
@@ -150,9 +154,12 @@ if [ "$SETLLVMENV" == "yes" ]; then
 
     # Download and extract the Wine release
     WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
+    echo $WINE_URL
     echo "Downloading $TRIPLE Wine release to $SOFTWAREPATH/wine"
     download_file "$WINE_URL" "$SOFTWAREPATH/wine/$TRIPLE.tar.xz"
     echo "Extracting $TRIPLE Wine release to $SOFTWAREPATH/wine"
+    
+    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
     tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
 
     # If TRIPLE is Android, move toolchains to Wine's virtual C drive and create a symlink
