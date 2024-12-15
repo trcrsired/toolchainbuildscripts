@@ -110,7 +110,24 @@ download_file() {
 
 if [ "x$NODOWNLOADLLVM" != "xyes" ]; then
 
-rm $TOOLCHAINSPATH_LLVM/*.tar.xz
+# Find and delete all .tar.xz files and their corresponding folders
+for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
+    # Check if the file exists
+    if [ -f "$tar_file" ]; then
+        # Get the corresponding folder name by removing the .tar.xz extension
+        folder="${tar_file%.tar.xz}"
+        # Delete the .tar.xz file
+        echo "Deleting file: $tar_file"
+        rm -f "$tar_file"
+        # Check if the corresponding folder exists and delete it
+        if [ -d "$folder" ]; then
+            echo "Deleting folder: $folder"
+            rm -rf "$folder"
+        fi
+    fi
+done
+
+echo "Cleanup completed successfully."
 
 for file in "${FILES[@]}"; do
     echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
