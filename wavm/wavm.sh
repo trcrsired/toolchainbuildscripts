@@ -40,13 +40,8 @@ if [ -z ${LLVMINSTALLPATH+x} ]; then
 fi
 
 if [ -z ${SYSROOT+x} ]; then
-gccpath=$(command -v "$HOST-gcc")
-if [[ $gccpath == "" ]]; then
+gccpath=$(command -v "clang --target=$HOST")
 SYSROOTPATH=$TOOLCHAINS_LLVMPATH/$HOST/$HOST
-else
-gccbinpath=$(dirname "$gccpath")
-SYSROOTPATH=$(dirname "$gccbinpath")
-fi
 fi
 
 WAVMRTIFACTSDIR=$(realpath .)/.wavmartifacts
