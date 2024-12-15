@@ -204,12 +204,12 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 WINEPATH_LINE5="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
                 fi
             else
-                WINEPATH_LINE1="export WINEPATH=\"\$TOOLCHAINSPATH/llvm/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
-                WINEPATH_LINE2="export WINEPATH=\"\$TOOLCHAINSPATH/llvm/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
-                WINEPATH_LINE3="export WINEPATH=\"\$TOOLCHAINSPATH/llvm/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
-                WINEPATH_LINE4="export WINEPATH=\"\$TOOLCHAINSPATH/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE1="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
+                WINEPATH_LINE2="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
+                WINEPATH_LINE3="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
                 if [[ "$ARCH" == "x86_64" ]]; then
-                WINEPATH_LINE5="export WINEPATH=\"\$TOOLCHAINSPATH/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE5="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
                 fi
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
@@ -221,19 +221,19 @@ if [ "$SETLLVMENV" == "yes" ]; then
             fi
         fi
         if [ -n "$TRIPLE" ]; then
-            PATH_LINE="export PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/llvm/bin:\$PATH"
-            LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/llvm/lib:\$LD_LIBRARY_PATH"
+            PATH_LINE="export PATH=\$HOME/toolchains/llvm/$TRIPLE/llvm/bin:\$PATH"
+            LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/llvm/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$PATH_LINE" && echo "$PATH_LINE"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE1" && echo "$LD_LIBRARY_PATH_LINE1"
             if [[ "$TRIPLE" == *"gnu" ]]; then
-                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
-                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
             elif [[ "$TRIPLE" == *"android"* ]]; then
                 TRIPLEUNKNOWN="${parts[2]}"
-                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN:\$LD_LIBRARY_PATH"
-                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=\$TOOLCHAINSPATH/llvm/$TRIPLE/$TRIPLE/lib:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN:\$LD_LIBRARY_PATH"
+                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/$TRIPLE/lib:\$LD_LIBRARY_PATH"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE4" && echo "$LD_LIBRARY_PATH_LINE4"
                 ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE5" && echo "$LD_LIBRARY_PATH_LINE5"
             fi
