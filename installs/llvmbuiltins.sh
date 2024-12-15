@@ -24,6 +24,7 @@ for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
     # Extract tar.xz file
     tar_dir="${tar_file%.tar.xz}"
     if [ -d "$tar_dir" ]; then
+        echo "Removing existing directory $tar_dir"
         rm -rf "$tar_dir"
     fi
     echo "Extracting $tar_file to $TOOLCHAINSPATH_LLVM"
