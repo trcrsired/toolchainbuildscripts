@@ -118,7 +118,7 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 # Run the script to extract and copy files
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
 ./llvmbuiltins.sh
-exit 1
+
 # Add environment variables to .bashrc if SETLLVMENV is set to yes
 if [ "$SETLLVMENV" == "yes" ]; then
     # Set WINEDEBUG if not set
@@ -137,9 +137,7 @@ if [ "$SETLLVMENV" == "yes" ]; then
     if [ -z ${WINE_RELEASE_VERSION+x} ]; then
         # Get the latest Wine release version
         if command -v git > /dev/null; then
-            WINE_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | sed 's/refs\/tags\///' | sort -V | tail -n1)
-            echo $WINE_RELEASE_VERSION
-            exit 1
+            WINE_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wine-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
             if [ -z "$WINE_RELEASE_VERSION" ]; then
                 echo "Failed to retrieve the latest release version. Please check your network connection or set the WINE_RELEASE_VERSION environment variable."
                 exit 1
@@ -149,6 +147,7 @@ if [ "$SETLLVMENV" == "yes" ]; then
             exit 1
         fi
     fi
+
     # Download and extract the Wine release
     WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
     echo "Downloading $TRIPLE Wine release to $SOFTWAREPATH/wine"
