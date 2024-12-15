@@ -225,18 +225,10 @@ if [ "$SETLLVMENV" == "yes" ]; then
             LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/llvm/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$PATH_LINE" && echo "$PATH_LINE"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE1" && echo "$LD_LIBRARY_PATH_LINE1"
-            if [[ "$TRIPLE" == *"gnu" ]]; then
-                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
-                LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
-                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
-                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
-            elif [[ "$TRIPLE" == *"android"* ]]; then
-                TRIPLEUNKNOWN="${parts[2]}"
-                LD_LIBRARY_PATH_LINE4="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/$TRIPLEUNKNOWN:\$LD_LIBRARY_PATH"
-                LD_LIBRARY_PATH_LINE5="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/$TRIPLE/lib:\$LD_LIBRARY_PATH"
-                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE4" && echo "$LD_LIBRARY_PATH_LINE4"
-                ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE5" && echo "$LD_LIBRARY_PATH_LINE5"
-            fi
+            LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
+            LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
 
             # Add Wine paths
             if [[ "$TRIPLE" == *"android"* ]]; then
