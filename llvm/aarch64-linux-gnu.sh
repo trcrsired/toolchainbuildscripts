@@ -63,14 +63,13 @@ if [[ $1 == "clean" || $1 == "restart" ]]; then
 		rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
 	else
 		cd "${TOOLCHAINS_LLVMSYSROOTSPATH}"
-		if [ $? -ne 0 ]; then
-			for item in *; do
+		for item in *; do
+			echo $item
 			if [ "$item" != "runtimes" ] && [ "$item" != "llvm" ]; then
 				echo rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/$item"
 				rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/$item"
 			fi
-			done
-		fi
+		done
 	fi
 	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "clean done"
