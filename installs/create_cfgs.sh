@@ -13,16 +13,25 @@ if [ -z ${TOOLCHAINSPATH_LLVM+x} ]; then
     TOOLCHAINSPATH_LLVM="$TOOLCHAINSPATH/llvm"
 fi
 
+if [ -z ${LIBRARIES+x} ]; then
+    LIBRARIES="$HOME/libraries"
+fi
+
+if [ -z ${CFGS+x} ]; then
+    CFGS="$HOME/cfgs"
+fi
+
 # Create necessary directories
 mkdir -p "$TOOLCHAINSPATH_LLVM"
 
 # Ensure directories exist
-mkdir -p "$HOME/cfgs"
-mkdir -p "$HOME/libraries"
+mkdir -p "$CFGS"
+mkdir -p "$LIBRARIES"
 
 # Absolute paths
 ABS_HOME=$(realpath "$HOME")
 ABS_TOOLCHAINSPATH_LLVM=$(realpath "$TOOLCHAINSPATH_LLVM")
+ABS_LIBRARIES=$(realpath "$LIBRARIES")
 
 # Function to create a config file
 create_cfg_file() {
@@ -32,14 +41,14 @@ create_cfg_file() {
     local standard_flags=$4
     local extra_flags=$5
 
-    cat <<EOL > "$HOME/cfgs/$cfg_name"
+    cat <<EOL > "$CFGS/$cfg_name"
 -std=c++26
 -fuse-ld=lld
 --target=$target
 --sysroot=$sysroot
 $standard_flags
 $extra_flags
--I$ABS_HOME/libraries/fast_io/include
+-I$ABS_LIBRARIES/fast_io/include
 EOL
 }
 
@@ -73,4 +82,25 @@ create_cfg_file "aarch64-windows-msvc.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAI
 create_cfg_file "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH_LLVM/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 create_cfg_file "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH_LLVM/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
-echo "Configuration files created in $HOME/cfgs"
+
+if [ ! -d "$LIBRARIES/fast_io" ]; then
+git clone --quiet git@github.com:trcrsired/fast_io.git "$LIBRARIES/fast_io"
+if [ $? -ne 0 ]; then
+git clone --quiet --branch next git@github.com:cppfastio/fast_io.git "$LIBRARIES/fast_io"
+if [ $? -ne 0 ]; then
+git clone --quiet git@github.com:cppfastio/fast_io.git "$LIBRARIES/fast_io"
+if [ $? -ne 0 ]; then
+git clone --quiet --branch next git@gitee.com:qabeowjbtkwb/fast_io.git "$LIBRARIES/fast_io"
+if [ $? -ne 0 ]; then
+git clone --quiet git@gitee.com:qabeowjbtkwb/fast_io.git "$LIBRARIES/fast_io"
+if [ $? -ne 0 ]; then
+echo "fast_io clone failure"
+exit 1
+fi
+fi
+fi
+fi
+fi
+fi
+cd "$LIBRARIES/fast_io"
+git pull --quiet
