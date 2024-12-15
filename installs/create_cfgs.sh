@@ -1,8 +1,24 @@
 #!/bin/bash
 
+# Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+    TOOLCHAINSPATH="$HOME/toolchains"
+fi
+
+# Create necessary directories
+mkdir -p "$TOOLCHAINSPATH"
+
+# Check if TOOLCHAINSPATH_LLVM environment variable is set, otherwise use $TOOLCHAINSPATH/llvm
+if [ -z ${TOOLCHAINSPATH_LLVM+x} ]; then
+    TOOLCHAINSPATH_LLVM="$TOOLCHAINSPATH/llvm"
+fi
+
+# Create necessary directories
+mkdir -p "$TOOLCHAINSPATH_LLVM"
+
 # Ensure directories exist
 mkdir -p "$HOME/cfgs"
-mkdir -p "$HOME/libraries/fast_io/include"
+mkdir -p "$HOME/libraries"
 
 # Absolute paths
 ABS_HOME=$(realpath "$HOME")
@@ -17,22 +33,22 @@ create_cfg_file() {
     local extra_flags=$5
 
     cat <<EOL > "$HOME/cfgs/$cfg_name"
--std=c++26 \\
--fuse-ld=lld \\
---target=$target \\
---sysroot=$sysroot \\
-$standard_flags \\
-$extra_flags \\
+-std=c++26
+-fuse-ld=lld
+--target=$target
+--sysroot=$sysroot
+$standard_flags
+$extra_flags
 -I$ABS_HOME/libraries/fast_io/include
 EOL
 }
 
 # Standard flags
 STANDARD_FLAGS="
--rtlib=compiler-rt \\
---unwindlib=libunwind \\
--stdlib=libc++ \\
--lunwind \\
+-rtlib=compiler-rt
+--unwindlib=libunwind
+-stdlib=libc++
+-lunwind
 -lc++abi"
 
 # Create .cfg files for different triples

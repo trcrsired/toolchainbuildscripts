@@ -3,4 +3,4 @@ if [ $? -ne 0 ]; then
 echo "install-llvm failure"
 exit 1
 fi
-./create_cfgs.sh
+#./create_cfgs.sh
