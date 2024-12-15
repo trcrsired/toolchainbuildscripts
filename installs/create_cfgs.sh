@@ -42,22 +42,15 @@ create_cfg_file() {
     local extra_flags=$5
 
     cat <<EOL > "$CFGS/$cfg_name"
--std=c++26
--fuse-ld=lld
---target=$target
---sysroot=$sysroot
-$standard_flags
-$extra_flags
--I$ABS_LIBRARIES/fast_io/include
+-std=c++26 -fuse-ld=lld --target=$target --sysroot=$sysroot $standard_flags $extra_flags -I$ABS_LIBRARIES/fast_io/include
 EOL
 }
 
 # Standard flags
-STANDARD_FLAGS="
--rtlib=compiler-rt
---unwindlib=libunwind
--stdlib=libc++
--lunwind
+STANDARD_FLAGS="-rtlib=compiler-rt \
+--unwindlib=libunwind \
+-stdlib=libc++ \
+-lunwind \
 -lc++abi"
 
 # Create .cfg files for different triples
