@@ -67,6 +67,7 @@ if [[ $1 == "clean" || $1 == "restart" ]]; then
 			for item in *; do
 			if [ "$item" != "runtimes" ] && [ "$item" != "llvm" ]; then
 				echo rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/$item"
+				rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/$item"
 			fi
 			done
 		fi
