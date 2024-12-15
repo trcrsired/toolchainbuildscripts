@@ -141,58 +141,14 @@ RUNTIMESINSTALLPATH=${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_temp
 fi
 
 
-
-
-if [ ! -f "$CURRENTTRIPLEPATH/builtins/.buildsuccess" ]; then
-mkdir -p "$CURRENTTRIPLEPATH/builtins"
-cd $CURRENTTRIPLEPATH/builtins
-cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
-	-GNinja -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=$BUILD_C_COMPILER -DCMAKE_CXX_COMPILER=$BUILD_CXX_COMPILER -DCMAKE_ASM_COMPILER=$BUILD_ASM_COMPILER \
-	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
-	-DCOMPILER_RT_BAREMTAL_BUILD=On \
-	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
-	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++" \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
-	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
-	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
-	-DLLVM_ENABLE_LTO=thin \
-	-DLLVM_ENABLE_LLD=On \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
-	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
-if [ $? -ne 0 ]; then
-echo "compiler-rt builtins cmake failed"
-exit 1
-fi
-ninja
-if [ $? -ne 0 ]; then
-echo "compiler-rt builtins ninja failed"
-exit 1
-fi
-ninja install/strip
-if [ $? -ne 0 ]; then
-echo "compiler-rt builtins ninja install failed"
-exit 1
-fi
-cd ${BUILTINSINSTALLPATH}/lib
-cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
-echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/builtins/.buildsuccess
-fi
-
-
-
-EHBUILDLIBS="compiler-rt;libc;libcxx;libcxxabi;libunwind"
+EHBUILDLIBS_PHASE1="libc;compiler-rt"
 ENABLE_EH=On
 
 
-if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/runtimes_phase1/.buildsuccess" ]; then
 
-mkdir -p "$CURRENTTRIPLEPATH/runtimes"
-cd $CURRENTTRIPLEPATH/runtimes
+mkdir -p "$CURRENTTRIPLEPATH/runtimes_phase1"
+cd $CURRENTTRIPLEPATH/runtimes_phase1
 
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
@@ -202,9 +158,19 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
 	-DCMAKE_SYSTEM_NAME=Linux \
-	-DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS \
+    -DLLVM_LIBC_FULL_BUILD=ON \
+    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+	-DLLVM_ENABLE_RUNTIMES=$EHBUILDLIBS_PHASE1 \
 	-DLIBCXXABI_SILENT_TERMINATE=On \
 	-DLIBCXX_CXX_ABI=libcxxabi \
+    -DLLVM_LIBC_FULL_BUILD=ON \
+    -DLLVM_LIBC_INCLUDE_SCUDO=ON \
+    -DCOMPILER_RT_BUILD_SCUDO_STANDALONE_WITH_LLVM_LIBC=ON \
+    -DCOMPILER_RT_BUILD_GWP_ASAN=OFF                       \
+    -DCOMPILER_RT_SCUDO_STANDALONE_BUILD_SHARED=OFF        \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DLLVM_ENABLE_SPHINX=Off -DLIBC_INCLUDE_DOCS=Off \
+    -DLIBC_CMAKE_VERBOSE_LOGGING=ON \
 	-DLIBCXX_ENABLE_SHARED=On \
 	-DLIBCXX_ABI_VERSION=1 \
 	-DLIBCXX_CXX_ABI_INCLUDE_PATHS="${LLVMPROJECTPATH}/libcxxabi/include" \
@@ -232,22 +198,22 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCOMPILER_RT_USE_BUILTINS_LIBRARY=On \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=$TARGETTRIPLE
 if [ $? -ne 0 ]; then
-echo "llvm runtimes cmake failed"
+echo "llvm runtimes phase1 cmake failed"
 exit 1
 fi
-ninja -C . cxx_static
+ninja libc libm
 if [ $? -ne 0 ]; then
-echo "llvm runtimes build static failed"
+echo "llvm runtimes libc libm phase1 build failed"
 exit 1
 fi
 ninja
 if [ $? -ne 0 ]; then
-echo "llvm runtimes build failed"
+echo "llvm runtimes phase1 build failed"
 exit 1
 fi
 ninja install/strip
 if [ $? -ne 0 ]; then
-echo "llvm runtimes install/strip failed"
+echo "llvm runtimes phase1 install/strip failed"
 exit 1
 fi
 mkdir -p ${SYSROOTPATH}/usr
@@ -256,6 +222,7 @@ echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/runtimes/.buildsuccess
 fi
 
 exit 1
+EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 
 if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
 
