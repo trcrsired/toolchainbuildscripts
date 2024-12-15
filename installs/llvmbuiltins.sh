@@ -31,19 +31,16 @@ for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
     tar -xf "$tar_file" -C "$TOOLCHAINSPATH_LLVM"
 done
 
-# Loop through all subdirectories in TOOLCHAINSPATH_LLVM and copy files if subdirectory contains 'compiler-rt' or 'builtins'
-for llvm_subdir in "$TOOLCHAINSPATH_LLVM"/*; do
-    if [[ -d "$llvm_subdir/lib/clang" ]]; then
-        for clang_version_dir in "$llvm_subdir/lib/clang/"*; do
-            if [[ -d "$clang_version_dir" ]]; then
-                echo "Found clang directory: $clang_version_dir"
-                if [[ -d "$llvm_subdir/compiler-rt" ]]; then
-                    echo "Copying files from $llvm_subdir/compiler-rt/ to $clang_version_dir/"
-                    cp -a "$llvm_subdir/compiler-rt/"* "$clang_version_dir/"
-                elif [[ -d "$llvm_subdir/builtins" ]]; then
-                    echo "Copying files from $llvm_subdir/builtins/ to $clang_version_dir/"
-                    cp -a "$llvm_subdir/builtins/"* "$clang_version_dir/"
-                fi
+# Copy files from TOOLCHAINSPATH_LLVM subdirectories containing 'compiler-rt' or 'builtins' to destination directories
+for llvm_dir in "$TOOLCHAINSPATH_LLVM"/*/llvm/lib/clang/*; do
+    if [[ -d "$llvm_dir" ]]; then
+        for dir in "$TOOLCHAINSPATH_LLVM"/*; do
+            if [[ -d "$dir/compiler-rt" ]]; then
+                echo "Copying files from $dir/compiler-rt/ to $llvm_dir/"
+                cp -a "$dir/compiler-rt/"* "$llvm_dir/"
+            elif [[ -d "$dir/builtins" ]]; then
+                echo "Copying files from $dir/builtins/ to $llvm_dir/"
+                cp -a "$dir/builtins/"* "$llvm_dir/"
             fi
         done
     fi
