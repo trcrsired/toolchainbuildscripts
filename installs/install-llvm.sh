@@ -175,9 +175,11 @@ if [ "$SETLLVMENV" == "yes" ]; then
 
     # If TRIPLE is Android, move toolchains to Wine's virtual C drive and create a symlink
     if [[ "$TRIPLE" == *"android"* ]]; then
-        mkdir -p "$HOME/.wine/drive_c"
-        mv "$HOME/toolchains" "$HOME/.wine/drive_c/toolchains"
-        ln -s "$HOME/.wine/drive_c/toolchains" "$HOME/toolchains"
+        if [ ! -L "$HOME/toolchains" ]; then
+            mkdir -p "$HOME/.wine/drive_c"
+            mv "$HOME/toolchains" "$HOME/.wine/drive_c/toolchains"
+            ln -s "$HOME/.wine/drive_c/toolchains" "$HOME/toolchains"
+        fi
     fi
 
     # Function to check if a line exists in .bashrc
