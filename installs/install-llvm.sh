@@ -19,15 +19,56 @@ mkdir -p "$TOOLCHAINSPATH_LLVM"
 # Get the latest release version if not set
 if [ -z ${RELEASE_VERSION+x} ]; then
     if command -v git > /dev/null; then
-        RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk -F'/' '{print $3}' | sort -V | tail -n1)
+        RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk '/refs\/tags\/.*\^{}$/ {print $2}' | sed 's/refs\/tags\///' | sort -V | tail -n1)
+        if [ $? -ne 0 ]; then
+            echo "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
+            exit 1
+        fi
     else
         echo "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
         exit 1
     fi
 fi
 
+# Determine TRIPLE if not set
+if [ -z ${TRIPLE+x} ]; then
+    # Try to get TRIPLE from clang or gcc
+    if command -v clang > /dev/null; then
+        TRIPLE=$(clang -dumpmachine)
+    elif command -v gcc > /dev/null; then
+        TRIPLE=$(gcc -dumpmachine)
+    else
+        # Fall back to uname -a
+        UNAME=$(uname -a)
+        if [[ "$UNAME" == *"Linux"* ]]; then
+            if [ -n "${ANDROID_ROOT+x}" ]; then
+                if [[ "$UNAME" == *"aarch64"* ]]; then
+                    TRIPLE="aarch64-linux-android30"
+                elif [[ "$UNAME" == *"x86_64"* ]]; then
+                    TRIPLE="x86_64-linux-android30"
+                fi
+            else
+                if [[ "$UNAME" == *"x86_64"* ]]; then
+                    TRIPLE="x86_64-linux-gnu"
+                elif [[ "$UNAME" == *"aarch64"* ]]; then
+                    TRIPLE="aarch64-linux-gnu"
+                fi
+            fi
+        fi
+    fi
+fi
+
+# Remove 'pc' or 'unknown' from TRIPLE if present
+IFS='-' read -r -a parts <<< "$TRIPLE"
+if [ "${#parts[@]}" -eq 4 ] && [[ "${parts[1]}" == "pc" || "${parts[1]}" == "unknown" ]]; then
+    TRIPLE="${parts[0]}-${parts[2]}-${parts[3]}"
+fi
+# Extract ARCH from TRIPLE
+ARCH=$(echo $TRIPLE | cut -d'-' -f1)
+
 # Set the base URL for downloads
 BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
+
 
 # Determine the list of files to download
 if [ "$DOWNLOAD_ALL" == "yes" ]; then
@@ -41,48 +82,10 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "wasm-sysroots.tar.xz"
     )
 else
-    # Determine TRIPLE if not set
-    if [ -z ${TRIPLE+x} ]; then
-        # Try to get TRIPLE from clang or gcc
-        if command -v clang > /dev/null; then
-            TRIPLE=$(clang -dumpmachine)
-        elif command -v gcc > /dev/null; then
-            TRIPLE=$(gcc -dumpmachine)
-        else
-            # Fall back to uname -a
-            UNAME=$(uname -a)
-            if [[ "$UNAME" == *"Linux"* ]]; then
-                if [ -n "${ANDROID_ROOT+x}" ]; then
-                    if [[ "$UNAME" == *"aarch64"* ]]; then
-                        TRIPLE="aarch64-linux-android30"
-                    elif [[ "$UNAME" == *"x86_64"* ]]; then
-                        TRIPLE="x86_64-linux-android30"
-                    fi
-                else
-                    if [[ "$UNAME" == *"x86_64"* ]]; then
-                        TRIPLE="x86_64-linux-gnu"
-                    elif [[ "$UNAME" == *"aarch64"* ]]; then
-                        TRIPLE="aarch64-linux-gnu"
-                    fi
-                fi
-            fi
-        fi
-
-        if [ -z "$TRIPLE" ]; then
-            echo "Could not determine TRIPLE. Please set the TRIPLE environment variable."
-            exit 1
-        fi
+    if [ -z "$TRIPLE" ]; then
+        echo "Could not determine TRIPLE. Please set the TRIPLE environment variable."
+        exit 1
     fi
-    
-    # Remove 'pc' or 'unknown' from TRIPLE if present
-    IFS='-' read -r -a parts <<< "$TRIPLE"
-    if [ "${#parts[@]}" -eq 4 ] && [[ "${parts[1]}" == "pc" || "${parts[1]}" == "unknown" ]]; then
-        TRIPLE="${parts[0]}-${parts[2]}-${parts[3]}"
-    fi
-
-    # Extract ARCH from TRIPLE
-    ARCH=$(echo $TRIPLE | cut -d'-' -f1)
-
     FILES=(
         "$ARCH-windows-gnu.tar.xz"
         "$TRIPLE.tar.xz"
