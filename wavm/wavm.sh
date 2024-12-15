@@ -91,6 +91,7 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 	if [ -z ${SYSTEMNAME+x} ]; then
 		echo "cross compiling needs to set SYSTEMNAME, we assume it is Linux"
 		SYSTEMNAME=Linux
+		EXTRACXXFLAGS=" -stdlib=libc++ -rtlib=compiler-rt --unwindlib=libunwind -lc++abi -lunwind $EXTRACXXFLAGS"
 	elif [[ ${SYSTEMNAME} == "Android" ]]; then
 		if [ ! -f "$currentpath/templibs/librt.a" ]; then
 		mkdir -p "$currentpath/templibs"
