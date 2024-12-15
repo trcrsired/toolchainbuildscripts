@@ -6,7 +6,9 @@ then
         exit 1
 fi
 
+if [ -z ${TARGETTRIPLE+x} ]; then
 TARGETTRIPLE=$(clang++ -dumpmachine)
+fi
 currentpath=$(realpath .)/.llvmartifacts/${TARGETTRIPLE}
 
 if [ -z ${ARCH+x} ]; then
