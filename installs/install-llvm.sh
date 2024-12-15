@@ -163,13 +163,13 @@ if [ "$SETLLVMENV" == "yes" ]; then
         echo "# LLVM environment variables"
         if [ -n "$ARCH" ]; then
             if [[ "$TRIPLE" == *"android"* ]]; then
-                WINEPATH_LINE1="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
-                WINEPATH_LINE2="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib"
-                WINEPATH_LINE3="export WINEPATH=\$WINEPATH:c:/toolchains/$ARCH-windows-gnu/llvm/bin"
+                WINEPATH_LINE1="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
+                WINEPATH_LINE2="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/compiler-rt/windows/lib"
+                WINEPATH_LINE3="export WINEPATH=\$WINEPATH;c:/toolchains/$ARCH-windows-gnu/llvm/bin"
             else
-                WINEPATH_LINE1="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
-                WINEPATH_LINE2="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib"
-                WINEPATH_LINE3="export WINEPATH=\$WINEPATH:$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin"
+                WINEPATH_LINE1="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/$ARCH-windows-gnu/bin"
+                WINEPATH_LINE2="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/compiler-rt/windows/lib"
+                WINEPATH_LINE3="export WINEPATH=\$WINEPATH;$TOOLCHAINSPATH_LLVM/$ARCH-windows-gnu/llvm/bin"
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
             ! line_exists_in_bashrc "$WINEPATH_LINE2" && echo "$WINEPATH_LINE2"
