@@ -77,9 +77,9 @@ CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
 if [[ ${ARCH} == "loongarch" ]]; then
-ENABLEGOLD="--disable-tui"
+ENABLEGOLD="--disable-tui --without-debuginfod"
 else
-ENABLEGOLD="--disable-tui --enable-gold"
+ENABLEGOLD="--disable-tui --without-debuginfod --enable-gold"
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh

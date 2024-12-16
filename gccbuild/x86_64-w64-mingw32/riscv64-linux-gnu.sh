@@ -126,9 +126,9 @@ GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
 if [[ ${ARCH} == "loongarch" ]]; then
-ENABLEGOLD="--disable-tui"
+ENABLEGOLD="--disable-tui --without-debuginfod"
 else
-ENABLEGOLD="--disable-tui --enable-gold"
+ENABLEGOLD="--disable-tui --without-debuginfod --enable-gold"
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh
