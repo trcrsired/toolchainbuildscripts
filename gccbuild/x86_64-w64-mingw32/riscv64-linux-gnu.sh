@@ -603,9 +603,10 @@ else
 
 	if [[ $isnativebuild != "yes" ]]; then
 
+	mkdir -p $PREFIXTARGET/sysroot
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	echo cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
-	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
+	echo cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/sysroot/
+	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/sysroot/
 	if [ $? -ne 0 ]; then
 	echo "gcc phase1 copysysroot failure"
 	exit 1
@@ -616,7 +617,7 @@ else
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$SYSROOT
+	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIXTARGET/sysroot
 	if [ $? -ne 0 ]; then
 	echo "gcc phase2 configure failure"
 	exit 1
@@ -737,15 +738,65 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
 
+
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+
+if [[ ${USE_NEWLIB} == "yes" ]]; then
+	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+	prefixcross=$prefix
+
+	if [[ ${hosttriple} != ${HOST} ]]; then
+	prefixcross=$prefix/$HOST
+	fi
+	mkdir -p ${prefixcross}/usr
+	cp -r --preserve=links $SYSROOT/* ${prefixcross}/usr/
+
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+	fi
+fi
+
+else
+if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+	prefixcross=$prefix
+
+	if [[ ${hosttriple} != ${HOST} ]]; then
+	prefixcross=$prefix/$HOST
+	fi
+	mkdir -p ${prefixcross}/usr
+	cp -r --preserve=links $SYSROOT/* ${prefixcross}/
+
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+	fi
+fi
+
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefixcross
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) configure failed"
 exit 1
 fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
+fi
+unset prefixcorss
+if [ ! -f ${build_prefix}/gcc/.buildallgccsuccess ]; then
+cd $build_prefix/gcc
+make all-gcc -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildallgccsuccess
+fi
+
+if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
+cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${build_prefix}/gcc/include/limits.h
+if [ $? -ne 0 ]; then
+echo "gcc (${hosttriple}/${HOST}) generate limits failure"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.generatelimitssuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
@@ -772,36 +823,6 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
-if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
-
-if [[ ${USE_NEWLIB} == "yes" ]]; then
-	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-	local prefixcross=$prefix
-
-	if [[ ${hosttriple} != ${HOST} ]]; then
-	prefixcross=$prefix/$HOST
-	fi
-	cp -r --preserve=links $SYSROOT/* ${prefixcross}/
-	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
-
-	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
-	fi
-fi
-
-else
-if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-local prefixcross=$prefix
-
-if [[ ${hosttriple} != ${HOST} ]]; then
-prefixcross=$prefix/$HOST
-fi
-mkdir -p ${prefixcross}
-cp -r --preserve=links $SYSROOT/* ${prefixcross}/
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
-
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
-fi
-fi
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 	cd ${TOOLCHAINSPATH}/${hosttriple}
 	rm -f $HOST.tar.xz
