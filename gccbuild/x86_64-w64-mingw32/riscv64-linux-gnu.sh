@@ -426,9 +426,7 @@ else
 
 	SYSROOT=${currentpath}/install/sysroot
 	linuxkernelheaders=${SYSROOT}
-	GCCSYSROOT=${currentpath}/install/gccsysroot
 	mkdir -p $SYSROOT
-	mkdir -p $GCCSYSROOT
 
 	if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 		cd "$TOOLCHAINS_BUILD/linux"
