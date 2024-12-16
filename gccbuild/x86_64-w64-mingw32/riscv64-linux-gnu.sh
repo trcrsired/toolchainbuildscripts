@@ -675,7 +675,14 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 	fi
 	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/sysroot/usr $relpath/buildgmpmpfrmpc.sh
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$SYSROOT/usr $relpath/buildgmpmpfrmpc.sh
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.copysysrootprefixsuccess ]; then
+			rm -rf $PREFIX/sysroot
+			mkdir -p $PREFIX/sysroot
+			cp -r --preserve=links $SYSROOT/* $PREFIX/sysroot/
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.copysysrootprefixsuccess
+		fi
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
