@@ -430,7 +430,7 @@ else
 
 	if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 		cd "$TOOLCHAINS_BUILD/linux"
-		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/include
+		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/usr
 		if [ $? -ne 0 ]; then
 		echo "linux kernel headers install failure"
 		exit 1
@@ -477,9 +477,9 @@ else
 
 		if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
 			if [[ ${USELLVM} == "yes" ]]; then
-				STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host
+				STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
 			else
-				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/include --disable-shared --enable-static --without-selinux --host=$host )
+				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
 			fi
 			if [ $? -ne 0 ]; then
 				echo "musl configure failure"
