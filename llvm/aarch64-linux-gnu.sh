@@ -6,8 +6,10 @@ fi
 TARGETTRIPLE_CPU=${ARCH}
 if [[ ${TARGETTRIPLE_CPU} == "aarch64" ]]; then
 TARGETTRIPLE_CPU_ALIAS=arm64
-elif [[ ${TARGETTRIPLE_CPU} == "loongarch64" ]]; then
+elif [[ ${TARGETTRIPLE_CPU} == loongarch* ]]; then
 TARGETTRIPLE_CPU_ALIAS=loongarch
+elif [[ ${TARGETTRIPLE_CPU} == riscv* ]]; then
+TARGETTRIPLE_CPU_ALIAS=riscv
 else
 TARGETTRIPLE_CPU_ALIAS=${TARGETTRIPLE_CPU}
 fi
