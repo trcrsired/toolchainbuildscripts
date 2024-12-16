@@ -147,8 +147,18 @@ cmake -DCMAKE_BUILD_TYPE=Release -GNinja \
 	-DCMAKE_INSTALL_PREFIX="${GMPMPFRMPCPREFIX}" \
 	-DZSTD_PROGRAMS_LINK_SHARED=Off
 if [ $? -ne 0 ]; then
-	echo "zstd cmake configure failed"
-	exit 1
+	cmake -DCMAKE_BUILD_TYPE=Release -GNinja \
+		$TOOLCHAINS_BUILD/zstd/build/cmake \
+		-DCMAKE_C_COMPILER=$GMPMPFRMPCHOST-gcc \
+		-DCMAKE_CXX_COMPILER=$GMPMPFRMPCHOST-g++ \
+		-DCMAKE_ASM_COMPILER=$GMPMPFRMPCHOST-gcc \
+		-DCMAKE_INSTALL_PREFIX="${GMPMPFRMPCPREFIX}" \
+		-DZSTD_PROGRAMS_LINK_SHARED=Off \
+		-DZSTD_MULTITHREAD_SUPPORT=Off
+	if [ $? -ne 0 ]; then
+		echo "zstd cmake configure failed"
+		exit 1
+	fi
 fi
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.configurezstd
 fi
