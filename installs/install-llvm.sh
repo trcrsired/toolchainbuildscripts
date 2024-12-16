@@ -171,8 +171,8 @@ if [ "$SETLLVMENV" == "yes" ]; then
     download_file "$WINE_URL" "$SOFTWAREPATH/wine/$TRIPLE.tar.xz"
     echo "Extracting $TRIPLE Wine release to $SOFTWAREPATH/wine"
     
-    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
-    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
+    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
+    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
 
     # If TRIPLE is Android, move toolchains to Wine's virtual C drive and create a symlink
     if [[ "$TRIPLE" == *"android"* ]]; then
