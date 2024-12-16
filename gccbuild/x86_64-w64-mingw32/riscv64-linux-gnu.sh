@@ -202,68 +202,120 @@ fi
 
 if [[ $isnativebuild != "yes" ]]; then
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
-mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
-cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
-if [ $? -ne 0 ]; then
-echo "binutils-gdb configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess
+	if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
+		mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
+		cd ${currentpath}/targetbuild/$HOST/binutils-gdb
+		$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+		if [ $? -ne 0 ]; then
+			echo "binutils-gdb configure failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.buildsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/binutils-gdb
+		make -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "binutils-gdb build failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.buildsuccess
+	fi
+
+	if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/binutils-gdb
+		make install-strip -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "binutils-gdb install-strip failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
+	fi
+
+	if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
+			mkdir -p ${currentpath}/targetbuild/$HOST/gcc
+			cd ${currentpath}/targetbuild/$HOST/gcc
+			STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+			if [ $? -ne 0 ]; then
+				echo "gcc configure failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss
+		fi
+	else
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
+			mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
+			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+			STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+			if [ $? -ne 0 ]; then
+				echo "gcc phase1 configure failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
+		fi
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
+			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+			make all-gcc -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc phase1 build gcc failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
+		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
+			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+			make all-target-libgcc -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc phase1 build libgcc failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
+		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
+			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+			make install-strip-gcc -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc phase1 install strip gcc failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
+		fi
+
+		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
+			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+			make install-strip-target-libgcc -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc phase1 install strip libgcc failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
+		fi
+	fi
 fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.buildsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "binutils-gdb build failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.buildsuccess
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess ]; then
-cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-make install-strip -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "binutils-gdb install-strip failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
-fi
-
-if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
-mkdir -p ${currentpath}/targetbuild/$HOST/gcc
-cd ${currentpath}/targetbuild/$HOST/gcc
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
-if [ $? -ne 0 ]; then
-echo "gcc configure failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss
-fi
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc
-	make all-gcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc build gcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess
+		cd ${currentpath}/targetbuild/$HOST/gcc
+		make all-gcc -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc build gcc failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildgccsuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc
-	make install-strip-gcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc install-strip gcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
+		cd ${currentpath}/targetbuild/$HOST/gcc
+		make install-strip-gcc -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc install-strip gcc failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
 	fi
 
 	SYSROOT=${PREFIXTARGET}
@@ -272,44 +324,43 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
 
 	if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
-
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-		$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=${currentpath}/install/newlib-cygwin
-		if [ $? -ne 0 ]; then
-		echo "configure newlib-cygwin failure"
-		exit 1
-		fi
-		cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
+			cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+			$TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=${currentpath}/install/newlib-cygwin
+			if [ $? -ne 0 ]; then
+				echo "configure newlib-cygwin failure"
+				exit 1
+			fi
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
 		fi
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-		make -j$(nproc)
-		if [ $? -ne 0 ]; then
-		echo "make newlib-cygwin failure"
-		exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess
+			cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+			make -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "make newlib-cygwin failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.makenewlibsuccess
 		fi
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-		make install-strip -j$(nproc)
-		if [ $? -ne 0 ]; then
-		echo "make install-strip newlib-cygwin failure"
-		exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
+			cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
+			make install-strip -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "make install-strip newlib-cygwin failure"
+				exit 1
+			fi
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
 		fi
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess ]; then
 			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
 			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
-			echo "copy newlib-cygwin failure"
-			exit 1
+				echo "copy newlib-cygwin failure"
+				exit 1
 			fi
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess
 		fi
@@ -317,13 +368,13 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied ]; then
 			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
-			echo "copy build sysroot include failed"
-			exit 1
+				echo "copy build sysroot include failed"
+				exit 1
 			fi
 			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
-			echo "copy build sysroot lib failed"
-			exit 1
+				echo "copy build sysroot lib failed"
+				exit 1
 			fi
 			rm -rf "$SYSROOT/include/c++"
 			rm -rf "$SYSROOT/lib/ldscripts"
@@ -332,94 +383,44 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess ]; then
-	cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/usr/
-	if [ $? -ne 0 ]; then
-	echo "copy newlib-cygwin failure"
-	exit 1
-	fi
-	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess
+		cp -r --preserve=links $SYSROOT/* $PREFIX/sysroot/
+		if [ $? -ne 0 ]; then
+			echo "copy newlib-cygwin failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess
 	fi
 fi
 
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc
-	make -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc build failure"
-	exit 1
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/gcc
+		cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
+		make -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc build failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess
 	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess
-fi
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc
-	make install-strip -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc install-strip failure"
-	exit 1
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess ]; then
+		cd ${currentpath}/targetbuild/$HOST/gcc
+		make install-strip -j$(nproc)
+		if [ $? -ne 0 ]; then
+		echo "gcc install-strip failure"
+		exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
-cd ${TOOLCHAINSPATH}/${BUILD}
-rm -f $HOST.tar.xz
-XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-chmod 755 $HOST.tar.xz
-echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
-fi
-
+	cd ${TOOLCHAINSPATH}/${BUILD}
+	rm -f $HOST.tar.xz
+	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+	chmod 755 $HOST.tar.xz
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
 else
-
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
-	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
-	if [ $? -ne 0 ]; then
-	echo "gcc phase1 configure failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
-	fi
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-	make all-gcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase1 build gcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
-	fi
-
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-	make all-target-libgcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase1 build libgcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
-	fi
-
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-	make install-strip-gcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase1 install strip gcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
-	fi
-
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-		make install-strip-target-libgcc -j$(nproc)
-		if [ $? -ne 0 ]; then
-		echo "gcc phase1 install strip libgcc failure"
-		exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
-	fi
 
 	cd ${currentpath}
 	mkdir -p build
@@ -432,8 +433,8 @@ else
 		cd "$TOOLCHAINS_BUILD/linux"
 		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/usr
 		if [ $? -ne 0 ]; then
-		echo "linux kernel headers install failure"
-		exit 1
+			echo "linux kernel headers install failure"
+			exit 1
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.linuxkernelheadersinstallsuccess
 	fi
@@ -473,62 +474,62 @@ else
 	fi
 
 	if [[ ${MUSLLIBC} == "yes" ]]; then
-	if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
-		item="default"
-		marchitem=""
-		libdir="lib"
-		host=$HOST
-		libingccdir=""
-		mkdir -p ${currentpath}/build/musl/$item
-		cd ${currentpath}/build/musl/$item
+		if [ ! -f ${currentpath}/install/.muslinstallsuccess ]; then
+			item="default"
+			marchitem=""
+			libdir="lib"
+			host=$HOST
+			libingccdir=""
+			mkdir -p ${currentpath}/build/musl/$item
+			cd ${currentpath}/build/musl/$item
 
-		if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
-			if [[ ${USELLVM} == "yes" ]]; then
-				STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
-			else
-				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
+			if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
+				if [[ ${USELLVM} == "yes" ]]; then
+					STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
+				else
+					(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
+				fi
+				if [ $? -ne 0 ]; then
+					echo "musl configure failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
 			fi
-			if [ $? -ne 0 ]; then
-				echo "musl configure failure"
-				exit 1
+			if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
+				(export -n LD_LIBRARY_PATH; make -j$(nproc))
+				if [ $? -ne 0 ]; then
+					echo "musl build failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.configuresuccess
-		fi
-		if [ ! -f ${currentpath}/build/musl/$item/.buildsuccess ]; then
-			(export -n LD_LIBRARY_PATH; make -j$(nproc))
-			if [ $? -ne 0 ]; then
-				echo "musl build failure"
-				exit 1
+			if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
+				(export -n LD_LIBRARY_PATH; make install -j$(nproc))
+				if [ $? -ne 0 ]; then
+					echo "musl install failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.buildsuccess
-		fi
-		if [ ! -f ${currentpath}/build/musl/$item/.installsuccess ]; then
-			(export -n LD_LIBRARY_PATH; make install -j$(nproc))
-			if [ $? -ne 0 ]; then
-				echo "musl install failure"
-				exit 1
+			if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
+				$HOSTSTRIP --strip-unneeded $currentpath/install/musl/$item/lib/*
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
+			if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
+				cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
+				mkdir -p $SYSROOT/$libdir
+				cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
+	#			mkdir -p $GCCSYSROOT/$libingccdir
+	#			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
+			fi
+			unset item
+			unset marchitem
+			unset libdir
+			unset host
+			unset libingccdir
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
 		fi
-		if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
-			$HOSTSTRIP --strip-unneeded $currentpath/install/musl/$item/lib/*
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
-		fi
-		if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
-			cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
-			mkdir -p $SYSROOT/$libdir
-			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
-#			mkdir -p $GCCSYSROOT/$libingccdir
-#			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
-		fi
-		unset item
-		unset marchitem
-		unset libdir
-		unset host
-		unset libingccdir
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.muslinstallsuccess
-	fi
 	elif [ ! -f ${currentpath}/install/.glibcinstallsuccess ]; then
 		glibcfiles=(libm.a libm.so libc.so)
 
@@ -605,86 +606,82 @@ else
 		done
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 	fi
+fi
+GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
-	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-
-	if [[ $isnativebuild != "yes" ]]; then
-
+if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p $PREFIX/sysroot
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	echo cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
-	cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
-	if [ $? -ne 0 ]; then
-	echo "gcc phase1 copysysroot failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
+		echo cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
+		cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
+		if [ $? -ne 0 ]; then
+			echo "gcc phase1 copysysroot failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
-	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
-	if [ $? -ne 0 ]; then
-	echo "gcc phase2 configure failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss
+		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
+		mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
+		if [ $? -ne 0 ]; then
+			echo "gcc phase2 configure failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	make all-gcc -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase2 build gcc failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess
+		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+		make all-gcc -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc phase2 build gcc failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildgccsuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
-	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
-	if [ $? -ne 0 ]; then
-	echo "gcc phase2 generate limits failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
+		cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
+		if [ $? -ne 0 ]; then
+			echo "gcc phase2 generate limits failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	make -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase2 build failure"
-	exit 1
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
+		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+		make -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc phase2 build failure"
+			exit 1
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
-	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	make install-strip -j$(nproc)
-	if [ $? -ne 0 ]; then
-	make install -j$(nproc)
-	if [ $? -ne 0 ]; then
-	echo "gcc phase2 install strip failure"
-	exit 1
-	fi
-	${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
-	fi
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
+		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+		make install-strip -j$(nproc)
+		if [ $? -ne 0 ]; then
+			make install -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc phase2 install strip failure"
+				exit 1
+			fi
+			${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+		fi
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
-	cd ${TOOLCHAINSPATH}/${BUILD}
-	rm -f $HOST.tar.xz
-	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-	chmod 755 $HOST.tar.xz
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
+		cd ${TOOLCHAINSPATH}/${BUILD}
+		rm -f $HOST.tar.xz
+		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+		chmod 755 $HOST.tar.xz
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
 	fi
-
-	fi
-
 	TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
 fi
 
