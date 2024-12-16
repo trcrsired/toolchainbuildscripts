@@ -770,16 +770,16 @@ fi
 
 if [ ! -f ${build_prefix}/gcc/.buildallgccsuccess ]; then
 	cd $build_prefix/gcc
-	make all-target-libgcc -j$(nproc)
+	make all-target-gcc -j$(nproc)
 	if [ $? -ne 0 ]; then
-		echo "gcc (${hosttriple}/${HOST}) all-target-libgcc build failed"
+		echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
 		exit 1
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildallgccsuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
-	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${build_prefix}/gcc/include/limits.h
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${build_prefix}/gcc/gcc/include/limits.h
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) generate limits failure"
 		exit 1
