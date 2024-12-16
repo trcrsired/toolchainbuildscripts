@@ -210,6 +210,9 @@ if [ $? -ne 0 ]; then
 	echo "zstd ninja install/strip failed"
 	exit 1
 fi
+rm -f "$GMPMPFRMPCPREFIX/lib/libzstd.dll.a"
+rm -f "$GMPMPFRMPCPREFIX/lib/libzstd.so*"
+rm -f "$GMPMPFRMPCPREFIX/bin/libzstd.dll"
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.ninjazstdinstallstrip
 fi
 
