@@ -223,6 +223,10 @@ echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/
 fi
 
 TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
+if [ $? -ne 0 ]; then
+	echo "$HOST gmp mpfr mpc build failed"
+	exit 1
+fi
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
 cd ${TOOLCHAINSPATH}/${BUILD}
