@@ -213,6 +213,8 @@ fi
 rm -f "$GMPMPFRMPCPREFIX/lib/libzstd.dll.a"
 rm -f "$GMPMPFRMPCPREFIX/lib/libzstd.so*"
 rm -f "$GMPMPFRMPCPREFIX/bin/libzstd.dll"
+rm -f "$GMPMPFRMPCPREFIX/bin/zstd"
+rm -f "$GMPMPFRMPCPREFIX/bin/zstd.exe"
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.ninjazstdinstallstrip
 fi
 
