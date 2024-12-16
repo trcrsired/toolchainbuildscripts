@@ -770,7 +770,7 @@ fi
 
 if [ ! -f ${build_prefix}/gcc/.buildallgccsuccess ]; then
 	cd $build_prefix/gcc
-	make all-target-gcc -j$(nproc)
+	make all-gcc -j$(nproc)
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
 		exit 1
