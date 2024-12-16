@@ -673,6 +673,9 @@ if [[ $isnativebuild != "yes" ]]; then
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 	fi
+	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/sysroot/usr $relpath/buildgmpmpfrmpc.sh
+	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
 		cd ${TOOLCHAINSPATH}/${BUILD}
@@ -680,9 +683,6 @@ if [[ $isnativebuild != "yes" ]]; then
 		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 		chmod 755 $HOST.tar.xz
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
-	fi
-	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
 	fi
 fi
 
