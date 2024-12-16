@@ -268,7 +268,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 
 	SYSROOT=${PREFIXTARGET}
 	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-	mkdir -p $SYSROOT
+	mkdir -p ${SYSROOT}/usr
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
 
 	if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
@@ -280,7 +280,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		echo "configure newlib-cygwin failure"
 		exit 1
 		fi
-		cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/
+		cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
 		fi
 
@@ -305,8 +305,8 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		fi
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess ]; then
-			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/
-			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/usr/
 			if [ $? -ne 0 ]; then
 			echo "copy newlib-cygwin failure"
 			exit 1
@@ -332,7 +332,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess ]; then
-	cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/
+	cp -r --preserve=links $SYSROOT/* $PREFIXTARGET/usr/
 	if [ $? -ne 0 ]; then
 	echo "copy newlib-cygwin failure"
 	exit 1
@@ -447,6 +447,7 @@ else
 		multilibsingccdir=("" "lib64/lp64" "lib64/lp64d" "lib32/ilp32" "lib32/ilp32d")
 		multilibshost=("riscv64-linux-gnu" "riscv64-linux-gnu" "riscv64-linux-gnu" "riscv32-linux-gnu" "riscv32-linux-gnu")
 	elif [[ ${ARCH} == "x86_64" ]]; then
+# 32 bit and x32 are phased out from linux kernel. There are completely useless. Just use wine if you need 32 bit
 #		multilibs=(m64 m32 mx32)
 #		multilibsoptions=(" -m64" " -m32" " -mx32")
 #		multilibsdir=("lib64" "lib" "libx32")
@@ -512,8 +513,8 @@ else
 			cp -r --preserve=links ${currentpath}/install/musl/$item/include $SYSROOT/
 			mkdir -p $SYSROOT/$libdir
 			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $SYSROOT/$libdir
-			mkdir -p $GCCSYSROOT/$libingccdir
-			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
+#			mkdir -p $GCCSYSROOT/$libingccdir
+#			cp -r --preserve=links ${currentpath}/install/musl/$item/lib/* $GCCSYSROOT/$libingccdir
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.sysrootsuccess
 		fi
 		unset item
@@ -588,8 +589,8 @@ else
 				cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/usr/
 				mkdir -p $SYSROOT/usr/$libdir
 				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/usr/$libdir
-				mkdir -p $GCCSYSROOT/$libingccdir
-				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
+#				mkdir -p $GCCSYSROOT/$libingccdir
+#				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
 			fi
 			unset item
@@ -617,7 +618,7 @@ else
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-build-sysroot=$SYSROOT
+	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$SYSROOT
 	if [ $? -ne 0 ]; then
 	echo "gcc phase2 configure failure"
 	exit 1
@@ -796,8 +797,8 @@ local prefixcross=$prefix
 if [[ ${hosttriple} != ${HOST} ]]; then
 prefixcross=$prefix/$HOST
 fi
-cp -r --preserve=links $SYSROOT/include ${prefixcross}/
-cp -r --preserve=links $GCCSYSROOT/* ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/
+mkdir -p ${prefixcross}
+cp -r --preserve=links $SYSROOT/* ${prefixcross}/
 cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${prefix}/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
