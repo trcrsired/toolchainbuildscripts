@@ -606,8 +606,8 @@ else
 	if [[ $isnativebuild != "yes" ]]; then
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
 	echo cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
+	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
 	if [ $? -ne 0 ]; then
 	echo "gcc phase1 copysysroot failure"
 	exit 1
