@@ -134,3 +134,45 @@ fi
 echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.installmpc
 fi
 
+if [[ "x${NO_BUILD_ZSTD}" != "xyes" ]]; then
+
+if [ ! -f ${GMPMPFRMPCBUILD}/zstd/.configurezstd ]; then
+mkdir -p ${GMPMPFRMPCBUILD}/zstd
+cd ${GMPMPFRMPCBUILD}/zstd
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja \
+	$TOOLCHAINS_BUILD/zstd/build/cmake \
+	-DCMAKE_C_COMPILER=$GMPMPFRMPCHOST-gcc \
+	-DCMAKE_CXX_COMPILER=$GMPMPFRMPCHOST-g++ \
+	-DCMAKE_ASM_COMPILER=$GMPMPFRMPCHOST-gcc \
+	-DCMAKE_INSTALL_PREFIX="${GMPMPFRMPCPREFIX}" \
+	-DZSTD_PROGRAMS_LINK_SHARED=Off
+if [ $? -ne 0 ]; then
+	echo "zstd cmake configure failed"
+	exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.configurezstd
+fi
+
+if [ ! -f ${GMPMPFRMPCBUILD}/zstd/.ninjazstd ]; then
+mkdir -p ${GMPMPFRMPCBUILD}/zstd
+cd ${GMPMPFRMPCBUILD}/zstd
+ninja
+if [ $? -ne 0 ]; then
+	echo "zstd ninja failed"
+	exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.ninjazstd
+fi
+
+if [ ! -f ${GMPMPFRMPCBUILD}/zstd/.ninjazstdinstallstrip ]; then
+mkdir -p ${GMPMPFRMPCBUILD}/zstd
+cd ${GMPMPFRMPCBUILD}/zstd
+ninja install/strip
+if [ $? -ne 0 ]; then
+	echo "zstd ninja install/strip failed"
+	exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/zstd/.ninjazstdinstallstrip
+fi
+
+fi
