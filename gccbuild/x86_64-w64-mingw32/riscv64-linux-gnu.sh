@@ -412,14 +412,13 @@ if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
-fi
-
-if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
-	cd ${TOOLCHAINSPATH}/${BUILD}
-	rm -f $HOST.tar.xz
-	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-	chmod 755 $HOST.tar.xz
-	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
+		cd ${TOOLCHAINSPATH}/${BUILD}
+		rm -f $HOST.tar.xz
+		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+		chmod 755 $HOST.tar.xz
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
+	fi
 else
 
 	cd ${currentpath}
@@ -698,112 +697,114 @@ local prefixtarget=${prefix}/${HOST}
 mkdir -p ${build_prefix}
 
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
-mkdir -p ${build_prefix}/binutils-gdb
-cd $build_prefix/binutils-gdb
-local extra_binutils_configure_flags=
-local hostarch=${hosttriple%%-*}
-if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
-# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
-extra_binutils_configure_flags="--disable-gdbserver --disable-gdb"
-fi
-if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
-extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
-fi
-
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
-if [ $? -ne 0 ]; then
-echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.configuresuccess
+	mkdir -p ${build_prefix}/binutils-gdb
+	cd $build_prefix/binutils-gdb
+	local extra_binutils_configure_flags=
+	local hostarch=${hosttriple%%-*}
+	if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
+	# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
+		extra_binutils_configure_flags="--disable-gdbserver --disable-gdb"
+	fi
+	if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
+		extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
+	fi
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
+	if [ $? -ne 0 ]; then
+		echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.configuresuccess
 fi
 
 if [ ! -f ${build_prefix}/binutils-gdb/.buildsuccess ]; then
-cd $build_prefix/binutils-gdb
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "binutils-gdb (${hosttriple}/${HOST}) build failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.buildsuccess
+	cd $build_prefix/binutils-gdb
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "binutils-gdb (${hosttriple}/${HOST}) build failed"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.buildsuccess
 fi
 
 if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
-cd $build_prefix/binutils-gdb
-make install-strip -j$(nproc)
-if [ $? -ne 0 ]; then
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
-exit 1
-fi
-$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
+	cd $build_prefix/binutils-gdb
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+		make install -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
+			exit 1
+		fi
+		$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
 
 if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 
-if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 
-	mkdir -p ${prefix}/sysroot
-	cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
+		mkdir -p ${prefix}/sysroot
+		cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
 
-	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+		echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+	fi
+
 fi
 
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
-mkdir -p ${build_prefix}/gcc
-cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefix/sysroot
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) configure failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
+	mkdir -p ${build_prefix}/gcc
+	cd $build_prefix/gcc
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefix/sysroot
+	if [ $? -ne 0 ]; then
+	echo "gcc (${hosttriple}/${HOST}) configure failed"
+	exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
 fi
 
+
 if [ ! -f ${build_prefix}/gcc/.buildallgccsuccess ]; then
-cd $build_prefix/gcc
-make all-gcc -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildallgccsuccess
+	cd $build_prefix/gcc
+	make all-gcc -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildallgccsuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
-cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${build_prefix}/gcc/include/limits.h
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) generate limits failure"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.generatelimitssuccess
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${build_prefix}/gcc/include/limits.h
+	if [ $? -ne 0 ]; then
+		echo "gcc (${hosttriple}/${HOST}) generate limits failure"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.generatelimitssuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
-cd $build_prefix/gcc
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) build failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
+	cd $build_prefix/gcc
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "gcc (${hosttriple}/${HOST}) build failed"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
 fi
 
 if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
-cd $build_prefix/gcc
-make install-strip -j$(nproc)
-if [ $? -ne 0 ]; then
-make install -j$(nproc)
-if [ $? -ne 0 ]; then
-echo "gcc (${hosttriple}/${HOST}) install failed"
-exit 1
-fi
-$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
-fi
-echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
+	cd $build_prefix/gcc
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+		make install -j$(nproc)
+		if [ $? -ne 0 ]; then
+			echo "gcc (${hosttriple}/${HOST}) install failed"
+			exit 1
+		fi
+		$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
