@@ -452,9 +452,16 @@ else
 #		multilibsingccdir=("" "32" "x32")
 #		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
 
+
+#		multilibs=(m64 m32 mx32)
+#		multilibsoptions=(" -m64" " -m32" " -mx32")
+#		multilibsdir=("lib" "lib32" "libx32")
+#		multilibsingccdir=("" "32" "x32")
+#		multilibshost=("x86_64-linux-gnu" "i686-linux-gnu" "x86_64-linux-gnux32")
+
 		multilibs=(m64)
 		multilibsoptions=(" -m64")
-		multilibsdir=("lib64")
+		multilibsdir=("lib")
 		multilibsingccdir=("")
 		multilibshost=("x86_64-linux-gnu")
 	else
