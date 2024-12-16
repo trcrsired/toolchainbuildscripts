@@ -622,9 +622,9 @@ else
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
-	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
 	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
+	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	if [ $? -ne 0 ]; then
 	echo "gcc phase2 configure failure"
 	exit 1
@@ -751,7 +751,6 @@ if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
 	cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
 
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
-	fi
 fi
 
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
