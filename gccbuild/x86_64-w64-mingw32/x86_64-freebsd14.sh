@@ -77,9 +77,9 @@ CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-threads --enable-libstdcxx-backtrace"
 
 if [[ ${ARCH} == "loongarch" ]]; then
-ENABLEGOLD=
+ENABLEGOLD="--disable-tui"
 else
-ENABLEGOLD="--enable-gold"
+ENABLEGOLD="--disable-tui --enable-gold"
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh
@@ -221,6 +221,8 @@ ${BUILD}-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
 fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
 fi
+
+TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
 
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
 cd ${TOOLCHAINSPATH}/${BUILD}
