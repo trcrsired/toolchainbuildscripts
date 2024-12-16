@@ -697,9 +697,14 @@ local prefixtarget=${prefix}/${HOST}
 
 mkdir -p ${build_prefix}
 
+echo $build_prefix
+echo $prefix
+echo $prefixtarget
+
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	mkdir -p ${build_prefix}/binutils-gdb
 	cd $build_prefix/binutils-gdb
+	echo $build_prefix/binutils-gdb
 	local extra_binutils_configure_flags=
 	local hostarch=${hosttriple%%-*}
 	if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
