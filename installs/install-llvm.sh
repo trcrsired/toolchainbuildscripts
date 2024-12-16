@@ -194,17 +194,17 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 WINEPATH_LINE1="export WINEPATH=\"c:/toolchains/llvm/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
                 WINEPATH_LINE2="export WINEPATH=\"c:/toolchains/llvm/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
                 WINEPATH_LINE3="export WINEPATH=\"c:/toolchains/llvm/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
-                WINEPATH_LINE4="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/bin/$ARCH-unknown-windows-msvc;\$WINEPATH\""
                 if [[ "$ARCH" == "x86_64" ]]; then
-                WINEPATH_LINE5="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE5="export WINEPATH=\"c:/toolchains/windows-msvc-sysroot/bin/i686-unknown-windows-msvc;\$WINEPATH\""
                 fi
             else
                 WINEPATH_LINE1="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/$ARCH-windows-gnu/bin;\$WINEPATH\""
                 WINEPATH_LINE2="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/compiler-rt/windows/lib;\$WINEPATH\""
                 WINEPATH_LINE3="export WINEPATH=\"\$HOME/toolchains/llvm/$ARCH-windows-gnu/llvm/bin;\$WINEPATH\""
-                WINEPATH_LINE4="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/$ARCH-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE4="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/bin/$ARCH-unknown-windows-msvc;\$WINEPATH\""
                 if [[ "$ARCH" == "x86_64" ]]; then
-                WINEPATH_LINE5="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/i686-unknown-windows-msvc/bin;\$WINEPATH\""
+                WINEPATH_LINE5="export WINEPATH=\"\$HOME/toolchains/windows-msvc-sysroot/bin/i686-unknown-windows-msvc;\$WINEPATH\""
                 fi
             fi
             ! line_exists_in_bashrc "$WINEPATH_LINE1" && echo "$WINEPATH_LINE1"
