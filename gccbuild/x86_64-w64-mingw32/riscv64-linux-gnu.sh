@@ -610,10 +610,10 @@ else
 
 	if [[ $isnativebuild != "yes" ]]; then
 
-	mkdir -p $PREFIXTARGET/sysroot
+	mkdir -p $PREFIX/sysroot
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	echo cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/sysroot/
-	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/sysroot/
+	echo cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
+	cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
 	if [ $? -ne 0 ]; then
 	echo "gcc phase1 copysysroot failure"
 	exit 1
@@ -624,7 +624,7 @@ else
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIXTARGET/sysroot
+	STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
 	if [ $? -ne 0 ]; then
 	echo "gcc phase2 configure failure"
 	exit 1
@@ -681,8 +681,6 @@ else
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz
 	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
-	fi
-
 	fi
 
 	fi
@@ -745,32 +743,12 @@ fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
 
-local prefixcross
 if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 
-if [[ ${USE_NEWLIB} == "yes" ]]; then
-	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-	prefixcross=$prefix
-
-	if [[ ${hosttriple} != ${HOST} ]]; then
-	prefixcross=$prefix/$HOST
-	fi
-	mkdir -p ${prefixcross}/sysroot
-	cp -r --preserve=links $SYSROOT/* ${prefixcross}/sysroot/
-
-	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
-	fi
-fi
-
-else
 if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-	prefixcross=$prefix
 
-	if [[ ${hosttriple} != ${HOST} ]]; then
-	prefixcross=$prefix/$HOST
-	fi
-	mkdir -p ${prefixcross}/sysroot
-	cp -r --preserve=links $SYSROOT/* ${prefixcross}/sysroot/
+	mkdir -p ${prefix}/sysroot
+	cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
 
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 	fi
@@ -779,7 +757,7 @@ fi
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefixcross/sysroot
+STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefix/sysroot
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) configure failed"
 exit 1
