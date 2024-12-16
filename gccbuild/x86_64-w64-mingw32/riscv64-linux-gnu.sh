@@ -432,7 +432,7 @@ else
 
 	if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 		cd "$TOOLCHAINS_BUILD/linux"
-		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=$linuxkernelheaders
+		make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/include
 		if [ $? -ne 0 ]; then
 		echo "linux kernel headers install failure"
 		exit 1
@@ -539,7 +539,7 @@ else
 			mkdir -p ${currentpath}/build/glibc/$item
 			cd ${currentpath}/build/glibc/$item
 			if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/include --without-selinux --host=$host )
+				(export -n LD_LIBRARY_PATH; STRIP=$HOSTSTRIP CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/usr/include --without-selinux --host=$host )
 				if [ $? -ne 0 ]; then
 					echo "glibc ($item) configure failure"
 					exit 1
@@ -606,7 +606,8 @@ else
 	if [[ $isnativebuild != "yes" ]]; then
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-	cp -r --preserve=links $SYSROOT/usr/include $PREFIXTARGET/
+	cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
+	echo cp -r --preserve=links $SYSROOT/usr $PREFIXTARGET/
 	cp -r --preserve=links $GCCSYSROOT/* `dirname $(${HOST}-gcc -print-libgcc-file-name)`/
 	if [ $? -ne 0 ]; then
 	echo "gcc phase1 copysysroot failure"
