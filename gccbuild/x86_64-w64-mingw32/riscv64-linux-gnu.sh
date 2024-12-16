@@ -682,7 +682,9 @@ if [[ $isnativebuild != "yes" ]]; then
 		chmod 755 $HOST.tar.xz
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
 	fi
-	TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
+	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET $relpath/buildgmpmpfrmpc.sh
+	fi
 fi
 
 
