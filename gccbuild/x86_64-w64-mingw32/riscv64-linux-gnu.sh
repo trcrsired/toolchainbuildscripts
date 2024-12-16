@@ -623,7 +623,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
+		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
 		mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 		if [ $? -ne 0 ]; then
 			echo "gcc phase2 configure failure"
