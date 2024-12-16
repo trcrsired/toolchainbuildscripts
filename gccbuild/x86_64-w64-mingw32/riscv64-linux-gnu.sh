@@ -770,9 +770,9 @@ fi
 
 if [ ! -f ${build_prefix}/gcc/.buildallgccsuccess ]; then
 	cd $build_prefix/gcc
-	make all-gcc -j$(nproc)
+	make all-target-libgcc -j$(nproc)
 	if [ $? -ne 0 ]; then
-		echo "gcc (${hosttriple}/${HOST}) all-gcc build failed"
+		echo "gcc (${hosttriple}/${HOST}) all-target-libgcc build failed"
 		exit 1
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildallgccsuccess
