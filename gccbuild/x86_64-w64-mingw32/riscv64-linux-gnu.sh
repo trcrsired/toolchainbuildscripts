@@ -740,16 +740,13 @@ if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
 
-if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
-
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-
 		mkdir -p ${prefix}/sysroot
 		cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
 
 		echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 	fi
-
 fi
 
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
@@ -757,8 +754,8 @@ if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 	cd $build_prefix/gcc
 	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --sysroot=$prefix/sysroot
 	if [ $? -ne 0 ]; then
-	echo "gcc (${hosttriple}/${HOST}) configure failed"
-	exit 1
+		echo "gcc (${hosttriple}/${HOST}) configure failed"
+		exit 1
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.configuresuccess
 fi
