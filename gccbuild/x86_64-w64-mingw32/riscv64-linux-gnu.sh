@@ -620,6 +620,7 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
 	fi
 
+	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
 		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
