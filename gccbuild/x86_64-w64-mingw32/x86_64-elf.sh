@@ -1,5 +1,6 @@
 #!/bin/bash
-currentpath=$(realpath .)/artifacts
+relpath=$(realpath .)
+currentpath=$relpath/artifacts
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
 	cd ${currentpath}
@@ -37,9 +38,8 @@ else
 ENABLEGOLD="--enable-gold"
 fi
 
-./clonebinutilsgccwithdeps.sh
-
-if [ $? -ne 0 ]; then
+if ! $relpath/clonebinutilsgccwithdeps.sh
+then
 exit 1
 fi
 
