@@ -701,6 +701,16 @@ echo $build_prefix
 echo $prefix
 echo $prefixtarget
 
+
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
+		mkdir -p ${prefix}/sysroot
+		cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
+
+		echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
+	fi
+fi
+
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	mkdir -p ${build_prefix}/binutils-gdb
 	cd $build_prefix/binutils-gdb
@@ -714,7 +724,7 @@ if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 		extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 	fi
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags --with-sysroot=${prefix}/sysroot
 	if [ $? -ne 0 ]; then
 		echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 		exit 1
@@ -744,15 +754,6 @@ if [ ! -f ${build_prefix}/binutils-gdb/.installsuccess ]; then
 		$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
-fi
-
-if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-		mkdir -p ${prefix}/sysroot
-		cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
-
-		echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
-	fi
 fi
 
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
