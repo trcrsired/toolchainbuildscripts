@@ -70,6 +70,7 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "aarch64-linux-android30.tar.xz"
         "x86_64-windows-gnu.tar.xz"
         "x86_64-linux-gnu.tar.xz"
+        "loongarch64-linux-gnu.tar.xz"
         "x86_64-linux-android30.tar.xz"
         "wasm-sysroots.tar.xz"
     )
