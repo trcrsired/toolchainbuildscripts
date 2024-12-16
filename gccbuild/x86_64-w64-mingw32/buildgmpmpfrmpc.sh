@@ -32,6 +32,7 @@ fi
 if [ -z ${GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME+x} ]; then
 
 LAST_PART=$(echo $GMPMPFRMPCHOST | awk -F'-' '{print $NF}')
+SECOND_LAST_PART=$(echo $GMPMPFRMPCHOST | awk -F'-' '{print $(NF-1)}')
 
 if [[ ${LAST_PART} == "mingw32" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Windows
@@ -43,13 +44,15 @@ elif [[ ${LAST_PART} == "msys" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=MSYS
 elif [[ ${LAST_PART} == freebsd* ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Freebsd
+elif [[ ${LAST_PART} == "linux" || ${SECOND_LAST_PART} == "linux" ]]; then
+GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Linux
 else
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Generic
 fi
 echo $LAST_PART
 echo $GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME
-fi
 
+fi
 if [ -z ${GMPMPFRMPCHOSTALTERNATIVE+x} ]; then
 GMPMPFRMPCHOSTALTERNATIVE=$(echo $GMPMPFRMPCHOST | sed 's/^[^-]*/none/')
 fi
