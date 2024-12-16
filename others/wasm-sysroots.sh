@@ -1,5 +1,5 @@
 #!/bin/bash
-currentpath=$(realpath .)/artifacts
+currentpath=$(realpath .)/.llvmwasmartifacts
 if [ ! -d ${currentpath} ]; then
 	mkdir -p ${currentpath}
 	cd ${currentpath}
