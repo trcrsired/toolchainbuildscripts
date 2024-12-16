@@ -235,6 +235,39 @@ if [[ ${USE_GETTEXT} == "yes" ]]; then
 	fi
 fi
 
+cd "$TOOLCHAINS_BUILD"
+if [[ ${CLONE_IN_CHINA} == "yes" ]]; then
+if [ ! -d "$TOOLCHAINS_BUILD/zstd" ]; then
+git clone https://gitee.com/mirrors/zstandard.git $TOOLCHAINS_BUILD/zstd
+if [ $? -ne 0 ]; then
+echo "zstd from gitee.com clone failed"
+exit 1
+fi
+fi
+cd "$TOOLCHAINS_BUILD/zstd"
+git remote add upstream https://github.com/facebook/zstd.git 2>/dev/null
+git fetch upstream
+if [ $? -ne 0 ]; then
+echo "zstd fetch from upstream failed"
+exit 1
+fi
+cd "$TOOLCHAINS_BUILD/zstd"
+git merge upstream/master
+if [ $? -ne 0 ]; then
+echo "zstd merge from upstream/main failed"
+exit
+fi
+else
+if [ ! -d "$TOOLCHAINS_BUILD/zstd" ]; then
+git clone https://github.com/facebook/zstd.git
+if [ $? -ne 0 ]; then
+echo "zstd clone failed"
+exit 1
+fi
+fi
+fi
+
+
 if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/isl" ]; then
 cd $TOOLCHAINS_BUILD/binutils-gdb
 #ln -s $TOOLCHAINS_BUILD/gmp gmp
