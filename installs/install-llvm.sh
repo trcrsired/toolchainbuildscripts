@@ -72,6 +72,7 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "x86_64-linux-gnu.tar.xz"
         "x86_64-linux-android30.tar.xz"
         "loongarch64-linux-gnu.tar.xz"
+        "riscv64-linux-gnu.tar.xz"
         "wasm-sysroots.tar.xz"
     )
 else
