@@ -33,20 +33,21 @@ if [ -z ${GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME+x} ]; then
 
 LAST_PART=$(echo $GMPMPFRMPCHOST | awk -F'-' '{print $NF}')
 
-if [[ ${GMPMPFRMPCHOST} == "mingw32" ]]; then
+if [[ ${LAST_PART} == "mingw32" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Windows
-elif [[ ${GMPMPFRMPCHOST} == "msdosdjgpp" ]]; then
+elif [[ ${LAST_PART} == "msdosdjgpp" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=DOS
-elif [[ ${GMPMPFRMPCHOST} == "cygwin" ]]; then
+elif [[ ${LAST_PART} == "cygwin" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=CYGWIN
-elif [[ ${GMPMPFRMPCHOST} == "msys" ]]; then
+elif [[ ${LAST_PART} == "msys" ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=MSYS
-elif [[ ${GMPMPFRMPCHOST} == freebsd* ]]; then
+elif [[ ${LAST_PART} == freebsd* ]]; then
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Freebsd
 else
 GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME=Generic
 fi
-
+echo $LAST_PART
+echo $GMPMPFRMPCBUILDCMAKE_SYSTEM_NAME
 fi
 
 if [ -z ${GMPMPFRMPCHOSTALTERNATIVE+x} ]; then
