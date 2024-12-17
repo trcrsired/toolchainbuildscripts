@@ -47,7 +47,7 @@ fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$TARGET"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$TARGET"
-GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-tls --disable-threads --disable-libstdcxx-threads --enable-libstdcxx-backtrace"
+GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-tls --disable-threads --disable-libstdcxx-threads --enable-libstdcxx-backtrace --disable-tui --without-debuginfod"
 
 LIBRARIESCROSSPATH=${currentpath}/$TARGET/$TARGET
 

@@ -89,7 +89,7 @@ cd ${currentpath}/targetbuild/$TARGET
 mkdir -p binutils-gdb
 cd binutils-gdb
 if [ ! -f Makefile ]; then
-$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+$TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $CROSSTRIPLETTRIPLETS --prefix=$PREFIX --disable-tui --without-debuginfod
 fi
 
 if [ ! -d $PREFIX/lib/bfd-plugins ]; then
