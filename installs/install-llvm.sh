@@ -143,6 +143,9 @@ done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 
+# Run the script to extract and copy files
+# Please ensure the script is saved as "llvmbuiltins.sh" and is executable
+./llvmbuiltins.sh
 
 if [ -n "$TRIPLE" ]; then
 
@@ -169,15 +172,7 @@ fi
 
 fi
 
-
-
-# Run the script to extract and copy files
-# Please ensure the script is saved as "llvmbuiltins.sh" and is executable
-./llvmbuiltins.sh
-
-# Add environment variables to .bashrc if SETLLVMENV is set to yes
 if [ "$SETLLVMENV" == "yes" ]; then
-    # Set WINEDEBUG if not set
     if ! grep -q "export WINEDEBUG=" ~/.bashrc; then
         echo "export WINEDEBUG=-all" >> ~/.bashrc
     fi
