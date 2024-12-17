@@ -144,11 +144,10 @@ done
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 
 
+if [ -n "$TRIPLE" ]; then
+
 WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
 WAVM_INSTALL_PATH="$HOME/softwares/wavm"
-
-
-if [ -n "$TRIPLE" ]; then
 
 WAVM_FILES=(
 "$ARCH-windows-gnu.tar.xz"
