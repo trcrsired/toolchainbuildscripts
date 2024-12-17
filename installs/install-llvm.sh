@@ -250,11 +250,6 @@ if [ "$SETLLVMENV" == "yes" ]; then
             LD_LIBRARY_PATH_LINE1="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/llvm/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$PATH_LINE" && echo "$PATH_LINE"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE1" && echo "$LD_LIBRARY_PATH_LINE1"
-            LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
-            LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
-            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
-            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
-
             # Add Wine paths
             if [[ "$TRIPLE" == *"android"* ]]; then
                 ARCH_VARIANT=$(uname -m)
@@ -263,10 +258,15 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 elif [ "$ARCH_VARIANT" == "x86_64" ]; then
                     NDK_ARCH="x86_64"
                 fi
+                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/${TRIPLE/-linux-android/-unknown-linux-android}:\$LD_LIBRARY_PATH"
                 WINE_PATH_LINE="export PATH=\$HOME/softwares/wine/$TRIPLE/wine/$NDK_ARCH/bin:\$PATH"
-            else
+            elif [[ "$TRIPLE" == *"linux"* ]]; then
+                LD_LIBRARY_PATH_LINE2="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/compiler-rt/lib/linux:\$LD_LIBRARY_PATH"
                 WINE_PATH_LINE="export PATH=\$HOME/softwares/wine/$TRIPLE/wine/bin:\$PATH"
             fi
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
+            LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
             ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
 
             WINE_PATH_LINE_WAVM="export WINEPATH=\"\$HOME/softwares/wavm/$ARCH-windows-gnu/bin;\$WINEPATH\""
