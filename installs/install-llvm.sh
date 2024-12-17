@@ -90,7 +90,6 @@ download_file() {
 
 if [ "x$NODOWNLOADLLVM" != "xyes" ]; then
 
-echo "Cleanup completed successfully."
 # Get the latest release version if not set
 if [ -z ${RELEASE_VERSION+x} ]; then
     if command -v git > /dev/null; then
