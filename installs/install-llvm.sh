@@ -160,7 +160,7 @@ if [ -n "$TRIPLE" ]; then
         echo "Downloading $file to $WAVM_INSTALL_PATH"
         download_file "$WAVM_URL/${file}.tar.xz" "$WAVM_INSTALL_PATH/${file}.tar.xz"
         echo "Extracting ${file}.tar.xz to $WAVM_INSTALL_PATH"
-        tar -xf "${file}.tar.xz" -C "$WAVM_INSTALL_PATH" --hard-dereference
+        tar -xf "$WAVM_INSTALL_PATH/${file}.tar.xz" -C "$WAVM_INSTALL_PATH" --hard-dereference
     done
 
     echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
@@ -269,12 +269,12 @@ if [ "$SETLLVMENV" == "yes" ]; then
             fi
             ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
 
-            WINE_PATH_LINE_WAVM="export WINEPATH=\"\$HOME/softwares/wavm/$ARCH-windows-gnu/wavm/bin;\$WINEPATH\""
+            WINE_PATH_LINE_WAVM="export WINEPATH=\"\$HOME/softwares/wavm/$ARCH-windows-gnu/bin;\$WINEPATH\""
             ! line_exists_in_bashrc "$WINE_PATH_LINE_WAVM" && echo "$WINE_PATH_LINE_WAVM"
 
-            PATH_LINE_WAVM="export PATH=\$HOME/softwares/wavm/$TRIPLE/wavm/bin:\$PATH"
+            PATH_LINE_WAVM="export PATH=\$HOME/softwares/wavm/$TRIPLE/bin:\$PATH"
             ! line_exists_in_bashrc "$PATH_LINE_WAVM" && echo "$PATH_LINE_WAVM"
-            LD_LIBRARY_PATH_LINE_WAVM="export LD_LIBRARY_PATH=\$HOME/softwares/wavm/$TRIPLE/wavm/lib:\$LD_LIBRARY_PATH"
+            LD_LIBRARY_PATH_LINE_WAVM="export LD_LIBRARY_PATH=\$HOME/softwares/wavm/$TRIPLE/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE_WAVM" && echo "$LD_LIBRARY_PATH_LINE_WAVM"
         fi
     } >> ~/.bashrc
