@@ -78,10 +78,10 @@ download_file() {
     local url=$1
     local dest=$2
 
-    if command -v curl > /dev/null; then
-        curl -L -o "$dest" "$url"
-    elif command -v wget > /dev/null; then
+    if command -v wget > /dev/null; then
         wget -O "$dest" "$url"
+    elif command -v curl > /dev/null; then
+        curl -L -o "$dest" "$url"
     else
         echo "Neither curl nor wget is installed. Please install one of them to proceed."
         exit 1
