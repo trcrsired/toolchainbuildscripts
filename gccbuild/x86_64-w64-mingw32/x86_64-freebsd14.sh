@@ -260,7 +260,7 @@ if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 fi
 if [[ ${hosttriple} == ${HOST} ]]; then
-extra_binutils_configure_flags="--disable-gdb $extra_binutils_configure_flags"
+extra_binutils_configure_flags="$extra_binutils_configure_flags"
 fi
 STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 if [ $? -ne 0 ]; then
