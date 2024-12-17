@@ -136,8 +136,8 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 
 if [ -n "$TRIPLE" ]; then
     WAVM_FILES=(
-    "$ARCH-windows-gnu.tar.xz"
-    "$TRIPLE.tar.xz"
+    "$ARCH-windows-gnu"
+    "$TRIPLE"
     )
 
     # Get the latest release version if not set
@@ -164,12 +164,15 @@ if [ -n "$TRIPLE" ]; then
 
     WAVM_INSTALL_PATH="${SOFTWAREPATH}/wavm"
 
-    rm -rf "$WAVM_INSTALL_PATH"
     mkdir -p "$WAVM_INSTALL_PATH"
 
     for file in "${WAVM_FILES[@]}"; do
+        rm -rf "$WAVM_INSTALL_PATH/${file}"
+        rm -rf "$WAVM_INSTALL_PATH/${file}.tar.xz"
         echo "Downloading $file to $WAVM_INSTALL_PATH"
-        download_file "$WAVM_URL/$file" "$WAVM_INSTALL_PATH/$file"
+        download_file "$WAVM_URL/${file}.tar.xz" "$WAVM_INSTALL_PATH/${file}.tar.xz"
+        echo "Extracting ${file}.tar.xz to $WAVM_INSTALL_PATH"
+        tar -xf "${file}.tar.xz" -C "$WAVM_INSTALL_PATH" --hard-dereference
     done
 
     echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
