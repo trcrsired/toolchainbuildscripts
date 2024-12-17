@@ -59,8 +59,6 @@ fi
 ARCH=$(echo $TRIPLE | cut -d'-' -f1)
 
 # Set the base URL for downloads
-BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
-
 
 # Determine the list of files to download
 if [ "$DOWNLOAD_ALL" == "yes" ]; then
@@ -130,7 +128,35 @@ done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 
+WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wavm-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
+
+WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
+WAVM_INSTALL_PATH="$HOME/softwares/wavm"
+
+
+if [ -n "$TRIPLE" ]; then
+
+WAVM_FILES=(
+"$ARCH-windows-gnu.tar.xz"
+"$TRIPLE.tar.xz"
+)
+
+
+rm -rf "$WAVM_INSTALL_PATH"
+mkdir -p "$WAVM_INSTALL_PATH"
+
+for file in "${WAVM_FILES[@]}"; do
+    echo "Downloading $file to $WAVM_INSTALL_PATH"
+    download_file "$WAVM_URL/$file" "$WAVM_INSTALL_PATH/$file"
+done
+
+echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
+
 fi
+
+fi
+
+
 
 # Run the script to extract and copy files
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
@@ -239,6 +265,14 @@ if [ "$SETLLVMENV" == "yes" ]; then
                 WINE_PATH_LINE="export PATH=\$HOME/softwares/wine/$TRIPLE/wine/bin:\$PATH"
             fi
             ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
+
+            WINE_PATH_LINE_WAVM="export WINEPATH=\"\$HOME/softwares/wavm/$ARCH-windows-gnu/bin;\$WINEPATH\""
+            ! line_exists_in_bashrc "$WINE_PATH_LINE_WAVM" && echo "$WINE_PATH_LINE_WAVM"
+
+            PATH_LINE_WAVM="export PATH=\$HOME/softwares/wavm/$TRIPLE/bin:\$PATH"
+            ! line_exists_in_bashrc "$PATH_LINE_WAVM" && echo "$PATH_LINE_WAVM"
+            LD_LIBRARY_PATH_LINE_WAVM="export LD_LIBRARY_PATH=\$HOME/softwares/wavm/$TRIPLE/lib:\$PATH"
+            ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE_WAVM" && echo "$LD_LIBRARY_PATH_LINE_WAVM"
         fi
     } >> ~/.bashrc
 
