@@ -16,20 +16,6 @@ fi
 # Create necessary directories
 mkdir -p "$TOOLCHAINSPATH_LLVM"
 
-# Get the latest release version if not set
-if [ -z ${RELEASE_VERSION+x} ]; then
-    if command -v git > /dev/null; then
-        RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk '/refs\/tags\/llvm[0-9]+(\-[0-9]+)*$/ {print $2}' | sed 's/refs\/tags\///' | sort -V | tail -n1)
-        if [ -z "$RELEASE_VERSION" ]; then
-            echo "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
-            exit 1
-        fi
-    else
-        echo "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
-        exit 1
-    fi
-fi
-
 # Determine TRIPLE if not set
 if [ -z ${TRIPLE+x} ]; then
     UNAME=$(uname -a)
@@ -121,6 +107,35 @@ done
 
 echo "Cleanup completed successfully."
 
+
+# Get the latest release version if not set
+if [ -z ${RELEASE_VERSION+x} ]; then
+    if command -v git > /dev/null; then
+        RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk '/refs\/tags\/llvm[0-9]+(\-[0-9]+)*$/ {print $2}' | sed 's/refs\/tags\///' | sort -V | tail -n1)
+        if [ -z "$RELEASE_VERSION" ]; then
+            echo "Failed to retrieve the latest release version for llvm. Please check your network connection or set the RELEASE_VERSION environment variable."
+            exit 1
+        fi
+    else
+        echo "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+        exit 1
+    fi
+fi
+
+if [ -z ${WAVM_RELEASE_VERSION+x} ]; then
+    if command -v git > /dev/null; then
+        WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wavm-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
+        if [ -z "$WAVM_RELEASE_VERSION" ]; then
+            echo "Failed to retrieve the latest release version for wavm. Please check your network connection or set the RELEASE_VERSION environment variable."
+            exit 1
+        fi
+    else
+        echo "Git is not installed. Please install it or set the WAVM_RELEASE_VERSION environment variable."
+        exit 1
+    fi
+fi
+
+BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
 for file in "${FILES[@]}"; do
     echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
     download_file "$BASE_URL/$file" "$TOOLCHAINSPATH_LLVM/$file"
@@ -128,7 +143,6 @@ done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 
-WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wavm-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
 
 WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
 WAVM_INSTALL_PATH="$HOME/softwares/wavm"
