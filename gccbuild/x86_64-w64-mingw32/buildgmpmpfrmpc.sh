@@ -108,12 +108,13 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/gmp/.installgmp
 fi
 
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp/.installgmpcopy" ]; then
-    if [ -z "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
+    if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
+		echo "here"
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp"
         mv lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
     fi
-    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp/*" "${GMPMPFRMPCPREFIX}/"
-    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD}/gmp/.installgmpcopy"
+    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp"/* "${GMPMPFRMPCPREFIX}/"
+    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp/.installgmpcopy"
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpfr/.configurempfr ]; then
@@ -148,12 +149,12 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpfr/.installmpfr
 fi
 
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpfr/.installmpfrcopy" ]; then
-    if [ -z "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
+    if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpfr"
         mv lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
     fi
-    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpfr/*" "${GMPMPFRMPCPREFIX}/"
-    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD}/mpfr/.installmpfrcopy"
+    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpfr"/* "${GMPMPFRMPCPREFIX}/"
+    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpfr/.installmpfrcopy"
 fi
 
 if [ ! -f ${GMPMPFRMPCBUILD}/mpc/.configurempc ]; then
@@ -188,12 +189,12 @@ echo "$(date --iso-8601=seconds)" > ${GMPMPFRMPCBUILD}/mpc/.installmpc
 fi
 
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpc/.installmpccopy" ]; then
-    if [ -z "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
+    if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpc"
         mv lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
     fi
-    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpc/*" "${GMPMPFRMPCPREFIX}/"
-    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD}/mpc/.installmpccopy"
+    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpc"/* "${GMPMPFRMPCPREFIX}/"
+    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/mpc/.installmpccopy"
 fi
 
 if [[ "x${NO_BUILD_ZSTD}" != "xyes" ]]; then
@@ -254,11 +255,11 @@ fi
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/.installzstdcopy" ]; then
 	rm -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/bin/libzstd.dll"
 	rm -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/lib/libzstd.dll.a"
-    if [ -z "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
+    if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd"
         mv lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
     fi
-    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/*" "${GMPMPFRMPCPREFIX}/"
-    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD}/zstd/.installzstdcopy"
+    cp -a "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd"/* "${GMPMPFRMPCPREFIX}/"
+    echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/.installzstdcopy"
 fi
 fi
