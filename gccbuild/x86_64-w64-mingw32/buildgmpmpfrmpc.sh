@@ -255,6 +255,7 @@ fi
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/.installzstdcopy" ]; then
 	rm -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/bin/libzstd.dll"
 	rm -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/lib/libzstd.dll.a"
+	rm -f "${GMPMPFRMPCBUILD_DEPINSTALLS}"/zstd/lib/libzstd.so*
     if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd"
         cp -a lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
