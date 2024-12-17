@@ -47,18 +47,19 @@ ARCH=$(echo $TRIPLE | cut -d'-' -f1)
 
 # Set the base URL for downloads
 
+
 # Determine the list of files to download
 if [ "$DOWNLOAD_ALL" == "yes" ]; then
     FILES=(
-        "aarch64-windows-gnu.tar.xz"
-        "aarch64-linux-gnu.tar.xz"
-        "aarch64-linux-android30.tar.xz"
-        "x86_64-windows-gnu.tar.xz"
-        "x86_64-linux-gnu.tar.xz"
-        "x86_64-linux-android30.tar.xz"
-        "loongarch64-linux-gnu.tar.xz"
-        "riscv64-linux-gnu.tar.xz"
-        "wasm-sysroots.tar.xz"
+        "aarch64-windows-gnu"
+        "aarch64-linux-gnu"
+        "aarch64-linux-android30"
+        "x86_64-windows-gnu"
+        "x86_64-linux-gnu"
+        "x86_64-linux-android30"
+        "loongarch64-linux-gnu"
+        "riscv64-linux-gnu"
+        "wasm-sysroots"
     )
 else
     if [ -z "$TRIPLE" ]; then
@@ -66,9 +67,9 @@ else
         exit 1
     fi
     FILES=(
-        "$ARCH-windows-gnu.tar.xz"
-        "$TRIPLE.tar.xz"
-        "wasm-sysroots.tar.xz"
+        "$ARCH-windows-gnu"
+        "$TRIPLE"
+        "wasm-sysroots"
     )
 fi
 
@@ -89,23 +90,6 @@ download_file() {
 
 if [ "x$NODOWNLOADLLVM" != "xyes" ]; then
 
-# Find and delete all .tar.xz files and their corresponding folders
-for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
-    # Check if the file exists
-    if [ -f "$tar_file" ]; then
-        # Get the corresponding folder name by removing the .tar.xz extension
-        folder="${tar_file%.tar.xz}"
-        # Delete the .tar.xz file
-        echo "Deleting file: $tar_file"
-        rm -f "$tar_file"
-        # Check if the corresponding folder exists and delete it
-        if [ -d "$folder" ]; then
-            echo "Deleting folder: $folder"
-            rm -rf "$folder"
-        fi
-    fi
-done
-
 echo "Cleanup completed successfully."
 # Get the latest release version if not set
 if [ -z ${RELEASE_VERSION+x} ]; then
@@ -123,9 +107,13 @@ fi
 
 BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
 
+mkdir -p "$TOOLCHAINSPATH_LLVM"
+
 for file in "${FILES[@]}"; do
-    echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
-    download_file "$BASE_URL/$file" "$TOOLCHAINSPATH_LLVM/$file"
+    rm -rf "$TOOLCHAINSPATH_LLVM/${file}"
+    rm -rf "$TOOLCHAINSPATH_LLVM/${file}.tar.xz"
+    echo "Downloading ${file}.tar.xz to $TOOLCHAINSPATH_LLVM"
+    download_file "$BASE_URL/${file}.tar.xz" "$TOOLCHAINSPATH_LLVM/${file}.tar.xz"
 done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
