@@ -464,6 +464,12 @@ else
 		multilibsdir=("lib")
 		multilibsingccdir=("")
 		multilibshost=("x86_64-linux-gnu")
+	elif [[ ${ARCH} == "loongarch64" ]]; then
+		multilibs=(m64)
+		multilibsoptions=("")
+		multilibsdir=("lib64")
+		multilibsingccdir=("")
+		multilibshost=("loongarch64-linux-gnu")
 	else
 		multilibs=(default)
 		multilibsoptions=("")
@@ -723,7 +729,7 @@ if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	echo $build_prefix/binutils-gdb
 	local extra_binutils_configure_flags=
 	local hostarch=${hosttriple%%-*}
-	if [[ ${hostarch} == "loongarch" || ${hostarch} == "loongarch64" ]]; then
+	if [[ ${hostarch} == loongarch* ]]; then
 	# see issue https://sourceware.org/bugzilla/show_bug.cgi?id=32031
 		extra_binutils_configure_flags="--disable-gdbserver --disable-gdb"
 	fi
