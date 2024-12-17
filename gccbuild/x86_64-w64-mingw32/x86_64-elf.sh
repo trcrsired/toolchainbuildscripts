@@ -33,9 +33,9 @@ if [[ ${HOST} == ${TARGET} ]]; then
 fi
 
 if [[ ${ARCH} == "loongarch" ]]; then
-ENABLEGOLD=
+ENABLEGOLD="--disable-tui --without-debuginfod"
 else
-ENABLEGOLD="--enable-gold"
+ENABLEGOLD="--disable-tui --without-debuginfod --enable-gold"
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh
