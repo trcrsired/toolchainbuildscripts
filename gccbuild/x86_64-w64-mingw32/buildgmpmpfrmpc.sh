@@ -109,7 +109,6 @@ fi
 
 if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp/.installgmpcopy" ]; then
     if [ -n "${GMPMPFRMPCBUILDUSEALTERNATIVELIB+x}" ]; then
-		echo "here"
         cd "${GMPMPFRMPCBUILD_DEPINSTALLS}/gmp"
         mv lib "${GMPMPFRMPCBUILDUSEALTERNATIVELIB}"
     fi
