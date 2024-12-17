@@ -16,6 +16,7 @@ fi
 # Create necessary directories
 mkdir -p "$TOOLCHAINSPATH_LLVM"
 
+
 # Determine TRIPLE if not set
 if [ -z ${TRIPLE+x} ]; then
     UNAME=$(uname -a)
@@ -106,14 +107,12 @@ for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
 done
 
 echo "Cleanup completed successfully."
-
-
 # Get the latest release version if not set
 if [ -z ${RELEASE_VERSION+x} ]; then
     if command -v git > /dev/null; then
         RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/llvm-releases.git | awk '/refs\/tags\/llvm[0-9]+(\-[0-9]+)*$/ {print $2}' | sed 's/refs\/tags\///' | sort -V | tail -n1)
         if [ -z "$RELEASE_VERSION" ]; then
-            echo "Failed to retrieve the latest release version for llvm. Please check your network connection or set the RELEASE_VERSION environment variable."
+            echo "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
             exit 1
         fi
     else
@@ -122,65 +121,54 @@ if [ -z ${RELEASE_VERSION+x} ]; then
     fi
 fi
 
-if [ -z ${WAVM_RELEASE_VERSION+x} ]; then
-    if command -v git > /dev/null; then
-        WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wavm-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
-        if [ -z "$WAVM_RELEASE_VERSION" ]; then
-            echo "Failed to retrieve the latest release version for wavm. Please check your network connection or set the RELEASE_VERSION environment variable."
-            exit 1
-        fi
-    else
-        echo "Git is not installed. Please install it or set the WAVM_RELEASE_VERSION environment variable."
-        exit 1
-    fi
-fi
-
 BASE_URL="https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
+
 for file in "${FILES[@]}"; do
     echo "Downloading $file to $TOOLCHAINSPATH_LLVM"
     download_file "$BASE_URL/$file" "$TOOLCHAINSPATH_LLVM/$file"
 done
 
 echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
-
-# Run the script to extract and copy files
-# Please ensure the script is saved as "llvmbuiltins.sh" and is executable
-./llvmbuiltins.sh
-
 if [ -n "$TRIPLE" ]; then
+    WAVM_FILES=(
+    "$ARCH-windows-gnu.tar.xz"
+    "$TRIPLE.tar.xz"
+    )
 
-WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
-WAVM_INSTALL_PATH="$HOME/softwares/wavm"
-
-WAVM_FILES=(
-"$ARCH-windows-gnu.tar.xz"
-"$TRIPLE.tar.xz"
-)
-
-
-rm -rf "$WAVM_INSTALL_PATH"
-mkdir -p "$WAVM_INSTALL_PATH"
-
-for file in "${WAVM_FILES[@]}"; do
-    echo "Downloading $file to $WAVM_INSTALL_PATH"
-    download_file "$WAVM_URL/$file" "$WAVM_INSTALL_PATH/$file"
-done
-
-echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
-
-fi
-
-fi
-
-if [ "$SETLLVMENV" == "yes" ]; then
-    if ! grep -q "export WINEDEBUG=" ~/.bashrc; then
-        echo "export WINEDEBUG=-all" >> ~/.bashrc
+    # Get the latest release version if not set
+    if [ -z ${WAVM_RELEASE_VERSION+x} ]; then
+        if command -v git > /dev/null; then
+            WINE_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wine-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
+            if [ -z "$WAVM_RELEASE_VERSION" ]; then
+                echo "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
+                exit 1
+            fi
+        else
+            echo "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+            exit 1
+        fi
     fi
 
-    # Ensure SOFTWAREPATH is set
+
+    WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
+
+        # Ensure SOFTWAREPATH is set
     if [ -z ${SOFTWAREPATH+x} ]; then
         SOFTWAREPATH="$HOME/softwares"
     fi
+
+    WAVM_INSTALL_PATH="${SOFTWAREPATH}/wavm"
+
+    rm -rf "$WAVM_INSTALL_PATH"
+    mkdir -p "$WAVM_INSTALL_PATH"
+
+    for file in "${WAVM_FILES[@]}"; do
+        echo "Downloading $file to $WAVM_INSTALL_PATH"
+        download_file "$WAVM_URL/$file" "$WAVM_INSTALL_PATH/$file"
+    done
+
+    echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
+
 
     # Create necessary directories
     mkdir -p "$SOFTWAREPATH/wine"
@@ -208,6 +196,23 @@ if [ "$SETLLVMENV" == "yes" ]; then
     
     echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
     tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
+
+fi
+
+fi
+
+
+
+# Run the script to extract and copy files
+# Please ensure the script is saved as "llvmbuiltins.sh" and is executable
+./llvmbuiltins.sh
+
+# Add environment variables to .bashrc if SETLLVMENV is set to yes
+if [ "$SETLLVMENV" == "yes" ]; then
+    # Set WINEDEBUG if not set
+    if ! grep -q "export WINEDEBUG=" ~/.bashrc; then
+        echo "export WINEDEBUG=-all" >> ~/.bashrc
+    fi
 
     # If TRIPLE is Android, move toolchains to Wine's virtual C drive and create a symlink
     if [[ "$TRIPLE" == *"android"* ]]; then
@@ -279,7 +284,7 @@ if [ "$SETLLVMENV" == "yes" ]; then
 
             PATH_LINE_WAVM="export PATH=\$HOME/softwares/wavm/$TRIPLE/bin:\$PATH"
             ! line_exists_in_bashrc "$PATH_LINE_WAVM" && echo "$PATH_LINE_WAVM"
-            LD_LIBRARY_PATH_LINE_WAVM="export LD_LIBRARY_PATH=\$HOME/softwares/wavm/$TRIPLE/lib:\$PATH"
+            LD_LIBRARY_PATH_LINE_WAVM="export LD_LIBRARY_PATH=\$HOME/softwares/wavm/$TRIPLE/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE_WAVM" && echo "$LD_LIBRARY_PATH_LINE_WAVM"
         fi
     } >> ~/.bashrc
