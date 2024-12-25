@@ -49,14 +49,14 @@ mkdir -p "$TARGET_DIR"
 # Copy all files to the target directory
 cp -r "$SOURCE_DIR"/* "$TARGET_DIR"
 
-# Rename all *.inc files to *.cppm
-for file in "$TARGET_DIR"/*.inc; do
-    mv "$file" "${file%.inc}.cppm"
+# Rename all *.ixx files to *.cppm
+for file in "$TARGET_DIR"/*.ixx; do
+    mv "$file" "${file%.ixx}.cppm"
 done
 
-# Update *.inc to *.cppm in modules.json
+# Update *.ixx to *.cppm in modules.json
 if [ -f "$TARGET_DIR/modules.json" ]; then
-    sed -i 's/\.inc/\.cppm/g' "$TARGET_DIR/modules.json"
+    sed -i 's/\.ixx/\.cppm/g' "$TARGET_DIR/modules.json"
 fi
 
 # Change directory to the target directory
