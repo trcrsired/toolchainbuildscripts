@@ -26,6 +26,13 @@ if [ -z ${CXX_FOR_BUILD+x} ]; then
 	fi
 fi
 
+if [ -z ${CPP_FOR_BUILD+x} ]; then
+    CPP_FOR_BUILD=cpp
+	if ! command -v "$CPP_FOR_BUILD" &> /dev/null; then
+		CPP_FOR_BUILD=clang-cpp
+	fi
+fi
+
 if [ -z ${CC+x} ]; then
     CC=gcc
 	if ! command -v "$CC" &> /dev/null; then
@@ -46,6 +53,10 @@ fi
 
 if [ -z ${CLANGXX+x} ]; then
     CLANGXX=clang++
+fi
+
+if [ -z ${CLANGCPP+x} ]; then
+    CLANGCPP=clang-cpp
 fi
 
 if [ -z ${HOST+x} ]; then
@@ -346,7 +357,15 @@ CXX_FOR_HOST="$CXX_FOR_BUILD"
 fi
 fi
 
-CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CXX_FOR_HOST" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP LD=lld enable_wineandroid_drv=no $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror --disable-wineandroid-drv --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+if [ -z ${CPP_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CPP_FOR_HOST="$CLANGCPP --target=$HOST --sysroot=$SYSROOT"
+else
+CPP_FOR_HOST="$CPP_FOR_BUILD"
+fi
+fi
+
+CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CC_FOR_HOST" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP LD=lld enable_wineandroid_drv=no $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror --disable-wineandroid-drv --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
