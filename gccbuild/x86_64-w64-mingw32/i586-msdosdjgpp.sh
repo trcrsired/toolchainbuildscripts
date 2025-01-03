@@ -13,7 +13,7 @@ if [ -z ${TARGET+x} ]; then
         TARGET=i586-msdosdjgpp
 fi
 
-currentpath=$(realpath .)/.gnuartifacts/$TARGET
+currentpath=$(realpath .)/.gnuartifacts/$TARGET/$HOST
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
         TOOLCHAINS_BUILD=$HOME/toolchains_build
@@ -22,11 +22,13 @@ fi
 if [ -z ${TOOLCHAINSPATH+x} ]; then
         TOOLCHAINSPATH=$HOME/toolchains
 fi
-mkdir -p ${currentpath}
+
 if [ ! -d ${currentpath} ]; then
         mkdir ${currentpath}
         cd ${currentpath}
 fi
+
+mkdir -p "${currentpath}"
 
 if [ -z ${DJCRX+x} ]; then
         DJCRX=djcrx205

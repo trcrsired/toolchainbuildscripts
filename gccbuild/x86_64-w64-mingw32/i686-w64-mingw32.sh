@@ -12,7 +12,7 @@ if [ -z ${TARGET+x} ]; then
 	TARGET=i686-w64-mingw32
 fi
 
-currentpath=$(realpath .)/.gnuartifacts/$TARGET
+currentpath=$(realpath .)/.gnuartifacts/$TARGET/$HOST
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
 	cd ${currentpath}
@@ -45,12 +45,12 @@ if [[ $1 == "restart" ]]; then
 	rm -f $HOSTPREFIX.tar.xz
 	echo "restart done"
 fi
-
+mkdir -p "${currentpath}"
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$TARGET"
 CANADIANTRIPLETTRIPLETS="--build=$BUILD --host=$HOST --target=$TARGET"
 GCCCONFIGUREFLAGSCOMMON="--disable-nls --disable-werror --enable-languages=c,c++ --disable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --enable-libstdcxx-static-eh-pool --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-tls --disable-threads --disable-libstdcxx-threads --enable-libstdcxx-backtrace --disable-tui --without-debuginfod"
 
-LIBRARIESCROSSPATH=${currentpath}/$TARGET/$TARGET
+LIBRARIESCROSSPATH=${currentpath}/$TARGET/$HOST
 
 mkdir -p ${currentpath}
 
