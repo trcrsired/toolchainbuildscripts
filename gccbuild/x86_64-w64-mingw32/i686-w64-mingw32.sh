@@ -1,16 +1,9 @@
 #!/bin/bash
-currentpath=$(realpath .)/artifacts
-if [ ! -d ${currentpath} ]; then
-	mkdir ${currentpath}
-	cd ${currentpath}
-fi
-if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
-fi
 
-if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
-fi
+BUILD=$(gcc -dumpmachine)
+PREFIX=$TOOLCHAINSPATH/$BUILD/$TARGET
+PREFIXTARGET=$PREFIX/$TARGET
+export PATH=$PREFIX/bin:$TOOLCHAINSPATH/$BUILD/$HOST/bin:$PATH
 
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
@@ -19,10 +12,18 @@ if [ -z ${TARGET+x} ]; then
 	TARGET=i686-w64-mingw32
 fi
 
-BUILD=$(gcc -dumpmachine)
-PREFIX=$TOOLCHAINSPATH/$BUILD/$TARGET
-PREFIXTARGET=$PREFIX/$TARGET
-export PATH=$PREFIX/bin:$TOOLCHAINSPATH/$BUILD/$HOST/bin:$PATH
+currentpath=$(realpath .)/.gnuartifacts/$TARGET
+if [ ! -d ${currentpath} ]; then
+	mkdir ${currentpath}
+	cd ${currentpath}
+fi
+if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
+fi
+
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+	TOOLCHAINSPATH=$HOME/toolchains
+fi
 
 if [ -z ${THREADSNUMMAKE} ]; then
 THREADSNUMMAKE=-j$(nproc)

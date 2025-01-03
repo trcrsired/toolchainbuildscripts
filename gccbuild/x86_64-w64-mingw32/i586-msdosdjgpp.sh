@@ -5,29 +5,32 @@ if [ $? -ne 0 ]; then
 exit 1
 fi
 
-currentpath=$(realpath .)/artifacts
-if [ ! -d ${currentpath} ]; then
-        mkdir ${currentpath}
-        cd ${currentpath}
-fi
-if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-        TOOLCHAINS_BUILD=$currentpath/toolchains_build
-fi
-
-if [ -z ${TOOLCHAINSPATH+x} ]; then
-        TOOLCHAINSPATH=$currentpath/toolchains
-fi
-
+BUILD=$(gcc -dumpmachine)
 if [ -z ${HOST+x} ]; then
         HOST=x86_64-w64-mingw32
 fi
 if [ -z ${TARGET+x} ]; then
         TARGET=i586-msdosdjgpp
 fi
+
+currentpath=$(realpath .)/.gnuartifacts/$TARGET
+
+if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+        TOOLCHAINS_BUILD=$HOME/toolchains_build
+fi
+
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+        TOOLCHAINSPATH=$HOME/toolchains
+fi
+mkdir -p ${currentpath}
+if [ ! -d ${currentpath} ]; then
+        mkdir ${currentpath}
+        cd ${currentpath}
+fi
+
 if [ -z ${DJCRX+x} ]; then
         DJCRX=djcrx205
 fi
-BUILD=$(gcc -dumpmachine)
 PREFIX=$TOOLCHAINSPATH/$BUILD/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
 export PATH=$PREFIX/bin:$PATH
