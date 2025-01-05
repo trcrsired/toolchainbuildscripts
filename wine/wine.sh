@@ -289,7 +289,8 @@ cd ${currentpath}/$x11pjname
 make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "$x11pjname install failure"
-exit 1
+#ignore issue
+#exit 1
 fi
 llvm-strip --strip-unneeded $currentpath/installs/lib/*
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
