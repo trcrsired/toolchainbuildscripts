@@ -271,7 +271,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/${x11pjname}/.configuresuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.configuresuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
