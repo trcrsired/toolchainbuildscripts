@@ -311,6 +311,7 @@ handlebuild "xorgproto" "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git
 handlebuild "libxau" "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
 handlebuild "libxcb" "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
 handlebuild "libx11" "https://gitlab.freedesktop.org/xorg/lib/libx11"
+handlebuild "libxi" "https://gitlab.freedesktop.org/xorg/lib/libxi.git"
 handlebuild "xinput" "https://gitlab.freedesktop.org/xorg/app/xinput.git"
 handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
 #handlebuild "libusb" "git@github.com:libusb/libusb.git"
