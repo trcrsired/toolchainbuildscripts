@@ -323,6 +323,8 @@ cpp = 'clang++'
 ar = 'llvm-ar'
 strip = 'llvm-strip'
 EOL
+
+echo "PKG_CONFIG_LIBDIR:${PKG_CONFIG_LIBDIR}"
 meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
 if [ $? -ne 0 ]; then
 echo "$x11pjname meson setup failed"
