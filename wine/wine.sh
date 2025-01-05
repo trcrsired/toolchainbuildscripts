@@ -319,6 +319,7 @@ c = 'clang'
 cpp = 'clang++'
 ar = 'llvm-ar'
 strip = 'llvm-strip'
+pkgconfig = 'pkg-config'
 EOL
 
 export PKG_CONFIG_PATH=
