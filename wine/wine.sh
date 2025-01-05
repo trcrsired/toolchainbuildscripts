@@ -320,7 +320,7 @@ cpp = 'clang++'
 ar = 'llvm-ar'
 strip = 'llvm-strip'
 EOL
-meson setup builddir --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
+meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
 if [ $? -ne 0 ]; then
 echo "$x11pjname meson setup failed"
 exit 1
@@ -330,7 +330,7 @@ fi
 
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
 cd $currentpath/$x11pjname
-ninja -C builddir
+ninja -C .
 if [ $? -ne 0 ]; then
 echo "$x11pjname ninja failed"
 exit 1
