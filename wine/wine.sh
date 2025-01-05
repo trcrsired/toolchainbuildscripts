@@ -374,6 +374,7 @@ handlebuild "libxrender" "https://gitlab.freedesktop.org/xorg/lib/libxrender.git
 handlebuild "libxrandr" "https://gitlab.freedesktop.org/xorg/lib/libxrandr.git"
 handlebuild "libxinerama" "https://gitlab.freedesktop.org/xorg/lib/libxinerama.git"
 handlebuild "xinput" "https://gitlab.freedesktop.org/xorg/app/xinput.git"
+handlebuild "libxcursor" "https://gitlab.freedesktop.org/xorg/lib/libxcursor.git"
 #handlebuild "libsndfile" "git@github.com:libsndfile/libsndfile.git"
 #handlebuild "samba" "https://git.samba.org/samba.git"
 #handlebuild "pulseaudio" "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
