@@ -369,6 +369,7 @@ handlebuild "libxrender" "https://gitlab.freedesktop.org/xorg/lib/libxrender.git
 handlebuild "libxrandr" "https://gitlab.freedesktop.org/xorg/lib/libxrandr.git"
 handlebuild "libxinerama" "https://gitlab.freedesktop.org/xorg/lib/libxinerama.git"
 handlebuild "xinput" "https://gitlab.freedesktop.org/xorg/app/xinput.git"
+handlebuild "libsndfile" "https://gitlab.freedesktop.org/sndfile/libsndfile.git"
 handlebuild "pulseaudio" "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
 #handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
 #handlebuild "libusb" "git@github.com:libusb/libusb.git"
