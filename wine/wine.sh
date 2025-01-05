@@ -238,6 +238,7 @@ fi
 
 elif [ -f ${TOOLCHAINS_BUILD}/${x11pjname}/meson.build ]; then
 
+mkdir -p $currentpath/$x11pjname
 if [ ! -f $TOOLCHAINS_BUILD/${x11pjname}/.mesonconfiguresuccess ]; then
 cd $currentpath/$x11pjname
 cat <<EOL > cross_file.txt
