@@ -371,7 +371,10 @@ handlebuild "libxinerama" "https://gitlab.freedesktop.org/xorg/lib/libxinerama.g
 handlebuild "xinput" "https://gitlab.freedesktop.org/xorg/app/xinput.git"
 handlebuild "libsndfile" "git@github.com:libsndfile/libsndfile.git"
 #handlebuild "pulseaudio" "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
-#handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
+if [ "$DISABLEALSA" != "yes" ]; then
+handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
+fi
+handlebuild "libffi" "git@github.com:libffi/libffi.git"
 handlebuild "wayland" "https://gitlab.freedesktop.org/wayland/wayland.git"
 #handlebuild "libusb" "git@github.com:libusb/libusb.git"
 #handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
