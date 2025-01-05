@@ -236,60 +236,7 @@ cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
 echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.installsuccess
 fi
 
-elif [ -f ${TOOLCHAINS_BUILD}/${x11pjname}/meson.build ]; then
-
-mkdir -p $currentpath/$x11pjname
-if [ ! -f $currentpath/${x11pjname}/.mesonconfiguresuccess ]; then
-cd $currentpath/$x11pjname
-cat <<EOL > cross_file.txt
-[host_machine]
-system = 'linux'
-cpu_family = '$ARCH'
-cpu = '$ARCH'
-endian = 'little'
-
-[properties]
-c_args = ['-DCMAKE_POSITION_INDEPENDENT_CODE=On']
-c_link_args = []
-sys_root = '$SYSROOT'
-
-[binaries]
-c = 'clang'
-cpp = 'clang++'
-ar = 'llvm-ar'
-strip = 'llvm-strip'
-EOL
-meson setup builddir --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
-if [ $? -ne 0 ]; then
-echo "$x11pjname meson setup failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.mesonconfiguresuccess
-fi
-
-if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
-cd $currentpath/$x11pjname
-ninja -C builddir
-if [ $? -ne 0 ]; then
-echo "$x11pjname ninja failed"
-exit 1
-fi
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.buildsuccess
-fi
-
-if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
-cd $currentpath/$x11pjname
-ninja -C builddir install
-if [ $? -ne 0 ]; then
-echo "$x11pjname install failed"
-exit 1
-fi
-llvm-strip --strip-unneeded $currentpath/installs/lib/*
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
-fi
-
-else
+elif [ -f $TOOLCHAINS_BUILD/${x11pjname}/configure.ac ]; then
 
 if [ -f $TOOLCHAINS_BUILD/${x11pjname}/autogen.sh ]; then
 if [ ! -f $TOOLCHAINS_BUILD/${x11pjname}/.autogensuccess ]; then
@@ -349,6 +296,57 @@ cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
 echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
 fi
 
+elif [ -f ${TOOLCHAINS_BUILD}/${x11pjname}/meson.build ]; then
+
+mkdir -p $currentpath/$x11pjname
+if [ ! -f $currentpath/${x11pjname}/.mesonconfiguresuccess ]; then
+cd $currentpath/$x11pjname
+cat <<EOL > cross_file.txt
+[host_machine]
+system = 'linux'
+cpu_family = '$ARCH'
+cpu = '$ARCH'
+endian = 'little'
+
+[properties]
+c_args = ['-DCMAKE_POSITION_INDEPENDENT_CODE=On']
+c_link_args = []
+sys_root = '$SYSROOT'
+
+[binaries]
+c = 'clang'
+cpp = 'clang++'
+ar = 'llvm-ar'
+strip = 'llvm-strip'
+EOL
+meson setup builddir --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
+if [ $? -ne 0 ]; then
+echo "$x11pjname meson setup failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.mesonconfiguresuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
+cd $currentpath/$x11pjname
+ninja -C builddir
+if [ $? -ne 0 ]; then
+echo "$x11pjname ninja failed"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.buildsuccess
+fi
+
+if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
+cd $currentpath/$x11pjname
+ninja -C builddir install
+if [ $? -ne 0 ]; then
+echo "$x11pjname install failed"
+exit 1
+fi
+llvm-strip --strip-unneeded $currentpath/installs/lib/*
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
+echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
 fi
 
 }
