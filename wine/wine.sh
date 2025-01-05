@@ -321,7 +321,10 @@ ar = 'llvm-ar'
 strip = 'llvm-strip'
 EOL
 
-PKG_CONFIG_PATH= PKG_CONFIG_LIBDIR=${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig PKG_CONFIG_SYSROOT_DIR=${SYSROOT} meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
+export PKG_CONFIG_PATH=
+export PKG_CONFIG_LIBDIR=${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig
+export PKG_CONFIG_SYSROOT_DIR=${SYSROOT}
+meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
 if [ $? -ne 0 ]; then
 echo "$x11pjname meson setup failed"
 exit 1
