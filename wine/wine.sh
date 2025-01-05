@@ -267,6 +267,8 @@ mkdir -p "$currentpath/$x11pjname"
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
 mkdir -p $currentpath/$x11pjname
 cd $currentpath/$x11pjname
+echo CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$UPDATED_HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
+
 CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$UPDATED_HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
 if [ $? -ne 0 ]; then
 echo "$x11pjname configure failed"
@@ -291,8 +293,7 @@ cd ${currentpath}/$x11pjname
 make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "$x11pjname install failure"
-#ignore issue
-#exit 1
+exit 1
 fi
 llvm-strip --strip-unneeded $currentpath/installs/lib/*
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
