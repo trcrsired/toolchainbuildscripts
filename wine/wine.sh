@@ -137,7 +137,30 @@ if [ -z ${ARCH} ]; then
     ARCH=${HOST%%-*}
 fi
 
-UPDATED_HOST=$(echo $HOST | sed 's/androidxx/gnu/')
+if [ -z ${CC_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CC_FOR_HOST="$CLANG --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind"
+else
+CC_FOR_HOST="$CC_FOR_BUILD"
+fi
+fi
+
+if [ -z ${CXX_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CXX_FOR_HOST="$CLANGXX --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi -lunwind"
+else
+CXX_FOR_HOST="$CXX_FOR_BUILD"
+fi
+fi
+
+if [ -z ${CPP_FOR_HOST+x} ]; then
+if [[ ${BUILD} != ${HOST} ]]; then
+CPP_FOR_HOST="$CLANGCPP --target=$HOST --sysroot=$SYSROOT"
+else
+CPP_FOR_HOST="$CPP_FOR_BUILD"
+fi
+fi
+
 
 echo "ARCH=$ARCH"
 echo "--build=$BUILD"
@@ -267,9 +290,9 @@ mkdir -p "$currentpath/$x11pjname"
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
 mkdir -p $currentpath/$x11pjname
 cd $currentpath/$x11pjname
-echo CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$UPDATED_HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
+echo CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
 
-CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$UPDATED_HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
+CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --enable-malloc0returnsnull
 if [ $? -ne 0 ]; then
 echo "$x11pjname configure failed"
 exit 1
@@ -419,30 +442,6 @@ mkdir -p ${currentwinepath}
 
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
-
-if [ -z ${CC_FOR_HOST+x} ]; then
-if [[ ${BUILD} != ${HOST} ]]; then
-CC_FOR_HOST="$CLANG --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind"
-else
-CC_FOR_HOST="$CC_FOR_BUILD"
-fi
-fi
-
-if [ -z ${CXX_FOR_HOST+x} ]; then
-if [[ ${BUILD} != ${HOST} ]]; then
-CXX_FOR_HOST="$CLANGXX --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi -lunwind"
-else
-CXX_FOR_HOST="$CXX_FOR_BUILD"
-fi
-fi
-
-if [ -z ${CPP_FOR_HOST+x} ]; then
-if [[ ${BUILD} != ${HOST} ]]; then
-CPP_FOR_HOST="$CLANGCPP --target=$HOST --sysroot=$SYSROOT"
-else
-CPP_FOR_HOST="$CPP_FOR_BUILD"
-fi
-fi
 
 CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip wine_cv_64bit_compare_swap="none needed" x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP LD=lld enable_wineandroid_drv=no $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror --disable-wineandroid-drv --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
