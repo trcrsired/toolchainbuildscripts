@@ -348,7 +348,7 @@ llvm-strip --strip-unneeded $currentpath/installs/lib/*
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
 echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
 fi
-
+fi
 }
 
 handlebuild "brotli" "git@github.com:google/brotli.git"
