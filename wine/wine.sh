@@ -265,7 +265,7 @@ mkdir -p "$currentpath/$x11pjname"
 if [ ! -f $currentpath/$x11pjname/.configuresuccess ]; then
 mkdir -p $currentpath/$x11pjname
 cd $currentpath/$x11pjname
-STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --enable-malloc0returnsnull 
+CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip STRIP=$STRIP LD=lld RANLIB=llvm-ranlib AR=llvm-ar AS=llvm-as STRIP=llvm-strip ${TOOLCHAINS_BUILD}/${x11pjname}/configure --disable-nls --disable-werror --host=$HOST --prefix=$currentpath/installs --enable-malloc0returnsnull 
 if [ $? -ne 0 ]; then
 echo "$x11pjname configure failed"
 exit 1
