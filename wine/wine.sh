@@ -171,7 +171,7 @@ git pull --quiet
 
 
 if [[ ${BUILD} != ${HOST} ]]; then
-if [ "$MINIMUMBUILD" == "no" ]; then
+if [ "$MINIMUMBUILD" != "yes" ]; then
 BUILDDEPENDENCIES=yes
 fi
 fi
