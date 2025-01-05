@@ -309,7 +309,8 @@ cpu = '$ARCH'
 endian = 'little'
 
 [properties]
-c_args = ['-DCMAKE_POSITION_INDEPENDENT_CODE=On']
+c_args = ['-rtlib=compiler-rt', '--unwindlib=libunwind', '-fuse-ld=lld', '-Wno-unused-command-line-argument']
+cpp_args = ['-rtlib=compiler-rt', '--unwindlib=libunwind', '-stdlib=libc++', '-lc++abi', '-lunwind', '-fuse-ld=lld', '-Wno-unused-command-line-argument']
 c_link_args = []
 sys_root = '$SYSROOT'
 
