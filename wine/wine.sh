@@ -318,8 +318,8 @@ handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
 #handlebuild "Vulkan-Loader" "git@github.com:KhronosGroup/Vulkan-Loader.git"
 
 mkdir -p $PREFIX/dependencies
-cp -r --preserve=links $currentpath/installs/* $SYSROOT/
-cp -r $SYSROOT/include/freetype2/* $SYSROOT/include/
+cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
+cp -r $SYSROOT/usr/include/freetype2/* $SYSROOT/usr/include/
 cp -r --preserve=links $currentpath/installs/* $PREFIX/dependencies/
 fi
 
