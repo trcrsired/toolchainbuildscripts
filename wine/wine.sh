@@ -121,6 +121,23 @@ SYSROOT=$SYSROOTPATH/$HOST
 fi
 fi
 
+#!/bin/bash
+
+# Define the path to libpthread.a
+LIBPTHREAD_PATH="$SYSROOT/usr/lib/libpthread.a"
+
+# Check if libpthread.a exists
+if [ ! -f "$LIBPTHREAD_PATH" ]; then
+  echo "$LIBPTHREAD_PATH does not exist. Creating an empty libpthread.a..."
+  
+  # Create an empty libpthread.a
+  llvm-ar cr "$LIBPTHREAD_PATH" --thin
+  
+  echo "Empty libpthread.a created."
+else
+  echo "$LIBPTHREAD_PATH already exists."
+fi
+
 if [ -z ${ARCH} ]; then
     ARCH=${HOST%%-*}
 fi
@@ -193,7 +210,6 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/wine"
 git pull --quiet
-
 
 if [[ ${BUILD} != ${HOST} ]]; then
 if [ "$MINIMUMBUILD" != "yes" ]; then
