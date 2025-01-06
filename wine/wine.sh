@@ -263,8 +263,8 @@ fi
 
 elif [ -f $TOOLCHAINS_BUILD/${x11pjname}/configure.ac ]; then
 
-if [ -f $TOOLCHAINS_BUILD/${x11pjname}/autogen.sh ]; then
-if [ ! -f $TOOLCHAINS_BUILD/${x11pjname}/.autogensuccess ]; then
+if [ -f ${currentpath}/${x11pjname}/autogen.sh ]; then
+if [ ! -f ${currentpath}/${x11pjname}/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/${x11pjname}
 cd $TOOLCHAINS_BUILD/${x11pjname}
 NOCONFIGURE=1 ./autogen.sh
@@ -272,7 +272,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname autogen failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${TOOLCHAINS_BUILD}/${x11pjname}/.autogensuccess
+echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.autogensuccess
 fi
 fi
 
