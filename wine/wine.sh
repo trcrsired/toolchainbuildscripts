@@ -265,6 +265,20 @@ elif [ -f $TOOLCHAINS_BUILD/${x11pjname}/configure.ac ]; then
 
 if [ -f ${currentpath}/${x11pjname}/autogen.sh ]; then
 if [ ! -f ${currentpath}/${x11pjname}/.autogensuccess ]; then
+rm -rf "$TOOLCHAINS_BUILD/${x11pjname}"
+mkdir -p "$TOOLCHAINS_BUILD"
+if [ ! -d "$TOOLCHAINS_BUILD/$x11pjname" ]; then
+cd "$TOOLCHAINS_BUILD"
+git clone $x11pjrepo
+if [ $? -ne 0 ]; then
+echo "$x11pjname clone failed"
+exit 1
+fi
+git submodule update --init --recursive
+fi
+cd "$TOOLCHAINS_BUILD/$x11pjname"
+git pull --quiet
+
 mkdir -p $TOOLCHAINS_BUILD/${x11pjname}
 cd $TOOLCHAINS_BUILD/${x11pjname}
 NOCONFIGURE=1 ./autogen.sh
