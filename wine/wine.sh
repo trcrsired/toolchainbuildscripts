@@ -233,6 +233,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/$x11pjname"
 git submodule update --init --recursive
 fi
 cd "$TOOLCHAINS_BUILD/$x11pjname"
@@ -322,6 +323,27 @@ mkdir -p $currentpath/$x11pjname
 cd ${currentpath}/$x11pjname
 make -j$(nproc)
 if [ $? -ne 0 ]; then
+if [ "$x11pjname" = "alsa-lib" ]; then
+    rm -rf "$TOOLCHAINS_BUILD/alsa-lib"
+    mkdir -p "$TOOLCHAINS_BUILD"
+    if [ ! -d "$TOOLCHAINS_BUILD/$x11pjname" ]; then
+       cd "$TOOLCHAINS_BUILD"
+       git clone $x11pjrepo
+       if [ $? -ne 0 ]; then
+           echo "$x11pjname clone failed"
+           exit 1
+       fi
+       cd "$TOOLCHAINS_BUILD/$x11pjname"
+       git submodule update --init --recursive
+    fi
+    cd "$currentpath/$x11pjname"
+    make -j$(nproc)
+    if [ $? -ne 0 ]; then
+        echo "$x11pjname build failed 2nd time"
+        exit 1
+    fi
+fi
+
 echo "$x11pjname build failure"
 exit 1
 fi
@@ -342,6 +364,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname clone failed"
 exit 1
 fi
+cd "$TOOLCHAINS_BUILD/$x11pjname"
 git submodule update --init --recursive
 fi
 if [ ! -f ${TOOLCHAINS_BUILD}/${x11pjname}/configure ]; then
