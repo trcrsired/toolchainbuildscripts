@@ -336,6 +336,7 @@ fi
 cd $TOOLCHAINS_BUILD/${x11pjname}
 autoreconf -i
 fi
+cd ${currentpath}/$x11pjname
 make install -j$(nproc)
 if [ $? -ne 0 ]; then
 echo "$x11pjname install failure"
