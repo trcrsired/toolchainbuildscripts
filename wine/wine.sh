@@ -477,6 +477,7 @@ handlebuild "libglvnd" "git@github.com:NVIDIA/libglvnd.git"
 #handlebuild "libusb" "git@github.com:libusb/libusb.git"
 #handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
 #handlebuild "mesa" "https://gitlab.freedesktop.org/mesa/mesa.git"
+handlebuild "Vulkan-Headers" "git@github.com:KhronosGroup/Vulkan-Headers.git"
 #handlebuild "Vulkan-Loader" "git@github.com:KhronosGroup/Vulkan-Loader.git"
 
 mkdir -p $PREFIX/dependencies
