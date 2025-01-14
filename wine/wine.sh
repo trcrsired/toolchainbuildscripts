@@ -415,7 +415,7 @@ EOL
 export PKG_CONFIG_PATH=
 export PKG_CONFIG_LIBDIR=${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig
 export PKG_CONFIG_SYSROOT_DIR=${SYSROOT}
-meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release
+meson setup ${TOOLCHAINS_BUILD}/${x11pjname} --prefix=$currentpath/installs --cross-file cross_file.txt --buildtype release -D documentation=false
 if [ $? -ne 0 ]; then
 echo "$x11pjname meson setup failed"
 exit 1
@@ -473,7 +473,7 @@ handlebuild "alsa-lib" "git@github.com:alsa-project/alsa-lib.git"
 fi
 handlebuild "libffi" "git@github.com:libffi/libffi.git"
 handlebuild "libglvnd" "git@github.com:NVIDIA/libglvnd.git"
-#handlebuild "wayland" "https://gitlab.freedesktop.org/wayland/wayland.git"
+handlebuild "wayland" "https://gitlab.freedesktop.org/wayland/wayland.git"
 #handlebuild "libusb" "git@github.com:libusb/libusb.git"
 #handlebuild "gnutls" "https://gitlab.com/gnutls/gnutls.git"
 #handlebuild "mesa" "https://gitlab.freedesktop.org/mesa/mesa.git"
