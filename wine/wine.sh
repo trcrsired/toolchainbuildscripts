@@ -280,7 +280,7 @@ fi
 
 elif [ -f $TOOLCHAINS_BUILD/${x11pjname}/configure.ac ]; then
 
-if [ -f ${currentpath}/${x11pjname}/autogen.sh ]; then
+if [ -f ${TOOLCHAINS_BUILD}/${x11pjname}/autogen.sh ]; then
 if [ ! -f $currentpath/$x11pjname/.autogensuccess ]; then
 mkdir -p $TOOLCHAINS_BUILD/${x11pjname}
 cd $TOOLCHAINS_BUILD/${x11pjname}
