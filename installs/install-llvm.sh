@@ -130,7 +130,7 @@ if [ -n "$TRIPLE" ]; then
     # Get the latest release version if not set
     if [ -z ${WAVM_RELEASE_VERSION+x} ]; then
         if command -v git > /dev/null; then
-            WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wine-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
+            WAVM_RELEASE_VERSION=$(git ls-remote --tags https://github.com/trcrsired/wavm-release.git | grep -o 'refs/tags/[^{}]*$' | sed 's#refs/tags/##' | sort -V | tail -n1)
             if [ -z "$WAVM_RELEASE_VERSION" ]; then
                 echo "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
                 exit 1
