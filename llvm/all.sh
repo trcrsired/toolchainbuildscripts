@@ -1,3 +1,10 @@
+if [[ $1 == "restart" ]]; then
+	echo "restarting"
+	rm -f "$(realpath .)/nohup.out"
+	rm -rf "$(realpath .)/.llvmartifacts"
+	rm -rf "$(realpath .)/.llvmwasmartifacts"
+	echo "restart done"
+fi
 ./x86_64-linux-gnu.sh "$@"
 ./x86_64-windows-gnu.sh "$@"
 ./aarch64-windows-gnu.sh "$@"
