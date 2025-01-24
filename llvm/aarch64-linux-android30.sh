@@ -276,7 +276,7 @@ fi
 if [ ! -f "${SYSROOTPATH}/lib/libz.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/zlib"
 cd $CURRENTTRIPLEPATH/zlib
-cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
+cmake ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMAKE_RC_COMPILER=llvm-windres \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_INSTALL_PREFIX=$SYSROOTPATH \
 	-DCMAKE_INSTALL_PREFIX=${SYSROOTPATH} \
@@ -297,7 +297,11 @@ cmake -GNinja ${TOOLCHAINS_BUILD}/zlib -DCMAKE_SYSROOT=$ANDROIDSYSROOTPATH -DCMA
 	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -flto=thin -lc++abi -fPIC -I${SYSROOTPATH}/include" \
 	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -flto=thin -fPIC" \
 	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
-ninja install/strip
+make install/strip -j$(nproc)
+if [ $? -ne 0 ]; then
+echo "zlib make install/strip failure"
+exit 1
+fi
 fi
 
 if [ ! -f "${SYSROOTPATH}/lib/libxml2.a" ]; then
