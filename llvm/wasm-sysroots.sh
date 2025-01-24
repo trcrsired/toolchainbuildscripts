@@ -55,13 +55,13 @@ WASILIBCPATH=$TOOLCHAINS_BUILD/wasi-libc
 fi
 
 if [ ! -d ${LLVMPROJECTPATH} ]; then
-git clone -b wasmlibunwindfix git@github.com:trcrsired/llvm-project.git $LLVMPROJECTPATH
+git clone -b mt-2-msvc git@github.com:trcrsired/llvm-project.git $LLVMPROJECTPATH
 fi
 cd $LLVMPROJECTPATH
 git pull --quiet
 
 if [ ! -d ${WASILIBCPATH} ]; then
-git clone -b mt-2-msvc git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
+git clone -b mt-2 git@github.com:trcrsired/wasi-libc.git $WASILIBCPATH
 fi
 cd $WASILIBCPATH
 git pull --quiet
