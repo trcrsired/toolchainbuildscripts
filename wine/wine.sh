@@ -299,7 +299,7 @@ echo "$x11pjname not an autotool project"
 exit 1
 fi
 cd $TOOLCHAINS_BUILD/${x11pjname}
-autoreconf -i
+autoreconf -i -f
 fi
 
 mkdir -p "$currentpath/$x11pjname"
@@ -372,7 +372,7 @@ echo "$x11pjname not an autotool project"
 exit 1
 fi
 cd $TOOLCHAINS_BUILD/${x11pjname}
-autoreconf -i
+autoreconf -i -f
 fi
 cd ${currentpath}/$x11pjname
 make install -j$(nproc)
