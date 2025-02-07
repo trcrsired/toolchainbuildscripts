@@ -37,7 +37,7 @@ if [ -z ${DARWINVERSIONDATE+x} ]; then
 fi
 
 if [ -z ${SYSTEMVERSION+x} ]; then
-  SYSTEMVERSION=15.2
+  SYSTEMVERSION="15.2"
 fi
 
 mkdir -p $TOOLCHAINSPATH
