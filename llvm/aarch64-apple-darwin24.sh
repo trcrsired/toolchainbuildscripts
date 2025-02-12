@@ -25,11 +25,11 @@ if [ ! -d ${currentpath} ]; then
 fi
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
 if [ -z ${DARWINVERSIONDATE+x} ]; then
@@ -139,6 +139,8 @@ for file in *-${TARGETTRIPLE_CPU}*; do
 done
 cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
 fi
+
+exit 1
 
 THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 	-DLIBCXX_ENABLE_THREADS=On \
