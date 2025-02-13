@@ -225,7 +225,7 @@ cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPAT
 fi
 
 if [ ! -d "$LLVMINSTALLPATH" ]; then
-if [ ! -d "$CURRENTTRIPLEPATH/llvm" ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
 cmake $LLVMPROJECTPATH/llvm \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
@@ -266,14 +266,28 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_LIPO="$LIPOPATH" \
 	-DMACOS_ARM_SUPPORT=On \
 	-DLLDB_INCLUDE_TESTS=Off \
+	-DLLDB_USE_SYSTEM_DEBUGSERVER=On \
 	-DCMAKE_INSTALL_NAME_TOOL="${INSTALL_NAME_TOOLPATH}" \
 	-DCMAKE_AR="$ARPATH" \
 	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCMAKE_INSTALL_RPATH="@executable_path/../lib"
+if [ $? -eq 0 ]; then
+echo "cmake failed to configure llvm"
+exit 1
+fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.configuresuccess"
 fi
 cd $CURRENTTRIPLEPATH/llvm
 ninja
+if [ $? -eq 0 ]; then
+echo "ninja failed to build llvm"
+exit 1
+fi
 ninja install/strip
+if [ $? -eq 0 ]; then
+echo "ninja failed to install llvm"
+exit 1
+fi
 fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
