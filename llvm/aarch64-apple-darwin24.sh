@@ -97,14 +97,16 @@ CURRENTTRIPLEPATH=${currentpath}
 if [ ! -f "${BUILTINSINSTALLPATH}/lib/${TARGETUNKNOWNTRIPLE}/libclang_rt.builtins.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/builtins"
 cd $CURRENTTRIPLEPATH/builtins
-echo cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
+cmake $LLVMPROJECTPATH/compiler-rt \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
 	-DCMAKE_SYSROOT=$DARWINSYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument" \
 	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
 	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	-DLLVM_ENABLE_LTO=thin \
@@ -116,27 +118,9 @@ echo cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
 	-DCMAKE_SIZEOF_VOID_P=$CMAKE_SIZEOF_VOID_P \
-	-DDARWIN_macosx_SYSROOT=${DARWINSYSROOTPATH}
-cmake $LLVMPROJECTPATH/compiler-rt/lib/builtins \
-	-GNinja -DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT=$DARWINSYSROOTPATH -DCMAKE_INSTALL_PREFIX=${BUILTINSINSTALLPATH} \
-	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
-	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
-	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
-	-DCMAKE_C_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_CXX_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" -DCMAKE_ASM_FLAGS="-fuse-ld=lld -flto=thin -Wno-unused-command-line-argument" \
-	-DCMAKE_SYSTEM_NAME=${SYSTEMNAME} \
-	-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
-	-DLLVM_ENABLE_LTO=thin \
-	-DLLVM_ENABLE_LLD=On \
-	-DCMAKE_CROSSCOMPILING=On \
-	-DCMAKE_FIND_ROOT_PATH=${SYSROOTPATH} \
-	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
-	-DCMAKE_SIZEOF_VOID_P=$CMAKE_SIZEOF_VOID_P \
-	-DDARWIN_macosx_SYSROOT=${DARWINSYSROOTPATH}
+	-DDARWIN_macosx_CACHED_SYSROOT=${DARWINSYSROOTPATH} \
+	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION} \
+	-DMACOS_ARM_SUPPORT=On
 if [ $? -ne 0 ]; then
 echo "compiler-rt builtins cmake failed"
 exit 1
@@ -152,7 +136,7 @@ echo "compiler-rt builtins ninja install failed"
 exit 1
 fi
 cd ${BUILTINSINSTALLPATH}/lib
-mv linux ${TARGETUNKNOWNTRIPLE}
+mv darwin ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
 for file in *-${TARGETTRIPLE_CPU}*; do
     new_name="${file//-${TARGETTRIPLE_CPU}-android/}"
@@ -197,10 +181,10 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-unused-command-line-argument" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib -Wno-unused-command-line-argument" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-unused-command-line-argument" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-unused-command-line-argument" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib -Wno-unused-command-line-argument" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument -L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-unused-command-line-argument" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -215,7 +199,9 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION}
+	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
+	-DDARWIN_macosx_SYSROOT=${DARWINSYSROOTPATH} \
+	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION}
 ninja -C . cxx_static
 ninja
 ninja install/strip
@@ -241,7 +227,9 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On
+	-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+	-DDARWIN_macosx_SYSROOT=${DARWINSYSROOTPATH} \
+	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION}
 if [ $? -ne 0 ]; then
 echo "compiler-rt cmake failure"
 exit 1
@@ -257,7 +245,7 @@ echo "compiler-rt ninja install/strip failure"
 exit 1
 fi
 cd ${COMPILERRTINSTALLPATH}/lib
-mv linux ${TARGETUNKNOWNTRIPLE}
+mv darwin ${TARGETUNKNOWNTRIPLE}
 cd ${TARGETUNKNOWNTRIPLE}
 for file in *-${TARGETTRIPLE_CPU}*; do
     new_name="${file//-${TARGETTRIPLE_CPU}-android/}"
@@ -294,9 +282,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_CXX_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
-	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
-	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
-	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -Wno-unused-command-line-argument" \
+	-DCMAKE_C_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument" \
+	-DCMAKE_CXX_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -fuse-lipo=llvm-lipo -stdlib=libc++ -lc++abi -Wno-unused-command-line-argument -lunwind" \
+	-DCMAKE_ASM_FLAGS="-rtlib=compiler-rt -fuse-ld=lld -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
 	-DZLIB_LIBRARY=$SYSROOTPATH/lib/libz.tbd \
@@ -306,7 +294,9 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION}
+	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
+	-DDARWIN_macosx_SYSROOT=${DARWINSYSROOTPATH} \
+	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION}
 fi
 cd $CURRENTTRIPLEPATH/llvm
 ninja
