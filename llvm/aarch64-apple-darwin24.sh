@@ -249,7 +249,6 @@ echo "ninja failed to install runtimes"
 exit 1
 fi
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
-fi
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.buildsuccess"
 fi
 
