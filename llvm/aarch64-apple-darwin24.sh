@@ -90,7 +90,7 @@ LIBTOOLPATH="$(which llvm-libtool-darwin)"
 LIPOPATH="$(which llvm-lipo)"
 
 # This is a universal binary for x86_64/aarch64
-FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64 -arch x86_64h"
+FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64"
 FLAGSCOMMONRUNTIMES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-flto=thin;-Wno-unused-command-line-argument"
 
 mkdir -p "${currentpath}/downloads"
