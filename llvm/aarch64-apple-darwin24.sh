@@ -240,7 +240,7 @@ fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
 cd $CURRENTTRIPLEPATH/runtimes
-ninja -v -C . cxx_static
+ninja -C . cxx_static
 if [ $? -ne 0 ]; then
 echo "ninja failed to build static runtimes"
 exit 1
