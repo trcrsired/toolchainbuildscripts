@@ -88,6 +88,7 @@ SYSROOTPATH="${DARWINSYSROOTPATH}/usr"
 
 LIBTOOLPATH="$(which llvm-libtool-darwin)"
 LIPOPATH="$(which llvm-lipo)"
+INSTALL_NAME_TOOLPATH="$(which llvm-install-name-tool)"
 
 # This is a universal binary for x86_64/aarch64
 FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64"
@@ -259,9 +260,16 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
 	-DDARWIN_macosx_CACHED_SYSROOT=${DARWINSYSROOTPATH} \
 	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION} \
-	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
-	-DCMAKE_LIPO=$LIPOPATH \
-	-DMACOS_ARM_SUPPORT=On
+	-DCMAKE_LIBTOOL="$LIBTOOLPATH" \
+	-DCMAKE_LIPO="$LIPOPATH" \
+	-DMACOS_ARM_SUPPORT=On \
+	-DLLDB_INCLUDE_TESTS=Off \
+	-DCMAKE_INSTALL_NAME_TOOL="${INSTALL_NAME_TOOLPATH}" \
+	-DCMAKE_AR=$(which llvm-ar) \
+	-DCMAKE_RANLIB=$(which llvm-ranlib) \
+	-DLLDB_NO_INSTALL_DEFAULT_RPATH=On \
+	-DCMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG="-Wl,-rpath,@executable_path/../lib" \
+	-DCMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG="-Wl,-rpath,@executable_path/../lib"
 fi
 cd $CURRENTTRIPLEPATH/llvm
 ninja
@@ -271,7 +279,7 @@ fi
 if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
 if [ ! -f "${canadianclangbuiltin}/lib/darwin/libclang_rt.osx.a" ]; then
-${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
+cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
 if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
