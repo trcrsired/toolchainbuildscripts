@@ -271,7 +271,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_AR="$ARPATH" \
 	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCMAKE_INSTALL_RPATH="@executable_path/../lib"
-if [ $? -eq 0 ]; then
+if [ $? -ne 0 ]; then
 echo "cmake failed to configure llvm"
 exit 1
 fi
@@ -279,12 +279,12 @@ echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.configuresuccess"
 fi
 cd $CURRENTTRIPLEPATH/llvm
 ninja
-if [ $? -eq 0 ]; then
+if [ $? -ne 0 ]; then
 echo "ninja failed to build llvm"
 exit 1
 fi
 ninja install/strip
-if [ $? -eq 0 ]; then
+if [ $? -ne 0 ]; then
 echo "ninja failed to install llvm"
 exit 1
 fi
