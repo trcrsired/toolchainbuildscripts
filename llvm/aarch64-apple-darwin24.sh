@@ -187,12 +187,12 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
-	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
-	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
+	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
+	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -214,7 +214,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
 	-DCMAKE_LIPO=$LIPOPATH \
 	-DMACOS_ARM_SUPPORT=On \
-	-DCOMPILER_RT_HAS_G_FLAG=On
+	-DCOMPILER_RT_HAS_G_FLAG=On \
+	-DLIBCXX_ENABLE_WIDE_CHARACTERS=Off
 ninja -C . cxx_static
 ninja
 ninja install/strip
