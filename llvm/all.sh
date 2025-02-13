@@ -15,6 +15,7 @@ fi
 #./x86_64-generic-linux-gnu.sh "$@"
 ./loongarch64-linux-gnu.sh "$@"
 ./riscv64-linux-gnu.sh "$@"
+./aarch64-apple-darwin24 "$@"
 ./wasm-sysroots.sh "$@"
 
 
