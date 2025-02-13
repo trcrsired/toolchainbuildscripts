@@ -164,7 +164,7 @@ fi
 
 if [ -z ${CXX_FOR_HOST+x} ]; then
 if [[ ${BUILD} != ${HOST} ]]; then
-CXX_FOR_HOST="$CLANGXX --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi -lunwind"
+CXX_FOR_HOST="$CLANGXX -fuse-ld=lld --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi -lunwind"
 else
 CXX_FOR_HOST="$CXX_FOR_BUILD"
 fi
