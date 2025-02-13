@@ -89,6 +89,8 @@ SYSROOTPATH="${DARWINSYSROOTPATH}/usr"
 LIBTOOLPATH="$(which llvm-libtool-darwin)"
 LIPOPATH="$(which llvm-lipo)"
 INSTALL_NAME_TOOLPATH="$(which llvm-install-name-tool)"
+ARPATH="$(which llvm-ar)"
+RANLIBPATH="$(which llvm-ranlib)"
 
 # This is a universal binary for x86_64/aarch64
 FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64"
@@ -225,7 +227,6 @@ fi
 if [ ! -d "$LLVMINSTALLPATH" ]; then
 if [ ! -d "$CURRENTTRIPLEPATH/llvm" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
-cd $CURRENTTRIPLEPATH/llvm
 cmake $LLVMPROJECTPATH/llvm \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
@@ -260,16 +261,15 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
 	-DDARWIN_macosx_CACHED_SYSROOT=${DARWINSYSROOTPATH} \
 	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION} \
+	-DCMAKE_OSX_ARCHITECTURES=$ARCHITECTURES \
 	-DCMAKE_LIBTOOL="$LIBTOOLPATH" \
 	-DCMAKE_LIPO="$LIPOPATH" \
 	-DMACOS_ARM_SUPPORT=On \
 	-DLLDB_INCLUDE_TESTS=Off \
 	-DCMAKE_INSTALL_NAME_TOOL="${INSTALL_NAME_TOOLPATH}" \
-	-DCMAKE_AR=$(which llvm-ar) \
-	-DCMAKE_RANLIB=$(which llvm-ranlib) \
-	-DLLDB_NO_INSTALL_DEFAULT_RPATH=On \
-	-DCMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG="-Wl,-rpath,@executable_path/../lib" \
-	-DCMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG="-Wl,-rpath,@executable_path/../lib"
+	-DCMAKE_AR="$ARPATH" \
+	-DCMAKE_RANLIB="$RANLIBPATH" \
+	-DCMAKE_INSTALL_RPATH="@executable_path/../lib"
 fi
 cd $CURRENTTRIPLEPATH/llvm
 ninja
