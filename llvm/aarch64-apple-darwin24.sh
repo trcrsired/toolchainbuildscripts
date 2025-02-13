@@ -190,8 +190,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
 	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
 	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
 	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
