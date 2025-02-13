@@ -125,8 +125,9 @@ fi
 
 # Define the path to libpthread.a
 LIBPTHREAD_PATH="$SYSROOT/usr/lib/libpthread.a"
-
 # Check if libpthread.a exists
+if [ "$NO_CREATE_LIBPTHREAD" != "yes" ]; then
+
 if [ ! -f "$LIBPTHREAD_PATH" ]; then
   echo "$LIBPTHREAD_PATH does not exist. Creating an empty libpthread.a..."
   
@@ -136,6 +137,7 @@ if [ ! -f "$LIBPTHREAD_PATH" ]; then
   echo "Empty libpthread.a created."
 else
   echo "$LIBPTHREAD_PATH already exists."
+fi
 fi
 
 if [ -z ${ARCH} ]; then
