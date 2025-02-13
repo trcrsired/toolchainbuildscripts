@@ -91,6 +91,8 @@ LIPOPATH="$(which llvm-lipo)"
 INSTALL_NAME_TOOLPATH="$(which llvm-install-name-tool)"
 ARPATH="$(which llvm-ar)"
 RANLIBPATH="$(which llvm-ranlib)"
+STRIPPATH="$(which llvm-strip)"
+NMPATH="$(which llvm-nm)"
 
 # This is a universal binary for x86_64/aarch64
 FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64"
@@ -138,6 +140,8 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
 	-DCMAKE_LIPO=$LIPOPATH \
 	-DMACOS_ARM_SUPPORT=On \
+	-DCMAKE_STRIP="$STRIPPATH" \
+	-DCMAKE_NM="$NMPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
 echo "compiler-rt cmake failed"
@@ -217,6 +221,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
 	-DCMAKE_LIPO=$LIPOPATH \
 	-DMACOS_ARM_SUPPORT=On \
+	-DCMAKE_STRIP="$STRIPPATH" \
+	-DCMAKE_NM="$NMPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 ninja -C . cxx_static
 ninja
@@ -270,6 +276,8 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_INSTALL_NAME_TOOL="${INSTALL_NAME_TOOLPATH}" \
 	-DCMAKE_AR="$ARPATH" \
 	-DCMAKE_RANLIB="$RANLIBPATH" \
+	-DCMAKE_STRIP="$STRIPPATH" \
+	-DCMAKE_NM="$NMPATH" \
 	-DCMAKE_INSTALL_RPATH="@executable_path/../lib"
 if [ $? -ne 0 ]; then
 echo "cmake failed to configure llvm"
