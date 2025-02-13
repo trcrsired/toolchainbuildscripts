@@ -141,6 +141,7 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_LIPO=$LIPOPATH \
 	-DMACOS_ARM_SUPPORT=On \
 	-DCMAKE_STRIP="$STRIPPATH" \
+	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCMAKE_NM="$NMPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
@@ -223,6 +224,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DMACOS_ARM_SUPPORT=On \
 	-DCMAKE_STRIP="$STRIPPATH" \
 	-DCMAKE_NM="$NMPATH" \
+	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
 echo "cmake	failed to configure runtimes"
