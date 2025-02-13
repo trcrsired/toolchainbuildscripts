@@ -177,7 +177,7 @@ mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT="$DARWINSYSROOTPATH" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes" \
+	-DCMAKE_SYSROOT="$DARWINSYSROOTPATH" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install" \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
@@ -200,8 +200,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
 	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
 	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_install/lib" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_install/lib" \
 	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
@@ -255,10 +255,11 @@ if [ $? -ne 0 ]; then
 echo "ninja failed to install runtimes"
 exit 1
 fi
-cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
+cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install"/* "${SYSROOTPATH}/"
+cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install" "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"
+rm "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib/libc++abi.dylib"
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.buildsuccess"
 fi
-
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
@@ -283,7 +284,7 @@ cmake $LLVMPROJECTPATH/llvm \
 	-DCMAKE_ASM_COMPILER_TARGET=${TARGETTRIPLE} \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
 	-DCMAKE_C_FLAGS="$FLAGSCOMMON -rtlib=compiler-rt" \
-	-DCMAKE_CXX_FLAGS="$FLAGSCOMMON -rtlib=compiler-rt -stdlib=libc++ -lc++abi -lunwind" \
+	-DCMAKE_CXX_FLAGS="$FLAGSCOMMON -rtlib=compiler-rt" \
 	-DCMAKE_ASM_FLAGS="$FLAGSCOMMON -rtlib=compiler-rt" \
 	-DLLVM_ENABLE_ZLIB=FORCE_ON \
 	-DZLIB_INCLUDE_DIR=$SYSROOTPATH/include \
@@ -316,7 +317,6 @@ fi
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.configuresuccess"
 fi
 
-
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.buildsuccess" ]; then
 cd $CURRENTTRIPLEPATH/llvm
 ninja
@@ -338,9 +338,11 @@ if [ ! -f "${canadianclangbuiltin}/lib/darwin/libclang_rt.osx.a" ]; then
 cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
-if [ ! -f ${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz ]; then
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagesuccess" ]; then
 	cd $TOOLCHAINS_LLVMPATH
+	rm -f ${TARGETTRIPLE}.tar.xz
 	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
 	chmod 755 ${TARGETTRIPLE}.tar.xz
+	echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.packagesuccess"
 fi
 fi
