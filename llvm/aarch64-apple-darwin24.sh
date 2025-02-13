@@ -143,6 +143,7 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DCMAKE_STRIP="$STRIPPATH" \
 	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCMAKE_NM="$NMPATH" \
+	-DCMAKE_AR="$ARPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
 echo "compiler-rt cmake failed"
@@ -224,6 +225,7 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DMACOS_ARM_SUPPORT=On \
 	-DCMAKE_STRIP="$STRIPPATH" \
 	-DCMAKE_NM="$NMPATH" \
+	-DCMAKE_AR="$ARPATH" \
 	-DCMAKE_RANLIB="$RANLIBPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
