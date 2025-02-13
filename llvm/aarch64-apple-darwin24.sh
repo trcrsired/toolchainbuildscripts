@@ -167,11 +167,11 @@ THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 EHBUILDLIBS="libcxx;libcxxabi;libunwind"
 ENABLE_EH=On
 
-if [ ! -d "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib" ]; then
-
 mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cd $CURRENTTRIPLEPATH/runtimes
 
+if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.configuresuccess" ]; then
+mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
@@ -197,8 +197,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
 	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
 	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
 	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
@@ -228,6 +228,11 @@ if [ $? -ne 0 ]; then
 echo "cmake	failed to configure runtimes"
 exit 1
 fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.configuresuccess"
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/runtimes/.buildsuccess" ]; then
+cd $CURRENTTRIPLEPATH/runtimes
 ninja -C . cxx_static
 if [ $? -ne 0 ]; then
 echo "ninja failed to build static runtimes"
@@ -245,10 +250,13 @@ exit 1
 fi
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.buildsuccess"
+fi
 
-if [ ! -d "$LLVMINSTALLPATH" ]; then
+
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.configuresuccess" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
+cd "$CURRENTTRIPLEPATH/llvm"
 cmake $LLVMPROJECTPATH/llvm \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
@@ -301,6 +309,9 @@ exit 1
 fi
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.configuresuccess"
 fi
+
+
+if [ ! -f "$CURRENTTRIPLEPATH/llvm/.buildsuccess" ]; then
 cd $CURRENTTRIPLEPATH/llvm
 ninja
 if [ $? -ne 0 ]; then
@@ -312,6 +323,7 @@ if [ $? -ne 0 ]; then
 echo "ninja failed to install llvm"
 exit 1
 fi
+echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/llvm/.buildsuccess"
 fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
