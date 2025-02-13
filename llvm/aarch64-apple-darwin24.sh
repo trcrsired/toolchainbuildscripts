@@ -95,7 +95,7 @@ STRIPPATH="$(which llvm-strip)"
 NMPATH="$(which llvm-nm)"
 
 # This is a universal binary for x86_64/aarch64
-FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64"
+FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument"
 FLAGSCOMMONRUNTIMES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-flto=thin;-Wno-unused-command-line-argument"
 
 mkdir -p "${currentpath}/downloads"
