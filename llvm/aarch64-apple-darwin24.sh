@@ -224,9 +224,25 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_STRIP="$STRIPPATH" \
 	-DCMAKE_NM="$NMPATH" \
 	-DCOMPILER_RT_HAS_G_FLAG=On
+if [ $? -ne 0 ]; then
+echo "cmake	failed to configure runtimes"
+exit 1
+fi
 ninja -C . cxx_static
+if [ $? -ne 0 ]; then
+echo "ninja failed to build static runtimes"
+exit 1
+fi
 ninja
+if [ $? -ne 0 ]; then
+echo "ninja failed to build runtimes"
+exit 1
+fi
 ninja install/strip
+if [ $? -ne 0 ]; then
+echo "ninja failed to install runtimes"
+exit 1
+fi
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
