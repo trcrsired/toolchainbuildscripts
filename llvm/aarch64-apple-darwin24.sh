@@ -256,7 +256,9 @@ echo "ninja failed to install runtimes"
 exit 1
 fi
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install"/* "${SYSROOTPATH}/"
-cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install" "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"
+rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"
+cd "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+cp -r --preserve=links runtimes_install runtimes
 rm "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib/libc++abi.dylib"
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.buildsuccess"
 fi
