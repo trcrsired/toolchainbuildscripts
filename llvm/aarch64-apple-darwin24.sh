@@ -91,6 +91,7 @@ LIPOPATH="$(which llvm-lipo)"
 
 # This is a universal binary for x86_64/aarch64
 FLAGSCOMMON="-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument -arch x86_64 -arch arm64 -arch x86_64h"
+FLAGSCOMMONRUNTIMES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-flto=thin;-Wno-unused-command-line-argument"
 
 mkdir -p "${currentpath}/downloads"
 mkdir -p ${SYSROOTPATH}
@@ -104,7 +105,7 @@ fi
 
 CURRENTTRIPLEPATH=${currentpath}
 
-if [ ! -f "${COMPILERRTINSTALLPATH}/lib/darwin/libclang_rt.builtins.a" ]; then
+if [ ! -f "${COMPILERRTINSTALLPATH}/lib/darwin/libclang_rt.osx.a" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/compiler-rt"
 cd $CURRENTTRIPLEPATH/compiler-rt
 cmake $LLVMPROJECTPATH/compiler-rt \
@@ -133,7 +134,8 @@ cmake $LLVMPROJECTPATH/compiler-rt \
 	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION} \
 	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
 	-DCMAKE_LIPO=$LIPOPATH \
-	-DMACOS_ARM_SUPPORT=On
+	-DMACOS_ARM_SUPPORT=On \
+	-DCOMPILER_RT_HAS_G_FLAG=On
 if [ $? -ne 0 ]; then
 echo "compiler-rt cmake failed"
 exit 1
@@ -150,8 +152,6 @@ exit 1
 fi
 cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 fi
-
-exit 1
 
 THREADS_FLAGS="-DLIBCXXABI_ENABLE_THREADS=On \
 	-DLIBCXX_ENABLE_THREADS=On \
@@ -187,10 +187,12 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off -DLIBCXX_INCLUDE_BENCHMARKS=Off \
 	-DLIBCXX_ENABLE_SHARED=On -DLIBCXXABI_ENABLE_SHARED=On \
 	-DLIBUNWIND_ENABLE_SHARED=On \
-	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMON -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals" -DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -Wno-unused-command-line-argument" -DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="-fuse-ld=lld -flto=thin -rtlib=compiler-rt -Wno-macro-redefined -Wno-unused-command-line-argument" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="$FLAGSCOMMON -rtlib=compiler-rt -stdlib=libc++ -nostdinc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="$FLAGSCOMMON -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined -Wno-user-defined-literals -L$CURRENTTRIPLEPATH/runtimes/lib" \
-	-DLIBUNWIND_ADDITIONAL_LIBRARIES="$FLAGSCOMMON -rtlib=compiler-rt -stdlib=libc++ -Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
+	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
+	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-Wno-macro-redefined" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes/lib" \
+	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-rtlib=compiler-rt;-stdlib=libc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
 	-DLIBCXX_USE_LLVM_UNWINDER=On \
@@ -206,20 +208,20 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
 	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
 	-DCMAKE_SYSTEM_VERSION=${SYSTEMVERSION} \
+	-DCMAKE_OSX_ARCHITECTURES=$ARCHITECTURES \
 	-DDARWIN_macosx_CACHED_SYSROOT=${DARWINSYSROOTPATH} \
 	-DDARWIN_macosx_OVERRIDE_SDK_VERSION=${DARWINVERSION} \
 	-DCMAKE_LIBTOOL=$LIBTOOLPATH \
 	-DCMAKE_LIPO=$LIPOPATH \
-	-DMACOS_ARM_SUPPORT=On
+	-DMACOS_ARM_SUPPORT=On \
+	-DCOMPILER_RT_HAS_G_FLAG=On
 ninja -C . cxx_static
 ninja
 ninja install/strip
-cd ${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes/lib
-rm libc++.so
-ln -s libc++.so.1 libc++.so
 cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes"/* "${SYSROOTPATH}/"
 fi
 
+exit 1
 if [ ! -d "$LLVMINSTALLPATH" ]; then
 if [ ! -d "$CURRENTTRIPLEPATH/llvm" ]; then
 mkdir -p "$CURRENTTRIPLEPATH/llvm"
@@ -269,7 +271,7 @@ fi
 
 if [ -d "$LLVMINSTALLPATH" ]; then
 canadianclangbuiltin="${LLVMINSTALLPATH}/lib/clang/${clang_major_version}"
-if [ ! -f "${canadianclangbuiltin}/lib/darwin/libclang_rt.builtins.a" ]; then
+if [ ! -f "${canadianclangbuiltin}/lib/darwin/libclang_rt.osx.a" ]; then
 ${sudocommand} cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${canadianclangbuiltin}/"
 fi
 
