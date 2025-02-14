@@ -158,7 +158,7 @@ fi
 
 if [ -z ${CC_FOR_HOST+x} ]; then
 if [[ ${BUILD} != ${HOST} ]]; then
-CC_FOR_HOST="$CLANG --target=$HOST --sysroot=$SYSROOT -rtlib=compiler-rt --unwindlib=libunwind"
+CC_FOR_HOST="$CLANG --target=$HOST --sysroot=$SYSROOT -fuse-ld=lld -rtlib=compiler-rt --unwindlib=libunwind"
 else
 CC_FOR_HOST="$CC_FOR_BUILD"
 fi
