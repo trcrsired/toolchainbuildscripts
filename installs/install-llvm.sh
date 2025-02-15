@@ -171,7 +171,7 @@ if [ -n "$TRIPLE" ]; then
         echo "Downloading $file to $WAVM_INSTALL_PATH"
         download_file "$WAVM_URL/${file}.tar.xz" "$WAVM_INSTALL_PATH/${file}.tar.xz"
         echo "Extracting ${file}.tar.xz to $WAVM_INSTALL_PATH"
-        tar -xf "$WAVM_INSTALL_PATH/${file}.tar.xz" -C "$WAVM_INSTALL_PATH" --hard-dereference
+        tar -xf "$WAVM_INSTALL_PATH/${file}.tar.xz" -C "$WAVM_INSTALL_PATH"
     done
 
     echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
@@ -201,8 +201,8 @@ if [ -n "$TRIPLE" ]; then
     download_file "$WINE_URL" "$SOFTWAREPATH/wine/$TRIPLE.tar.xz"
     echo "Extracting $TRIPLE Wine release to $SOFTWAREPATH/wine"
     
-    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
-    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
+    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
+    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
 
 fi
 
