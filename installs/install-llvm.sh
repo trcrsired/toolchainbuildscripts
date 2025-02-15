@@ -129,7 +129,9 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
 ./llvmbuiltins.sh
 
-if [ "x$ISDARWIN" != "xyes" ]; then
+if [ "x$ISDARWIN" == "xyes" ]; then
+exit 1
+fi
 
 if [ -n "$TRIPLE" ]; then
     WAVM_FILES=(
@@ -201,8 +203,6 @@ if [ -n "$TRIPLE" ]; then
     
     echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
     tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
-
-fi
 
 fi
 
