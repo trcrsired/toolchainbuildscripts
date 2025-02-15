@@ -28,7 +28,7 @@ for tar_file in "$TOOLCHAINSPATH_LLVM"/*.tar.xz; do
         rm -rf "$tar_dir"
     fi
     echo "Extracting $tar_file to $TOOLCHAINSPATH_LLVM"
-    tar -xf "$tar_file" -C "$TOOLCHAINSPATH_LLVM" --hard-dereference
+    tar -xf "$tar_file" -C "$TOOLCHAINSPATH_LLVM"
 done
 
 # Copy files from TOOLCHAINSPATH_LLVM subdirectories containing 'compiler-rt' or 'builtins' to destination directories
