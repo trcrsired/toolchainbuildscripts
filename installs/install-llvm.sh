@@ -51,6 +51,7 @@ ARCH=$(echo $TRIPLE | cut -d'-' -f1)
 # Determine the list of files to download
 if [ "$DOWNLOAD_ALL" == "yes" ]; then
     FILES=(
+	"aarch64-apple-darwin24"
         "aarch64-windows-gnu"
         "aarch64-linux-gnu"
         "aarch64-linux-android30"
