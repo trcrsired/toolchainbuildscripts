@@ -130,7 +130,7 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 ./llvmbuiltins.sh
 
 if [ "x$ISDARWIN" == "xyes" ]; then
-exit 1
+exit
 fi
 
 if [ -n "$TRIPLE" ]; then
