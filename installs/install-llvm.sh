@@ -34,13 +34,13 @@ if [ -z ${TRIPLE+x} ]; then
                 TRIPLE="aarch64-linux-gnu"
             fi
         fi
-    elif [[ "$UNAME" == *"Darwin"* ]]; then
+    elif [[ "$(uname -s)" == "Darwin" ]]; then
 	ISDARWIN=yes
-	if [[ "$UNAME" == *"x86_64"* ]]; then
-                TRIPLE="x86_64-apple-darwin24"
-	elif [[ "$UNAME" == *"aarch64"* ]]; then
-        	TRIPLE="aarch64-apple-darwin24"
-        fi
+	MACHINEARCH=$(uname -m)
+	if [[ "$MACHINEARCH" == "arm64" ]]; then
+		MACHINEARCH=aarch64
+	fi
+        TRIPLE="$MACHINEARCH-apple-darwin24"
     fi
 fi
 
