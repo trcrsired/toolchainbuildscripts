@@ -34,6 +34,13 @@ if [ -z ${TRIPLE+x} ]; then
                 TRIPLE="aarch64-linux-gnu"
             fi
         fi
+    elif [[ "$UNAME" == *"Darwin"* ]]; then
+	ISDARWIN=yes
+	if [[ "$UNAME" == *"x86_64"* ]]; then
+                TRIPLE="x86_64-apple-darwin24"
+	elif [[ "$UNAME" == *"aarch64"* ]]; then
+        	TRIPLE="aarch64-apple-darwin24"
+        fi
     fi
 fi
 
@@ -122,6 +129,8 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
 ./llvmbuiltins.sh
 
+if [ "x$ISDARWIN" != "xyes" ]; then
+
 if [ -n "$TRIPLE" ]; then
     WAVM_FILES=(
     "$ARCH-windows-gnu"
@@ -192,6 +201,8 @@ if [ -n "$TRIPLE" ]; then
     
     echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
     tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine" --hard-dereference
+
+fi
 
 fi
 
