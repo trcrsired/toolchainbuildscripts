@@ -177,7 +177,7 @@ mkdir -p "$CURRENTTRIPLEPATH/runtimes"
 cmake $LLVMPROJECTPATH/runtimes \
 	-GNinja -DCMAKE_BUILD_TYPE=Release \
 	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
-	-DCMAKE_SYSROOT="$DARWINSYSROOTPATH" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install" \
+	-DCMAKE_SYSROOT="$DARWINSYSROOTPATH" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_rpath" \
 	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
 	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
 	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU_ALIAS \
@@ -200,8 +200,8 @@ cmake $LLVMPROJECTPATH/runtimes \
 	-DLIBCXX_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals" \
 	-DLIBCXXABI_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-stdlib=libc++;-Wno-macro-redefined;-Wno-user-defined-literals;-Wno-unused-command-line-argument" \
 	-DLIBUNWIND_ADDITIONAL_COMPILE_FLAGS="$FLAGSCOMMONRUNTIMES;-rtlib=compiler-rt;-nostdinc++;-Wno-macro-redefined" \
-	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_install/lib" \
-	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_install/lib" \
+	-DLIBCXX_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_rpath/lib" \
+	-DLIBCXXABI_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined;-Wno-user-defined-literals;-L$CURRENTTRIPLEPATH/runtimes_rpath/lib" \
 	-DLIBUNWIND_ADDITIONAL_LIBRARIES="-fuse-ld=lld;-fuse-lipo=llvm-lipo;-rtlib=compiler-rt;-stdlib=libc++;-nostdinc++;-Wno-macro-redefined" \
 	-DLIBCXX_USE_COMPILER_RT=On \
 	-DLIBCXXABI_USE_COMPILER_RT=On \
@@ -255,7 +255,7 @@ if [ $? -ne 0 ]; then
 echo "ninja failed to install runtimes"
 exit 1
 fi
-cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_install"/* "${SYSROOTPATH}/"
+cp -r --preserve=links "${TOOLCHAINS_LLVMSYSROOTSPATH}/runtimes_rpath"/* "${SYSROOTPATH}/"
 echo "$(date --iso-8601=seconds)" > "$CURRENTTRIPLEPATH/runtimes/.buildsuccess"
 fi
 
