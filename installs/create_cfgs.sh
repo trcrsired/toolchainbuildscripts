@@ -23,9 +23,7 @@ fi
 
 # Create necessary directories
 mkdir -p "$TOOLCHAINSPATH_LLVM"
-
-# Ensure directories exist
-mkdir -p "$CFGS"
+mkdir -p "$CFGS/c"
 mkdir -p "$LIBRARIES"
 
 # Absolute paths
@@ -34,65 +32,68 @@ ABS_TOOLCHAINSPATH=$(realpath "$TOOLCHAINSPATH")
 ABS_TOOLCHAINSPATH_LLVM=$(realpath "$TOOLCHAINSPATH_LLVM")
 ABS_LIBRARIES=$(realpath "$LIBRARIES")
 
-# Function to create a config file
+# Function to create a config file for C and C++
 create_cfg_file() {
     local cfg_name=$1
     local target=$2
     local sysroot=$3
-    local standard_flags=$4
-    local extra_flags=$5
+    local standard_flags_c=$4
+    local standard_flags_cpp=$5
+    local extra_flags=$6
 
+    # C config
+    cat <<EOL > "$CFGS/c/$cfg_name"
+-std=c23 --target=$target --sysroot=$sysroot $standard_flags_c $extra_flags -I$ABS_LIBRARIES/fast_io/include
+EOL
+
+    # C++ config
     cat <<EOL > "$CFGS/$cfg_name"
--std=c++26 -fuse-ld=lld --target=$target --sysroot=$sysroot $standard_flags $extra_flags -I$ABS_LIBRARIES/fast_io/include
+-std=c++26 -fuse-ld=lld --target=$target --sysroot=$sysroot $standard_flags_cpp $extra_flags -I$ABS_LIBRARIES/fast_io/include
 EOL
 }
 
-# Standard flags
-STANDARD_FLAGS="-rtlib=compiler-rt \
+# Standard flags for C
+STANDARD_FLAGS_C="-rtlib=compiler-rt \
+--unwindlib=libunwind"
+
+# Standard flags for C++
+STANDARD_FLAGS_CPP="-rtlib=compiler-rt \
 --unwindlib=libunwind \
 -stdlib=libc++ \
 -lunwind \
 -lc++abi"
 
-STANDARD_NOEH_FLAGS="-rtlib=compiler-rt \
---unwindlib=libunwind \
--stdlib=libc++ \
--lc++abi \
--fno-exceptions \
--fno-rtti"
-
 # Create .cfg files for different triples
-create_cfg_file "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" "$STANDARD_FLAGS" "-lntdll"
-create_cfg_file "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" "$STANDARD_FLAGS" "-lntdll"
-create_cfg_file "x86_64-linux-gnu-libcxx.cfg" "x86_64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-gnu/x86_64-linux-gnu" "$STANDARD_FLAGS" ""
-create_cfg_file "aarch64-linux-gnu-libcxx.cfg" "aarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-gnu/aarch64-linux-gnu" "$STANDARD_FLAGS" ""
-create_cfg_file "aarch64-linux-android30-libcxx.cfg" "aarch64-linux-android30" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-android30/aarch64-linux-android30" "$STANDARD_FLAGS" ""
-create_cfg_file "x86_64-linux-android30-libcxx.cfg" "x86_64-linux-android30" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-android30/x86_64-linux-android30" "$STANDARD_FLAGS" ""
-create_cfg_file "loongarch64-linux-gnu-libcxx.cfg" "loongarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/loongarch64-linux-gnu/loongarch64-linux-gnu" "$STANDARD_FLAGS" ""
-create_cfg_file "riscv64-linux-gnu-libcxx.cfg" "riscv64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/riscv64-linux-gnu/riscv64-linux-gnu" "$STANDARD_FLAGS" ""
+create_cfg_file "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
+create_cfg_file "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
+create_cfg_file "x86_64-linux-gnu-libcxx.cfg" "x86_64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-gnu/x86_64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "aarch64-linux-gnu-libcxx.cfg" "aarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-gnu/aarch64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "aarch64-linux-android30-libcxx.cfg" "aarch64-linux-android30" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-android30/aarch64-linux-android30" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "x86_64-linux-android30-libcxx.cfg" "x86_64-linux-android30" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-android30/x86_64-linux-android30" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "loongarch64-linux-gnu-libcxx.cfg" "loongarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/loongarch64-linux-gnu/loongarch64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "riscv64-linux-gnu-libcxx.cfg" "riscv64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/riscv64-linux-gnu/riscv64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 
-create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64" ""
+create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "$STANDARD_FLAGS_C" "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64" ""
 
 # Create wasm .cfg files
-create_cfg_file "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS" "-fsanitize=memtag -fwasm-exceptions"
-create_cfg_file "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS" "-fsanitize=memtag -fwasm-exceptions"
-create_cfg_file "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_NOEH_FLAGS" "-fsanitize=memtag"
-create_cfg_file "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_NOEH_FLAGS" "-fsanitize=memtag"
-create_cfg_file "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS" "-fwasm-exceptions"
-create_cfg_file "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS" "-fwasm-exceptions"
-create_cfg_file "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_NOEH_FLAGS" ""
-create_cfg_file "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_NOEH_FLAGS" ""
+create_cfg_file "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag -fwasm-exceptions"
+create_cfg_file "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag -fwasm-exceptions"
+create_cfg_file "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag"
+create_cfg_file "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag"
+create_cfg_file "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fwasm-exceptions"
+create_cfg_file "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fwasm-exceptions"
+create_cfg_file "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
+create_cfg_file "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 
 # Create msvc .cfg files
-create_cfg_file "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt"
-create_cfg_file "aarch64-windows-msvc.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt"
-create_cfg_file "i686-windows-msvc.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt"
+create_cfg_file "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "$STANDARD_FLAGS_C" "" "-D_DLL=1 -lmsvcrt"
+create_cfg_file "aarch64-windows-msvc.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "$STANDARD_FLAGS_C" "" "-D_DLL=1 -lmsvcrt"
+create_cfg_file "i686-windows-msvc.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "$STANDARD_FLAGS_C" "" "-D_DLL=1 -lmsvcrt"
 
 # Create msvc .cfg files with libcxx
-create_cfg_file "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
-create_cfg_file "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
-create_cfg_file "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
-
+create_cfg_file "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "$STANDARD_FLAGS_C" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
+create_cfg_file "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "$STANDARD_FLAGS_C" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
+create_cfg_file "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot"
 
 if [ ! -d "$LIBRARIES/fast_io" ]; then
 git clone --quiet git@github.com:trcrsired/fast_io.git "$LIBRARIES/fast_io"
