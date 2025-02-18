@@ -1,50 +1,70 @@
 # Please run the following command to allow the script to run:
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-# Set HOME if not set
-if (-not $env:HOME) {
-    $env:HOME = [System.Environment]::GetFolderPath("UserProfile")
+# Replace backslashes with forward slashes
+function Convert-PathToDoubleBackslashes {
+    param (
+        [string]$path
+    )
+    return $path
 }
 
 # Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
 if (-not $env:TOOLCHAINSPATH) {
-    $env:TOOLCHAINSPATH = "$env:HOME/toolchains"
+    $TOOLCHAINSPATH = "$env:HOME/toolchains"
 }
-
-# Create necessary directories
-if (-not (Test-Path -Path $env:TOOLCHAINSPATH)) {
-    New-Item -ItemType Directory -Force -Path $env:TOOLCHAINSPATH
+else {
+    $TOOLCHAINSPATH = "$env:TOOLCHAINSPATH"
 }
 
 # Check if TOOLCHAINSPATH_LLVM environment variable is set, otherwise use $TOOLCHAINSPATH/llvm
 if (-not $env:TOOLCHAINSPATH_LLVM) {
-    $env:TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH/llvm"
+    $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH/llvm"
+}
+else {
+    $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH_LLVM"
 }
 
 if (-not $env:LIBRARIES) {
-    $env:LIBRARIES = "$env:HOME/libraries"
+    $LIBRARIES = "$env:HOME/libraries"
+}
+else {
+    $LIBRARIES = "$env:LIBRARIES"
 }
 
 if (-not $env:CFGS) {
-    $env:CFGS = "$env:HOME/cfgs"
+    $CFGS = "$env:HOME/cfgs"
+}
+else {
+    $CFGS = "$env:CFGS"
 }
 
 # Create necessary directories
-if (-not (Test-Path -Path $env:TOOLCHAINSPATH_LLVM)) {
-    New-Item -ItemType Directory -Force -Path $env:TOOLCHAINSPATH_LLVM
+if (-not (Test-Path -Path $TOOLCHAINSPATH_LLVM)) {
+    New-Item -ItemType Directory -Force -Path $TOOLCHAINSPATH_LLVM
 }
-if (-not (Test-Path -Path "$env:CFGS/c")) {
-    New-Item -ItemType Directory -Force -Path "$env:CFGS/c"
+if (-not (Test-Path -Path "$CFGS/c")) {
+    New-Item -ItemType Directory -Force -Path "$CFGS/c"
 }
-if (-not (Test-Path -Path $env:LIBRARIES)) {
-    New-Item -ItemType Directory -Force -Path $env:LIBRARIES
+if (-not (Test-Path -Path $LIBRARIES)) {
+    New-Item -ItemType Directory -Force -Path $LIBRARIES
 }
 
+function ConvertToUnixPath {
+    param (
+        [string]$path
+    )
+    return $path -replace '\\', '/'
+}
 # Absolute paths
-$ABS_HOME = [System.IO.Path]::GetFullPath($env:HOME)
-$ABS_TOOLCHAINSPATH = [System.IO.Path]::GetFullPath($env:TOOLCHAINSPATH)
-$ABS_TOOLCHAINSPATH_LLVM = [System.IO.Path]::GetFullPath($env:TOOLCHAINSPATH_LLVM)
-$ABS_LIBRARIES = [System.IO.Path]::GetFullPath($env:LIBRARIES)
+$ABS_HOME = [System.IO.Path]::GetFullPath($HOME)
+$ABS_TOOLCHAINSPATH = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH)
+$ABS_TOOLCHAINSPATH_LLVM = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH_LLVM)
+$ABS_LIBRARIES = [System.IO.Path]::GetFullPath($LIBRARIES)
+
+$ABS_TOOLCHAINSPATH = ConvertToUnixPath $ABS_TOOLCHAINSPATH
+$ABS_TOOLCHAINSPATH_LLVM = ConvertToUnixPath $ABS_TOOLCHAINSPATH_LLVM
+$ABS_LIBRARIES = ConvertToUnixPath $ABS_LIBRARIES
 
 # Function to create a config file for C and C++
 function Create-CfgFile {
@@ -61,13 +81,13 @@ function Create-CfgFile {
     $cConfig = @"
 -std=c23 --target=$target --sysroot=$sysroot $standardFlagsC $extraFlags -I$ABS_LIBRARIES/fast_io/include
 "@
-    Set-Content -Path "$env:CFGS/c/$cfgName" -Value $cConfig
+    Set-Content -Path "$CFGS/c/$cfgName" -Value $cConfig
 
     # C++ config
     $cppConfig = @"
 -std=c++26 -fuse-ld=lld --target=$target --sysroot=$sysroot $standardFlagsCpp $extraFlags -I$ABS_LIBRARIES/fast_io/include
 "@
-    Set-Content -Path "$env:CFGS/$cfgName" -Value $cppConfig
+    Set-Content -Path "$CFGS/$cfgName" -Value $cppConfig
 }
 
 # Standard flags for C
@@ -109,7 +129,7 @@ Create-CfgFile "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TO
 Create-CfgFile "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" $STANDARD_FLAGS_C "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
 # Clone fast_io repository if not already present
-$fastIoPath = "$env:LIBRARIES/fast_io"
+$fastIoPath = "$LIBRARIES/fast_io"
 if (-not (Test-Path -Path $fastIoPath)) {
     git clone --quiet "git@github.com:trcrsired/fast_io.git" $fastIoPath
     if ($LASTEXITCODE -ne 0) {
