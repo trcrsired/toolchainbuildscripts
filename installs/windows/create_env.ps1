@@ -8,6 +8,10 @@ function Run-Command {
     )
 
     Invoke-Expression $command
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "$command failure"
+        exit 1
+    }
 }
 
 # Set the environment variable
