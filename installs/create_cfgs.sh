@@ -63,6 +63,9 @@ STANDARD_FLAGS_CPP="-rtlib=compiler-rt \
 -lunwind \
 -lc++abi"
 
+# Flags for Darwin
+FLAGS_DARWIN = "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
+
 # Create .cfg files for different triples
 create_cfg_file "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
 create_cfg_file "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
@@ -73,7 +76,7 @@ create_cfg_file "x86_64-linux-android30-libcxx.cfg" "x86_64-linux-android30" "$A
 create_cfg_file "loongarch64-linux-gnu-libcxx.cfg" "loongarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/loongarch64-linux-gnu/loongarch64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 create_cfg_file "riscv64-linux-gnu-libcxx.cfg" "riscv64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/riscv64-linux-gnu/riscv64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 
-create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "$STANDARD_FLAGS_C" "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64" ""
+create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "" "" "$FLAGS_DARWIN"
 
 # Create wasm .cfg files
 create_cfg_file "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag -fwasm-exceptions"
