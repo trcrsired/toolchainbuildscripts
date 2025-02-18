@@ -131,7 +131,6 @@ if (-not (Test-Path -Path $fastIoPath)) {
 }
 
 # Pull the latest changes from the fast_io repository
-Set-Location -Path $fastIoPath
-git pull --quiet
+git -C $fastIoPath pull --quiet
 
 Write-Host "Configuration files and repository setup completed successfully."
