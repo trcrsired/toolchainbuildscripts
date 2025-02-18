@@ -219,3 +219,88 @@ Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM/*/llvm/lib/clang/*" -Directory | F
 }
 
 Write-Host "Files copied successfully to subdirectories of $env:TOOLCHAINSPATH_LLVM containing llvm/lib/clang/{version}/"
+
+# Check and update PATH
+function Update-Path {
+    param (
+        [string]$newPath
+    )
+
+    $currentPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::User)
+    if ($currentPath -notlike "*$newPath*") {
+        [System.Environment]::SetEnvironmentVariable("PATH", "$currentPath;$newPath", [System.EnvironmentVariableTarget]::User)
+        Write-Host "Added $newPath to PATH"
+    } else {
+        Write-Host "$newPath is already in PATH"
+    }
+}
+
+# Function to get the latest release version if not set
+function Get-WavmLatestReleaseVersion {
+    param (
+        [string]$repoUrl
+    )
+    if (-not $env:WAVM_RELEASE_VERSION) {
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            $WAVM_RELEASE_VERSION = git ls-remote --tags $repoUrl |
+                Select-String -Pattern 'refs/tags/[^{}]*$' |
+                ForEach-Object { $_.ToString().Replace('refs/tags/', '') } |
+                Sort-Object |
+                Select-Object -Last 1
+            if (-not $WAVM_RELEASE_VERSION) {
+                Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
+                exit 1
+            }
+        } else {
+            Write-Host "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+            exit 1
+        }
+    }
+}
+
+# Get the latest release version from the WAVM repository
+Get-WavmLatestReleaseVersion -repoUrl "https://github.com/trcrsired/wavm-release.git"
+
+$WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$WAVM_RELEASE_VERSION"
+
+# Ensure SOFTWAREPATH is set
+if (-not $env:SOFTWAREPATH) {
+    $env:SOFTWAREPATH = "$env:HOME/softwares"
+}
+
+$WAVM_INSTALL_PATH = "$env:SOFTWAREPATH/wavm"
+
+# Create necessary directories
+if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
+    New-Item -ItemType Directory -Force -Path $WAVM_INSTALL_PATH
+}
+
+foreach ($file in $WAVM_FILES) {
+    $destFilePath = "$WAVM_INSTALL_PATH/$file.tar.xz"
+    if (Test-Path -Path $destFilePath) {
+        Remove-Item -Force -Path $destFilePath
+    }
+
+    Write-Host "Downloading $file to $WAVM_INSTALL_PATH"
+    Download-File -url "$WAVM_URL/$file.tar.xz" -dest $destFilePath
+
+    Write-Host "Extracting $file.tar.xz to $WAVM_INSTALL_PATH"
+    tar -xf $destFilePath -C $WAVM_INSTALL_PATH
+}
+
+# Define the paths to check
+$pathsToCheck = @(
+    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\llvm\bin",
+    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\compiler-rt\lib\windows",
+    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\$ARCH-windows-gnu\bin",
+    "$env:WAVM_INSTALL_PATH\$ARCH-windows-gnu\bin"
+)
+
+# Check each path and update PATH if necessary
+foreach ($path in $pathsToCheck) {
+    if (-not (Test-Path -Path $path)) {
+        Write-Host "Path $path does not exist"
+    } else {
+        Update-Path -newPath $path
+    }
+}
