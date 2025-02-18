@@ -235,33 +235,39 @@ function Update-Path {
     }
 }
 
-# Function to get the latest release version if not set
-function Get-WavmLatestReleaseVersion {
-    param (
-        [string]$repoUrl
-    )
-    if (-not $env:WAVM_RELEASE_VERSION) {
-        if (Get-Command git -ErrorAction SilentlyContinue) {
-            $WAVM_RELEASE_VERSION = git ls-remote --tags $repoUrl |
-                Select-String -Pattern 'refs/tags/[^{}]*$' |
-                ForEach-Object { $_.ToString().Replace('refs/tags/', '') } |
-                Sort-Object |
-                Select-Object -Last 1
-            if (-not $WAVM_RELEASE_VERSION) {
-                Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
-                exit 1
-            }
-        } else {
-            Write-Host "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+# Function to get the latest release version
+function Get-WAVMLatestReleaseVersion {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        # Fetch tags
+        $tagsOutput = git ls-remote --tags https://github.com/trcrsired/wavm-release.git
+        
+        # Split the output into lines and process the tags
+        $tags = $tagsOutput -split "`n" | ForEach-Object { $_ -replace '.*refs/tags/', '' }
+        
+        # Get the last tag
+        $WAVM_RELEASE_VERSION = ($tags | Select-Object -Last 1).Trim()
+
+        if (-not $WAVM_RELEASE_VERSION) {
+            Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
             exit 1
+        } else {
+            $env:WAVM_RELEASE_VERSION = $WAVM_RELEASE_VERSION
         }
+    } else {
+        Write-Host "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+        exit 1
     }
 }
 
-# Get the latest release version from the WAVM repository
-Get-WavmLatestReleaseVersion -repoUrl "https://github.com/trcrsired/wavm-release.git"
+# Check if WAVM_RELEASE_VERSION is not set
+if (-not $env:WAVM_RELEASE_VERSION) {
+    Get-WAVMLatestReleaseVersion
+}
 
-$WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$WAVM_RELEASE_VERSION"
+Write-Host "Latest WAVM release version: $env:WAVM_RELEASE_VERSION"
+
+
+$WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$env:WAVM_RELEASE_VERSION"
 
 # Ensure SOFTWAREPATH is set
 if (-not $env:SOFTWAREPATH) {
