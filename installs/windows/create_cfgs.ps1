@@ -25,11 +25,11 @@ else {
     $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH_LLVM"
 }
 
-if (-not $env:LIBRARIES) {
-    $LIBRARIES = "$env:HOME/libraries"
+if (-not $env:LIBRARIESPATH) {
+    $LIBRARIESPATH = "$env:HOME/libraries"
 }
 else {
-    $LIBRARIES = "$env:LIBRARIES"
+    $LIBRARIESPATH = "$env:LIBRARIESPATH"
 }
 
 if (-not $env:CFGS) {
@@ -46,8 +46,8 @@ if (-not (Test-Path -Path $TOOLCHAINSPATH_LLVM)) {
 if (-not (Test-Path -Path "$CFGS/c")) {
     New-Item -ItemType Directory -Force -Path "$CFGS/c"
 }
-if (-not (Test-Path -Path $LIBRARIES)) {
-    New-Item -ItemType Directory -Force -Path $LIBRARIES
+if (-not (Test-Path -Path $LIBRARIESPATH)) {
+    New-Item -ItemType Directory -Force -Path $LIBRARIESPATH
 }
 
 function ConvertToUnixPath {
@@ -60,7 +60,7 @@ function ConvertToUnixPath {
 $ABS_HOME = [System.IO.Path]::GetFullPath($HOME)
 $ABS_TOOLCHAINSPATH = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH)
 $ABS_TOOLCHAINSPATH_LLVM = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH_LLVM)
-$ABS_LIBRARIES = [System.IO.Path]::GetFullPath($LIBRARIES)
+$ABS_LIBRARIES = [System.IO.Path]::GetFullPath($LIBRARIESPATH)
 
 $ABS_TOOLCHAINSPATH = ConvertToUnixPath $ABS_TOOLCHAINSPATH
 $ABS_TOOLCHAINSPATH_LLVM = ConvertToUnixPath $ABS_TOOLCHAINSPATH_LLVM
@@ -129,7 +129,7 @@ Create-CfgFile "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TO
 Create-CfgFile "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" $STANDARD_FLAGS_C "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
 # Clone fast_io repository if not already present
-$fastIoPath = "$LIBRARIES/fast_io"
+$fastIoPath = "$LIBRARIESPATH/fast_io"
 if (-not (Test-Path -Path $fastIoPath)) {
     git clone --quiet "git@github.com:trcrsired/fast_io.git" $fastIoPath
     if ($LASTEXITCODE -ne 0) {
