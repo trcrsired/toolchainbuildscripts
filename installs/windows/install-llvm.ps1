@@ -1,3 +1,8 @@
+param (
+    [string]$DOWNLOADALL = "no",
+    [string]$NOINSTALLING = "no"
+)
+
 # Please run the following command to allow the script to run:
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
@@ -7,7 +12,7 @@ function Test-Admin {
     return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-if ((-not (Test-Admin)) -and ($env:NOINSTALLING -ne "yes")) {
+if ((-not (Test-Admin)) -and ($NOINSTALLING -ne "yes")) {
     Write-Host "Please run this script as an administrator."
     exit 1
 }
@@ -90,7 +95,7 @@ if ($env:OS -eq "Windows_NT") {
     $ARCH = $TRIPLE.Split('-')[0]
 }
 
-if ($env:NOINSTALLING -ne "yes") {
+if ($NOINSTALLING -ne "yes") {
     # Get the latest release version if not set
     if (-not $env:NODOWNLOADLLVM) {
         if (-not $env:RELEASE_VERSION) {
@@ -118,7 +123,7 @@ if ($env:NOINSTALLING -ne "yes") {
 
     # Determine the list of files to download
     $FILES = @()
-    if ($env:DOWNLOAD_ALL -eq "yes") {
+    if ($DOWNLOADALL -eq "yes") {
         $FILES = @(
             "aarch64-apple-darwin24",
             "aarch64-windows-gnu",
@@ -268,7 +273,7 @@ else
 
 $WAVM_INSTALL_PATH = "$SOFTWARESPATH\wavm"
 
-if ($env:NOINSTALLING -ne "yes") {
+if ($NOINSTALLING -ne "yes") {
 
     # Create necessary directories
     if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {

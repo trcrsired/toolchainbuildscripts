@@ -14,12 +14,8 @@ function Run-Command {
     }
 }
 
-# Set the environment variable
-$env:DOWNLOAD_ALL = "yes";
-$env:NOINSTALLING = "no";
-
 # Run the install-llvm script and check its exit code
-Run-Command "./install-llvm.ps1"
+Run-Command "./install-llvm.ps1 -DOWNLOADALL yes"
 
 # Run the create_cfgs script
 Run-Command "./create_cfgs.ps1"

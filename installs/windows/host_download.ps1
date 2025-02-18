@@ -14,10 +14,6 @@ function Run-Command {
     }
 }
 
-# Set the environment variable
-$env:DOWNLOAD_ALL = "no"
-$env:NOINSTALLING = "no"
-
 # Run the install-llvm script and check its exit code
 Run-Command "./install-llvm.ps1"
 
