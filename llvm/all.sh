@@ -1,7 +1,9 @@
+llvmcurrentrealpath="$(realpath .)"
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
-	rm -rf "$(realpath .)/.llvmartifacts"
-	rm -rf "$(realpath .)/.llvmwasmartifacts"
+	rm -rf "$llvmcurrentrealpath/.llvmartifacts"
+	rm -rf "$llvmcurrentrealpath/.llvmwasmartifacts"
 	echo "restart done"
 fi
 ./x86_64-linux-gnu.sh "$@"
@@ -18,4 +20,7 @@ fi
 ./aarch64-apple-darwin24.sh "$@"
 ./wasm-sysroots.sh "$@"
 
-
+if [[ $NO_BUILD_WAVM != "yes" ]]; then
+cd "$llvmcurrentrealpath/../wavm"
+./all.sh "$@"
+fi
