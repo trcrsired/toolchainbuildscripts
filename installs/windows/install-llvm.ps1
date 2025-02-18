@@ -171,7 +171,7 @@ function Extract-TarFile {
 
     # Try using tar
     if (Get-Command tar -ErrorAction SilentlyContinue) {
-        tar -xf $tarFile -C $destination
+        & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
         return $true
     }
     
@@ -306,7 +306,7 @@ foreach ($file in $WAVM_FILES) {
     Download-File -url "$WAVM_URL/$file.tar.xz" -dest $destFilePath
 
     Write-Host "Extracting $file.tar.xz to $WAVM_INSTALL_PATH"
-    tar -xf $destFilePath -C $WAVM_INSTALL_PATH
+    & { $env:XZ_OPT = '-T0'; tar -xf $destFilePath -C $WAVM_INSTALL_PATH }
 }
 
 # Define the paths to check
