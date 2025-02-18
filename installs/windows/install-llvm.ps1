@@ -7,7 +7,7 @@ function Test-Admin {
     return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-if (-not (Test-Admin)) {
+if ((-not (Test-Admin)) -and ($env:NOINSTALLING -ne "yes")) {
     Write-Host "Please run this script as an administrator."
     exit 1
 }
@@ -90,7 +90,7 @@ if ($env:OS -eq "Windows_NT") {
     $ARCH = $TRIPLE.Split('-')[0]
 }
 
-if (-not $env:NOINSTALLING) {
+if ($env:NOINSTALLING -ne "yes") {
     # Get the latest release version if not set
     if (-not $env:NODOWNLOADLLVM) {
         if (-not $env:RELEASE_VERSION) {
@@ -254,18 +254,21 @@ if (-not $env:NOINSTALLING) {
 
 
     $WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$WAVM_RELEASE_VERSION"
+}
 
-    # Ensure SOFTWARESPATH is set
-    if (-not $env:SOFTWARESPATH)
-    {
-        $SOFTWARESPATH = "$HOME\softwares"
-    }
-    else
-    {
-        $SOFTWARESPATH = "$env:SOFTWARESPATH"
-    }
+# Ensure SOFTWARESPATH is set
+if (-not $env:SOFTWARESPATH)
+{
+    $SOFTWARESPATH = "$HOME\softwares"
+}
+else
+{
+    $SOFTWARESPATH = "$env:SOFTWARESPATH"
+}
 
-    $WAVM_INSTALL_PATH = "$SOFTWARESPATH\wavm"
+$WAVM_INSTALL_PATH = "$SOFTWARESPATH\wavm"
+
+if ($env:NOINSTALLING -ne "yes") {
 
     # Create necessary directories
     if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
@@ -293,7 +296,6 @@ if (-not $env:NOINSTALLING) {
         Write-Host "Extracting $file.tar.xz to $WAVM_INSTALL_PATH"
         & { $env:XZ_OPT = '-T0'; tar -xf $destFilePath -C $WAVM_INSTALL_PATH }
     }
-
 }
 
 # Check and update PATH
