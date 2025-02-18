@@ -19,7 +19,7 @@ else {
 
 # Check if TOOLCHAINSPATH_LLVM environment variable is set, otherwise use $TOOLCHAINSPATH/llvm
 if (-not $env:TOOLCHAINSPATH_LLVM) {
-    $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH/llvm"
+    $TOOLCHAINSPATH_LLVM = "$TOOLCHAINSPATH/llvm"
 }
 else {
     $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH_LLVM"
@@ -57,7 +57,6 @@ function ConvertToUnixPath {
     return $path -replace '\\', '/'
 }
 # Absolute paths
-$ABS_HOME = [System.IO.Path]::GetFullPath($HOME)
 $ABS_TOOLCHAINSPATH = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH)
 $ABS_TOOLCHAINSPATH_LLVM = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH_LLVM)
 $ABS_LIBRARIES = [System.IO.Path]::GetFullPath($LIBRARIESPATH)
