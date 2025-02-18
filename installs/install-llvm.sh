@@ -156,12 +156,12 @@ if [ -n "$TRIPLE" ]; then
 
     WAVM_URL="https://github.com/trcrsired/wavm-release/releases/download/${WAVM_RELEASE_VERSION}"
 
-        # Ensure SOFTWAREPATH is set
-    if [ -z ${SOFTWAREPATH+x} ]; then
-        SOFTWAREPATH="$HOME/softwares"
+        # Ensure SOFTWARESPATH is set
+    if [ -z ${SOFTWARESPATH+x} ]; then
+        SOFTWARESPATH="$HOME/softwares"
     fi
 
-    WAVM_INSTALL_PATH="${SOFTWAREPATH}/wavm"
+    WAVM_INSTALL_PATH="${SOFTWARESPATH}/wavm"
 
     mkdir -p "$WAVM_INSTALL_PATH"
 
@@ -178,7 +178,7 @@ if [ -n "$TRIPLE" ]; then
 
 
     # Create necessary directories
-    mkdir -p "$SOFTWAREPATH/wine"
+    mkdir -p "$SOFTWARESPATH/wine"
 
     if [ -z ${WINE_RELEASE_VERSION+x} ]; then
         # Get the latest Wine release version
@@ -197,12 +197,12 @@ if [ -n "$TRIPLE" ]; then
     # Download and extract the Wine release
     WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
     echo $WINE_URL
-    echo "Downloading $TRIPLE Wine release to $SOFTWAREPATH/wine"
-    download_file "$WINE_URL" "$SOFTWAREPATH/wine/$TRIPLE.tar.xz"
-    echo "Extracting $TRIPLE Wine release to $SOFTWAREPATH/wine"
+    echo "Downloading $TRIPLE Wine release to $SOFTWARESPATH/wine"
+    download_file "$WINE_URL" "$SOFTWARESPATH/wine/$TRIPLE.tar.xz"
+    echo "Extracting $TRIPLE Wine release to $SOFTWARESPATH/wine"
     
-    echo tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
-    tar -xf "$SOFTWAREPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWAREPATH/wine"
+    echo tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
+    tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
 
 fi
 
