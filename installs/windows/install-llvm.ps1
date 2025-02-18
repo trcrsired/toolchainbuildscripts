@@ -272,12 +272,12 @@ Write-Host "Latest WAVM release version: $env:WAVM_RELEASE_VERSION"
 
 $WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$env:WAVM_RELEASE_VERSION"
 
-# Ensure SOFTWAREPATH is set
-if (-not $env:SOFTWAREPATH) {
-    $env:SOFTWAREPATH = "$env:HOME\softwares"
+# Ensure SOFTWARESPATH is set
+if (-not $env:SOFTWARESPATH) {
+    $env:SOFTWARESPATH = "$env:HOME\softwares"
 }
 
-$WAVM_INSTALL_PATH = "$env:SOFTWAREPATH\wavm"
+$WAVM_INSTALL_PATH = "$env:SOFTWARESPATH\wavm"
 
 # Create necessary directories
 if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
