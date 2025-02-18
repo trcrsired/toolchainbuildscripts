@@ -303,7 +303,7 @@ $pathsToCheck = @(
     "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\llvm\bin",
     "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\compiler-rt\lib\windows",
     "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\$TRIPLE\bin",
-    "$env:WAVM_INSTALL_PATH\$TRIPLE\bin"
+    "$WAVM_INSTALL_PATH\$TRIPLE\bin"
 )
 
 # Check each path and update PATH if necessary
