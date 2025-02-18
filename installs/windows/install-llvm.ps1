@@ -274,6 +274,15 @@ $WAVM_INSTALL_PATH = "$env:SOFTWAREPATH/wavm"
 if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
     New-Item -ItemType Directory -Force -Path $WAVM_INSTALL_PATH
 }
+if ($env:OS -eq "Windows_NT") {
+$WAVM_FILES = @(
+    "$ARCH-windows-gnu")
+}
+else {
+$WAVM_FILES = @(
+    "$ARCH-windows-gnu"
+    "$TRIPLE")
+}
 
 foreach ($file in $WAVM_FILES) {
     $destFilePath = "$WAVM_INSTALL_PATH/$file.tar.xz"
@@ -289,11 +298,12 @@ foreach ($file in $WAVM_FILES) {
 }
 
 # Define the paths to check
+if ($env:OS -eq "Windows_NT") {
 $pathsToCheck = @(
-    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\llvm\bin",
-    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\compiler-rt\lib\windows",
-    "$env:TOOLCHAINSPATH_LLVM\$ARCH-windows-gnu\$ARCH-windows-gnu\bin",
-    "$env:WAVM_INSTALL_PATH\$ARCH-windows-gnu\bin"
+    "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\llvm\bin",
+    "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\compiler-rt\lib\windows",
+    "$env:TOOLCHAINSPATH_LLVM\$TRIPLE\$TRIPLE\bin",
+    "$env:WAVM_INSTALL_PATH\$TRIPLE\bin"
 )
 
 # Check each path and update PATH if necessary
@@ -303,4 +313,6 @@ foreach ($path in $pathsToCheck) {
     } else {
         Update-Path -newPath $path
     }
+}
+
 }
