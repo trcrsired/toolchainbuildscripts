@@ -14,7 +14,7 @@ if (-not (Test-Admin)) {
 
 # Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
 if (-not $env:TOOLCHAINSPATH) {
-    $env:TOOLCHAINSPATH = "$HOME/toolchains"
+    $env:TOOLCHAINSPATH = "$HOME\toolchains"
 }
 
 # Create necessary directories
@@ -24,7 +24,7 @@ if (-not (Test-Path -Path $env:TOOLCHAINSPATH)) {
 
 # Check if TOOLCHAINSPATH_LLVM environment variable is set, otherwise use $TOOLCHAINSPATH/llvm
 if (-not $env:TOOLCHAINSPATH_LLVM) {
-    $env:TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH/llvm"
+    $env:TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH\llvm"
 }
 
 # Create necessary directories
@@ -111,6 +111,9 @@ if (-not $env:NODOWNLOADLLVM) {
 
     $BASE_URL = "https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
 }
+
+
+Write-Host "Latest LLVM release version: $RELEASE_VERSION"
 
 # Determine the list of files to download
 $FILES = @()
@@ -271,10 +274,10 @@ $WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$env:WA
 
 # Ensure SOFTWAREPATH is set
 if (-not $env:SOFTWAREPATH) {
-    $env:SOFTWAREPATH = "$env:HOME/softwares"
+    $env:SOFTWAREPATH = "$env:HOME\softwares"
 }
 
-$WAVM_INSTALL_PATH = "$env:SOFTWAREPATH/wavm"
+$WAVM_INSTALL_PATH = "$env:SOFTWAREPATH\wavm"
 
 # Create necessary directories
 if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
