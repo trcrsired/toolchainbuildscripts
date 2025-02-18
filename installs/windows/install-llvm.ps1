@@ -332,3 +332,5 @@ foreach ($path in $pathsToCheck) {
 }
 
 }
+
+exit 0
