@@ -411,7 +411,7 @@ echo "compiler-rt ninja install failed"
 exit 1
 fi
 cd ${COMPILERRTINSTALLPATH}/lib
-cp -r --preserve=links "${BUILTINSINSTALLPATH}"/* "${clangbuiltin}/"
+cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
 echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.buildsuccess
 fi
 
@@ -568,6 +568,12 @@ fi
 if [ -d ${TOOLCHAINS_LLVMSYSROOTSPATH}/llvm_temp ]; then
 mv llvm_temp llvm
 fi
+fi
+
+if [ ! -f "$CURRENTTRIPLEPATH/compiler-rt/.installsuccessphase2" ]; then
+cd ${COMPILERRTINSTALLPATH}/lib
+cp -r --preserve=links "${COMPILERRTINSTALLPATH}"/* "${clangbuiltin}/"
+echo "$(date --iso-8601=seconds)" > $CURRENTTRIPLEPATH/compiler-rt/.installsuccessphase2
 fi
 
 if [ ! -f "$CURRENTTRIPLEPATH/llvm/.packagingsuccess" ]; then
