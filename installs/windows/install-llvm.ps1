@@ -168,28 +168,66 @@ if ($NOINSTALLING -ne "yes") {
 
     Write-Host "Downloads completed successfully to $env:TOOLCHAINSPATH_LLVM"
 
+    # Check if Windows Defender real-time protection is enabled
+    function Check-DefenderRealtimeProtection {
+        try {
+            $defenderStatus = Get-MpPreference | Select-Object -ExpandProperty RealtimeProtectionEnabled
+            return $defenderStatus
+        } catch {
+            return $false
+        }
+    }
+
     # Extract and clean up tar.xz files
     function Extract-TarFile {
         param (
             [string]$tarFile,
-            [string]$destination
+            [string]$destination,
+            [bool]$isDefenderEnabled
         )
 
-        # Try using tar
-        if (Get-Command tar -ErrorAction SilentlyContinue) {
-            & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
+        $errorOccured = $false
+
+        try {
+            if ($isDefenderEnabled) {
+                # Add the destination path to the exclusion list
+                Add-MpPreference -ExclusionPath $destination
+            }
+
+            # Try using tar
+            if (Get-Command tar -ErrorAction SilentlyContinue) {
+                & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
+            }
+            # Try using 7z if tar is not available
+            elseif (Get-Command 7z -ErrorAction SilentlyContinue) {
+                7z x $tarFile -o$destination
+            } 
+            else {
+                Write-Host "Neither tar nor 7z is available to extract files. Please install one of them and try again."
+                $errorOccured = $true
+            }
+        } catch {
+            $errorOccured = $true
+            throw $_
+        } finally {
+            if ($isDefenderEnabled) {
+                # Remove the destination path from the exclusion list
+                Remove-MpPreference -ExclusionPath $destination -ErrorAction SilentlyContinue
+            }
+        }
+
+        if ($errorOccured) {
+            exit 1
+        } else {
             return $true
         }
-        
-        # Try using 7z if tar is not available
-        if (Get-Command 7z -ErrorAction SilentlyContinue) {
-            7z x $tarFile -o$destination
-            return $true
-        }
-        
-        Write-Host "Neither tar nor 7z is available to extract files. Please install one of them and try again."
-        exit 1
     }
+
+    # Ensure the script execution policy allows running the script
+    # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+    # Check Windows Defender real-time protection status once
+    $isDefenderEnabled = Check-DefenderRealtimeProtection
 
     Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
         $tarFile = $_.FullName
@@ -207,7 +245,7 @@ if ($NOINSTALLING -ne "yes") {
         }
 
         Write-Host "Extracting $tarFile to $env:TOOLCHAINSPATH_LLVM"
-        Extract-TarFile -tarFile $tarFile -destination $env:TOOLCHAINSPATH_LLVM
+        Extract-TarFile -tarFile $tarFile -destination $env:TOOLCHAINSPATH_LLVM -isDefenderEnabled $isDefenderEnabled
     }
 
     # Copy files from TOOLCHAINSPATH_LLVM subdirectories containing 'compiler-rt' or 'builtins' to destination directories
