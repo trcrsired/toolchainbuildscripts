@@ -90,16 +90,153 @@ if ($env:OS -eq "Windows_NT") {
     $ARCH = $TRIPLE.Split('-')[0]
 }
 
-# Get the latest release version if not set
-if (-not $env:NODOWNLOADLLVM) {
-    if (-not $env:RELEASE_VERSION) {
+if (-not $env:NOINSTALLING) {
+    # Get the latest release version if not set
+    if (-not $env:NODOWNLOADLLVM) {
+        if (-not $env:RELEASE_VERSION) {
+            if (Get-Command git -ErrorAction SilentlyContinue) {
+                $RELEASE_VERSION = git ls-remote --tags https://github.com/trcrsired/llvm-releases.git |
+                    Select-String -Pattern "refs/tags/llvm[0-9]+(\-[0-9]+)*$" |
+                    Sort-Object { $_.Matches[0].Groups[0].Value } -Descending |
+                    Select-Object -First 1 |
+                    ForEach-Object { $_.ToString().Split("/")[-1] }
+                if (-not $RELEASE_VERSION) {
+                    Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
+                    exit 1
+                }
+            } else {
+                Write-Host "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
+                exit 1
+            }
+        }
+
+        $BASE_URL = "https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
+    }
+
+
+    Write-Host "Latest LLVM release version: $RELEASE_VERSION"
+
+    # Determine the list of files to download
+    $FILES = @()
+    if ($env:DOWNLOAD_ALL -eq "yes") {
+        $FILES = @(
+            "aarch64-apple-darwin24",
+            "aarch64-windows-gnu",
+            "aarch64-linux-gnu",
+            "aarch64-linux-android30",
+            "x86_64-windows-gnu",
+            "x86_64-linux-gnu",
+            "x86_64-linux-android30",
+            "loongarch64-linux-gnu",
+            "riscv64-linux-gnu",
+            "wasm-sysroots"
+        )
+    } else {
+        if (-not $TRIPLE) {
+            Write-Host "Could not determine TRIPLE. Please set the TRIPLE environment variable."
+            exit 1
+        }
+        $FILES += "$ARCH-windows-gnu"
+        if ($TRIPLE -ne "$ARCH-windows-gnu") {
+            $FILES += $TRIPLE
+        }
+        $FILES += "wasm-sysroots"
+    }
+
+    # Download files using PowerShell
+    function Download-File {
+        param (
+            [string]$url,
+            [string]$dest
+        )
+
+        (New-Object System.Net.WebClient).DownloadFile($url, $dest)
+    }
+
+    # Download and extract files
+    foreach ($file in $FILES) {
+        $destPath = Join-Path -Path $env:TOOLCHAINSPATH_LLVM -ChildPath "$file.tar.xz"
+        Remove-Item -Path $destPath -Force -ErrorAction SilentlyContinue
+        Write-Host "Downloading $file.tar.xz to $env:TOOLCHAINSPATH_LLVM"
+        Download-File -url "$BASE_URL/$file.tar.xz" -dest $destPath
+    }
+
+    Write-Host "Downloads completed successfully to $env:TOOLCHAINSPATH_LLVM"
+
+    # Extract and clean up tar.xz files
+    function Extract-TarFile {
+        param (
+            [string]$tarFile,
+            [string]$destination
+        )
+
+        # Try using tar
+        if (Get-Command tar -ErrorAction SilentlyContinue) {
+            & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
+            return $true
+        }
+        
+        # Try using 7z if tar is not available
+        if (Get-Command 7z -ErrorAction SilentlyContinue) {
+            7z x $tarFile -o$destination
+            return $true
+        }
+        
+        Write-Host "Neither tar nor 7z is available to extract files. Please install one of them and try again."
+        exit 1
+    }
+
+    Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
+        $tarFile = $_.FullName
+        $tarDir = [System.IO.Path]::ChangeExtension($tarFile, $null)
+
+        # Skip if no tar.xz files found
+        if (-not (Test-Path -Path $tarFile)) {
+            return
+        }
+
+        # Extract tar.xz file
+        if (Test-Path -Path $tarDir) {
+            Write-Host "Removing existing directory $tarDir"
+            Remove-Item -Recurse -Force -Path $tarDir
+        }
+
+        Write-Host "Extracting $tarFile to $env:TOOLCHAINSPATH_LLVM"
+        Extract-TarFile -tarFile $tarFile -destination $env:TOOLCHAINSPATH_LLVM
+    }
+
+    # Copy files from TOOLCHAINSPATH_LLVM subdirectories containing 'compiler-rt' or 'builtins' to destination directories
+    Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM/*/llvm/lib/clang/*" -Directory | ForEach-Object {
+        $llvmDir = $_.FullName
+
+        Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM/*" -Directory | ForEach-Object {
+            $dir = $_.FullName
+
+            if (Test-Path -Path "$dir/compiler-rt") {
+                Write-Host "Copying files from $dir/compiler-rt/ to $llvmDir/"
+                Copy-Item -Path "$dir/compiler-rt/*" -Destination $llvmDir -Recurse -Force
+            } elseif (Test-Path -Path "$dir/builtins") {
+                Write-Host "Copying files from $dir/builtins/ to $llvmDir/"
+                Copy-Item -Path "$dir/builtins/*" -Destination $llvmDir -Recurse -Force
+            }
+        }
+    }
+
+    Write-Host "Files copied successfully to subdirectories of $env:TOOLCHAINSPATH_LLVM containing llvm/lib/clang/{version}/"
+
+    # Check if WAVM_RELEASE_VERSION is not set
+    if (-not $env:WAVM_RELEASE_VERSION) {
         if (Get-Command git -ErrorAction SilentlyContinue) {
-            $RELEASE_VERSION = git ls-remote --tags https://github.com/trcrsired/llvm-releases.git |
-                Select-String -Pattern "refs/tags/llvm[0-9]+(\-[0-9]+)*$" |
-                Sort-Object { $_.Matches[0].Groups[0].Value } -Descending |
-                Select-Object -First 1 |
-                ForEach-Object { $_.ToString().Split("/")[-1] }
-            if (-not $RELEASE_VERSION) {
+            # Fetch tags
+            $tagsOutput = git ls-remote --tags https://github.com/trcrsired/wavm-release.git
+            
+            # Split the output into lines and process the tags
+            $tags = $tagsOutput -split "`n" | ForEach-Object { $_ -replace '.*refs/tags/', '' }
+            
+            # Get the last tag
+            $WAVM_RELEASE_VERSION = ($tags | Select-Object -Last 1).Trim()
+
+            if (-not $WAVM_RELEASE_VERSION) {
                 Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
                 exit 1
             }
@@ -108,120 +245,56 @@ if (-not $env:NODOWNLOADLLVM) {
             exit 1
         }
     }
-
-    $BASE_URL = "https://github.com/trcrsired/llvm-releases/releases/download/$RELEASE_VERSION"
-}
-
-
-Write-Host "Latest LLVM release version: $RELEASE_VERSION"
-
-# Determine the list of files to download
-$FILES = @()
-if ($env:DOWNLOAD_ALL -eq "yes") {
-    $FILES = @(
-        "aarch64-apple-darwin24",
-        "aarch64-windows-gnu",
-        "aarch64-linux-gnu",
-        "aarch64-linux-android30",
-        "x86_64-windows-gnu",
-        "x86_64-linux-gnu",
-        "x86_64-linux-android30",
-        "loongarch64-linux-gnu",
-        "riscv64-linux-gnu",
-        "wasm-sysroots"
-    )
-} else {
-    if (-not $TRIPLE) {
-        Write-Host "Could not determine TRIPLE. Please set the TRIPLE environment variable."
-        exit 1
-    }
-    $FILES += "$ARCH-windows-gnu"
-    if ($TRIPLE -ne "$ARCH-windows-gnu") {
-        $FILES += $TRIPLE
-    }
-    $FILES += "wasm-sysroots"
-}
-
-# Download files using PowerShell
-function Download-File {
-    param (
-        [string]$url,
-        [string]$dest
-    )
-
-    (New-Object System.Net.WebClient).DownloadFile($url, $dest)
-}
-
-# Download and extract files
-foreach ($file in $FILES) {
-    $destPath = Join-Path -Path $env:TOOLCHAINSPATH_LLVM -ChildPath "$file.tar.xz"
-    Remove-Item -Path $destPath -Force -ErrorAction SilentlyContinue
-    Write-Host "Downloading $file.tar.xz to $env:TOOLCHAINSPATH_LLVM"
-    Download-File -url "$BASE_URL/$file.tar.xz" -dest $destPath
-}
-
-Write-Host "Downloads completed successfully to $env:TOOLCHAINSPATH_LLVM"
-
-# Extract and clean up tar.xz files
-function Extract-TarFile {
-    param (
-        [string]$tarFile,
-        [string]$destination
-    )
-
-    # Try using tar
-    if (Get-Command tar -ErrorAction SilentlyContinue) {
-        & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
-        return $true
-    }
-    
-    # Try using 7z if tar is not available
-    if (Get-Command 7z -ErrorAction SilentlyContinue) {
-        7z x $tarFile -o$destination
-        return $true
-    }
-    
-    Write-Host "Neither tar nor 7z is available to extract files. Please install one of them and try again."
-    exit 1
-}
-
-Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
-    $tarFile = $_.FullName
-    $tarDir = [System.IO.Path]::ChangeExtension($tarFile, $null)
-
-    # Skip if no tar.xz files found
-    if (-not (Test-Path -Path $tarFile)) {
-        return
+    else
+    {
+        $WAVM_RELEASE_VERSION = "$env:WAVM_RELEASE_VERSION"
     }
 
-    # Extract tar.xz file
-    if (Test-Path -Path $tarDir) {
-        Write-Host "Removing existing directory $tarDir"
-        Remove-Item -Recurse -Force -Path $tarDir
+    Write-Host "Latest WAVM release version: $WAVM_RELEASE_VERSION"
+
+
+    $WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$WAVM_RELEASE_VERSION"
+
+    # Ensure SOFTWARESPATH is set
+    if (-not $env:SOFTWARESPATH)
+    {
+        $SOFTWARESPATH = "$HOME\softwares"
+    }
+    else
+    {
+        $SOFTWARESPATH = "$env:SOFTWARESPATH"
     }
 
-    Write-Host "Extracting $tarFile to $env:TOOLCHAINSPATH_LLVM"
-    Extract-TarFile -tarFile $tarFile -destination $env:TOOLCHAINSPATH_LLVM
-}
+    $WAVM_INSTALL_PATH = "$SOFTWARESPATH\wavm"
 
-# Copy files from TOOLCHAINSPATH_LLVM subdirectories containing 'compiler-rt' or 'builtins' to destination directories
-Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM/*/llvm/lib/clang/*" -Directory | ForEach-Object {
-    $llvmDir = $_.FullName
+    # Create necessary directories
+    if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
+        New-Item -ItemType Directory -Force -Path $WAVM_INSTALL_PATH
+    }
+    if ($env:OS -eq "Windows_NT") {
+    $WAVM_FILES = @(
+        "$ARCH-windows-gnu")
+    }
+    else {
+    $WAVM_FILES = @(
+        "$ARCH-windows-gnu"
+        "$TRIPLE")
+    }
 
-    Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM/*" -Directory | ForEach-Object {
-        $dir = $_.FullName
-
-        if (Test-Path -Path "$dir/compiler-rt") {
-            Write-Host "Copying files from $dir/compiler-rt/ to $llvmDir/"
-            Copy-Item -Path "$dir/compiler-rt/*" -Destination $llvmDir -Recurse -Force
-        } elseif (Test-Path -Path "$dir/builtins") {
-            Write-Host "Copying files from $dir/builtins/ to $llvmDir/"
-            Copy-Item -Path "$dir/builtins/*" -Destination $llvmDir -Recurse -Force
+    foreach ($file in $WAVM_FILES) {
+        $destFilePath = "$WAVM_INSTALL_PATH/$file.tar.xz"
+        if (Test-Path -Path $destFilePath) {
+            Remove-Item -Force -Path $destFilePath
         }
-    }
-}
 
-Write-Host "Files copied successfully to subdirectories of $env:TOOLCHAINSPATH_LLVM containing llvm/lib/clang/{version}/"
+        Write-Host "Downloading $file to $WAVM_INSTALL_PATH"
+        Download-File -url "$WAVM_URL/$file.tar.xz" -dest $destFilePath
+
+        Write-Host "Extracting $file.tar.xz to $WAVM_INSTALL_PATH"
+        & { $env:XZ_OPT = '-T0'; tar -xf $destFilePath -C $WAVM_INSTALL_PATH }
+    }
+
+}
 
 # Check and update PATH
 function Update-Path {
@@ -236,77 +309,6 @@ function Update-Path {
     } else {
         Write-Host "$newPath is already in PATH"
     }
-}
-
-
-# Check if WAVM_RELEASE_VERSION is not set
-if (-not $env:WAVM_RELEASE_VERSION) {
-    if (Get-Command git -ErrorAction SilentlyContinue) {
-        # Fetch tags
-        $tagsOutput = git ls-remote --tags https://github.com/trcrsired/wavm-release.git
-        
-        # Split the output into lines and process the tags
-        $tags = $tagsOutput -split "`n" | ForEach-Object { $_ -replace '.*refs/tags/', '' }
-        
-        # Get the last tag
-        $WAVM_RELEASE_VERSION = ($tags | Select-Object -Last 1).Trim()
-
-        if (-not $WAVM_RELEASE_VERSION) {
-            Write-Host "Failed to retrieve the latest release version. Please check your network connection or set the RELEASE_VERSION environment variable."
-            exit 1
-        }
-    } else {
-        Write-Host "Git is not installed. Please install it or set the RELEASE_VERSION environment variable."
-        exit 1
-    }
-}
-else
-{
-    $WAVM_RELEASE_VERSION = "$env:WAVM_RELEASE_VERSION"
-}
-
-Write-Host "Latest WAVM release version: $WAVM_RELEASE_VERSION"
-
-
-$WAVM_URL = "https://github.com/trcrsired/wavm-release/releases/download/$WAVM_RELEASE_VERSION"
-
-# Ensure SOFTWARESPATH is set
-if (-not $env:SOFTWARESPATH)
-{
-    $SOFTWARESPATH = "$HOME\softwares"
-}
-else
-{
-    $SOFTWARESPATH = "$env:SOFTWARESPATH"
-}
-
-$WAVM_INSTALL_PATH = "$SOFTWARESPATH\wavm"
-
-# Create necessary directories
-if (-not (Test-Path -Path $WAVM_INSTALL_PATH)) {
-    New-Item -ItemType Directory -Force -Path $WAVM_INSTALL_PATH
-}
-if ($env:OS -eq "Windows_NT") {
-$WAVM_FILES = @(
-    "$ARCH-windows-gnu")
-}
-else {
-$WAVM_FILES = @(
-    "$ARCH-windows-gnu"
-    "$TRIPLE")
-}
-
-foreach ($file in $WAVM_FILES) {
-    $destFilePath = "$WAVM_INSTALL_PATH/$file.tar.xz"
-    if (Test-Path -Path $destFilePath) {
-        Remove-Item -Force -Path $destFilePath
-    }
-
-    Write-Host "Downloading $file to $WAVM_INSTALL_PATH"
-    Download-File -url "$WAVM_URL/$file.tar.xz" -dest $destFilePath
-
-    Write-Host "Extracting $file.tar.xz to $WAVM_INSTALL_PATH"
-    & { $env:XZ_OPT = '-T0'; tar -xf $destFilePath -C $WAVM_INSTALL_PATH }
 }
 
 # Define the paths to check
