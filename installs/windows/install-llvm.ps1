@@ -172,7 +172,7 @@ if ($NOINSTALLING -ne "yes") {
     function Check-DefenderRealtimeProtection {
         try {
             $defenderStatus = Get-MpPreference | Select-Object -ExpandProperty RealtimeProtectionEnabled
-            return $defenderStatus
+            return [bool]$defenderStatus
         } catch {
             return $false
         }
