@@ -202,7 +202,7 @@ if ($NOINSTALLING -ne "yes") {
             if (Get-Command 7z -ErrorAction SilentlyContinue) {
                 7z e $tarFile -o$destination
                 $tarFileBaseName = [System.IO.Path]::GetFileNameWithoutExtension($tarFile)
-                $tarFilePath = "$destination\$tarFileBaseName.tar"
+                $tarFilePath = "$destination\$tarFileBaseName"
 
                 # Then, extract the .tar part
                 if (Test-Path $tarFilePath) {
