@@ -197,26 +197,36 @@ if ($NOINSTALLING -ne "yes") {
                 # Add the destination path to the exclusion list
                 Add-MpPreference -ExclusionPath $destination
             }
-
-            # First, use 7z to extract the .xz part
+            # First, use 7z to extract the .xz part to the temporary directory
             if (Get-Command 7z -ErrorAction SilentlyContinue) {
-                7z e $tarFile -o$destination
-                $tarFileBaseName = [System.IO.Path]::GetFileNameWithoutExtension($tarFile)
-                $tarFilePath = "$destination\$tarFileBaseName"
-
-                # Then, extract the .tar part
-                if (Test-Path $tarFilePath) {
-                    7z x $tarFilePath -o$destination
-                    Remove-Item $tarFilePath
+                # Remove the .xz extension from the tar.xz file
+                if ($tarFile -like "*.tar.xz") {
+                    $tarFilenoxz = $tarFile.Substring(0, $tarFile.Length - 3) # Remove the last 3 characters (.xz)
+                    $tarFilenotarxz = $tarFile.Substring(0, $tarFile.Length - 7) # Remove the last 7 characters (.tar.xz)
                 } else {
-                    Write-Host "$tarFilePath not found after extracting .xz part."
+                    Write-Host "The file does not have a .xz extension."
+                    return
+                }
+                # Then, extract the .tar part to the destination directory
+                if (Test-Path -Path "$tarFilenotarxz") {
+                    Remove-Item "$tarFilenotarxz" -Recurse -Force -ErrorAction SilentlyContinue
+                }
+
+                7z x "$tarFile" -o"$tarFilenoxz" -y -mmt
+
+                # Then, extract the .tar part to the destination directory
+                if (Test-Path -Path "$tarFilenoxz") {
+                    7z x "$tarFilenoxz" -o"$destination" -y -mmt
+                    Remove-Item "$tarFilenoxz" -Recurse -Force -ErrorAction SilentlyContinue
+                } else {
+                    Write-Host "$tarFilenoxz not found after extracting .xz part."
                     $errorOccured = $true
                 }
             }
             # If 7z is not available, try using tar
             elseif (Get-Command tar -ErrorAction SilentlyContinue) {
-                & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
-            }
+                & { $env:XZ_OPT = '-T0'; tar -xf "$tarFile" -C "$destination" }
+            } 
             else {
                 Write-Host "Neither 7z nor tar is available to extract files. Please install one of them and try again."
                 $errorOccured = $true
@@ -225,9 +235,11 @@ if ($NOINSTALLING -ne "yes") {
             $errorOccured = $true
             throw $_
         } finally {
+            # Clean up temporary directory
+
             if ($isDefenderEnabled) {
                 # Remove the destination path from the exclusion list
-                Remove-MpPreference -ExclusionPath $destination -ErrorAction SilentlyContinue
+                Remove-MpPreference -ExclusionPath "$destination" -ErrorAction SilentlyContinue
             }
         }
 
@@ -246,19 +258,23 @@ if ($NOINSTALLING -ne "yes") {
 
     Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
         $tarFile = $_.FullName
-        $tarDir = [System.IO.Path]::ChangeExtension($tarFile, $null)
 
         # Skip if no tar.xz files found
         if (-not (Test-Path -Path $tarFile)) {
             return
         }
 
-        # Extract tar.xz file
-        if (Test-Path -Path $tarDir) {
-            Write-Host "Removing existing directory $tarDir"
-            Remove-Item -Recurse -Force -Path $tarDir
+        # Remove the .xz extension from the tar.xz file
+        if ($tarFile -like "*.tar.xz") {
+            $tarFilenotarxz = $tarFile.Substring(0, $tarFile.Length - 7) # Remove the last 7 characters (.tar.xz)
+        } else {
+            Write-Host "The file does not have a .xz extension."
+            return
         }
-
+        # Then, extract the .tar part to the destination directory
+        if (Test-Path -Path "$tarFilenotarxz") {
+            Remove-Item "$tarFilenotarxz" -Recurse -Force -ErrorAction SilentlyContinue
+        }
         Write-Host "Extracting $tarFile to $env:TOOLCHAINSPATH_LLVM"
         Extract-TarFile -tarFile $tarFile -destination $env:TOOLCHAINSPATH_LLVM -isDefenderEnabled $isDefenderEnabled
     }
