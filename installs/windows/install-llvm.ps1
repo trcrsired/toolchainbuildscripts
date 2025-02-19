@@ -227,7 +227,7 @@ if ($NOINSTALLING -ne "yes") {
     # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
     # Check Windows Defender real-time protection status once
-    $isDefenderEnabled = Check-DefenderRealtimeProtection
+    $isDefenderEnabled =  [bool](Check-DefenderRealtimeProtection())
 
     Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
         $tarFile = $_.FullName
