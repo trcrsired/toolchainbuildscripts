@@ -171,8 +171,12 @@ if ($NOINSTALLING -ne "yes") {
     # Check if Windows Defender real-time protection is enabled
     function Check-DefenderRealtimeProtection {
         try {
-            $defenderStatus = Get-MpPreference | Select-Object -ExpandProperty RealtimeProtectionEnabled
-            return [bool]$defenderStatus
+            $defenderStatus = Get-MpPreference
+            if ($defenderStatus.AMSIEnable) {
+                return $true
+            } else {
+                return $false
+            }
         } catch {
             return $false
         }
