@@ -198,16 +198,27 @@ if ($NOINSTALLING -ne "yes") {
                 Add-MpPreference -ExclusionPath $destination
             }
 
-            # Try using tar
-            if (Get-Command tar -ErrorAction SilentlyContinue) {
+            # First, use 7z to extract the .xz part
+            if (Get-Command 7z -ErrorAction SilentlyContinue) {
+                7z e $tarFile -o$destination
+                $tarFileBaseName = [System.IO.Path]::GetFileNameWithoutExtension($tarFile)
+                $tarFilePath = "$destination\$tarFileBaseName.tar"
+
+                # Then, extract the .tar part
+                if (Test-Path $tarFilePath) {
+                    7z x $tarFilePath -o$destination
+                    Remove-Item $tarFilePath
+                } else {
+                    Write-Host "$tarFilePath not found after extracting .xz part."
+                    $errorOccured = $true
+                }
+            }
+            # If 7z is not available, try using tar
+            elseif (Get-Command tar -ErrorAction SilentlyContinue) {
                 & { $env:XZ_OPT = '-T0'; tar -xf $tarFile -C $destination }
             }
-            # Try using 7z if tar is not available
-            elseif (Get-Command 7z -ErrorAction SilentlyContinue) {
-                7z x $tarFile -o$destination
-            } 
             else {
-                Write-Host "Neither tar nor 7z is available to extract files. Please install one of them and try again."
+                Write-Host "Neither 7z nor tar is available to extract files. Please install one of them and try again."
                 $errorOccured = $true
             }
         } catch {
