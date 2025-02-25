@@ -64,7 +64,7 @@ STANDARD_FLAGS_CPP="-rtlib=compiler-rt \
 -lc++abi"
 
 # Flags for Darwin
-FLAGS_DARWIN = "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
+FLAGS_DARWIN="-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
 
 # Create .cfg files for different triples
 create_cfg_file "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
