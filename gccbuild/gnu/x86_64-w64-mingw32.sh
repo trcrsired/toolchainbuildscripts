@@ -9,6 +9,10 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
+fi
+
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi

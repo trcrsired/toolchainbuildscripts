@@ -16,6 +16,10 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
+fi
+
 mkdir -p $currentpath/build
 mkdir -p $currentpath/build/build
 mkdir -p $currentpath/build/install

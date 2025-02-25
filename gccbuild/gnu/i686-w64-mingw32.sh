@@ -25,6 +25,10 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
+fi
+
 if [ -z ${THREADSNUMMAKE} ]; then
 THREADSNUMMAKE=-j$(nproc)
 fi

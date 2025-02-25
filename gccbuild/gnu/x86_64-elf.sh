@@ -6,11 +6,15 @@ if [ ! -d ${currentpath} ]; then
 	cd ${currentpath}
 fi
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
+fi
+
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
 if [ -z ${HOST+x} ]; then
