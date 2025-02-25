@@ -823,6 +823,11 @@ if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
+if [ -e "${prefix}/bin/gcc" ]; then
+  cd "${prefix}/bin"
+  ln -s gcc cc
+fi
+
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 	cd ${TOOLCHAINSPATH}/${hosttriple}
 	rm -f $HOST.tar.xz
