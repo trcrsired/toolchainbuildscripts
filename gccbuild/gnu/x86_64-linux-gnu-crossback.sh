@@ -20,6 +20,8 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
 mkdir -p $currentpath/build
 mkdir -p $currentpath/build/build
 mkdir -p $currentpath/build/install
@@ -34,10 +36,10 @@ if ! command -v "$HOST-g++" &> /dev/null; then
 fi
 
 TARGET=$BUILD
-PREFIX=$TOOLCHAINSPATH/$HOST/$TARGET
+PREFIX=$TOOLCHAINSPATH_GNU/$HOST/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
 
-export PATH=$TOOLCHAINSPATH/$TARGET/$HOST/bin:$TOOLCHAINSPATH/$HOST/$TARGET/bin:$PATH
+export PATH=$TOOLCHAINSPATH_GNU/$TARGET/$HOST/bin:$TOOLCHAINSPATH_GNU/$HOST/$TARGET/bin:$PATH
 export -n LD_LIBRARY_PATH
 if [ -z ${GLIBCBRANCH+x} ]; then
 GLIBCBRANCH="master"
@@ -244,7 +246,7 @@ done
 if [ ! -f include/stdio.h ]; then
 	cp -r --preserve=links ${currentpath}/build/install/canadian/* .
 fi
-cd $TOOLCHAINSPATH/$HOST
+cd $TOOLCHAINSPATH_GNU/$HOST
 if [ ! -f $TARGET.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
 	chmod 755 $TARGET.tar.xz

@@ -16,16 +16,18 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
-PREFIX=$TOOLCHAINSPATH/$BUILD/${HOST}-posix/$HOST
+PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/${HOST}-posix/$HOST
 PREFIXTARGET=$PREFIX/$HOST
 export PATH=$PREFIX/bin:$PATH
 
-HOSTPREFIX=$TOOLCHAINSPATH/${HOST}-posix/$HOST/${HOST}-posix/$HOST
+HOSTPREFIX=$TOOLCHAINSPATH_GNU/${HOST}-posix/$HOST/${HOST}-posix/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
 
 if [[ ${BUILD} == ${HOST} ]]; then
@@ -189,7 +191,7 @@ if [ ! -f $HOSTPREFIXTARGET/lib/libpthread.a ]; then
 cp -r ${currentpath}/installs/mingw-w64-winpthreads/* $HOSTPREFIXTARGET/
 fi
 
-cd $TOOLCHAINSPATH/${HOST}-posix/$HOST
+cd $TOOLCHAINSPATH_GNU/${HOST}-posix/$HOST
 if [ ! -f $HOST.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz

@@ -13,6 +13,8 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
 fi
@@ -23,11 +25,11 @@ mkdir -p $currentpath
 cd $currentpath
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
-PREFIX=$TOOLCHAINSPATH/$BUILD/$HOST
+PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$HOST
 PREFIXTARGET=$PREFIX/$HOST
 export PATH=$PREFIX/bin:$PATH
 
-HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
+HOSTPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX
 BINUTILSCONFIGUREFLAGSCOMMON=""
 if [[ $HOST == "x86_64-w64-mingw32" ]]; then
@@ -134,7 +136,7 @@ make -j$(nproc)
 make install-strip -j$(nproc)
 fi
 
-TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ${relpath}/buildgmpmpfrmpc.sh
+TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIXTARGET ${relpath}/buildgmpmpfrmpc.sh
 if [ $? -ne 0 ]; then
 	exit 1
 fi
@@ -194,13 +196,13 @@ if [ ! -f $HOSTPREFIXTARGET/lib/libntdll.a ]; then
 cp -r ${currentpath}/installs/mingw-w64-crt/* $HOSTPREFIXTARGET/
 fi
 
-cd $TOOLCHAINSPATH/$BUILD
+cd $TOOLCHAINSPATH_GNU/$BUILD
 if [ ! -f $TARGET.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
 	chmod 755 $TARGET.tar.xz
 fi
 
-cd $TOOLCHAINSPATH/$HOST
+cd $TOOLCHAINSPATH_GNU/$HOST
 if [ ! -f $HOST.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz

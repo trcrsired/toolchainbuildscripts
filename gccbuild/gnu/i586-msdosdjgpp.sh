@@ -27,6 +27,8 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
 if [ ! -d ${currentpath} ]; then
         mkdir ${currentpath}
         cd ${currentpath}
@@ -37,11 +39,11 @@ mkdir -p "${currentpath}"
 if [ -z ${DJCRX+x} ]; then
         DJCRX=djcrx205
 fi
-PREFIX=$TOOLCHAINSPATH/$BUILD/$TARGET
+PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
 export PATH=$PREFIX/bin:$PATH
 
-CANADIANPREFIX=$TOOLCHAINSPATH/$HOST/$TARGET
+CANADIANPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$TARGET
 CANADIANPREFIXTARGET=$CANADIANPREFIX/$TARGET
 
 if [[ ${HOST} == ${TARGET} ]]; then
@@ -77,7 +79,7 @@ chmod 755 ${DJCRX}.zip
 unzip ${DJCRX}.zip -d ${DJCRX}
 fi
 
-mkdir -p "${TOOLCHAINSPATH}/${BUILD}"
+mkdir -p "${TOOLCHAINSPATH_GNU}/${BUILD}"
 mkdir -p "${PREFIX}"
 mkdir -p "${PREFIXTARGET}"
 mkdir -p "${PREFIXTARGET}/bin"
@@ -156,7 +158,7 @@ cp -r ${currentpath}/build/${DJCRX}/include $CANADIANPREFIXTARGET/
 cp -r ${currentpath}/build/${DJCRX}/lib $CANADIANPREFIXTARGET/
 fi
 
-cd $TOOLCHAINSPATH/$BUILD
+cd $TOOLCHAINSPATH_GNU/$BUILD
 if [ ! -f $TARGET.tar.xz ]; then
 	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
 	chmod 755 $TARGET.tar.xz

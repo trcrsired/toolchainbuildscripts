@@ -26,6 +26,8 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
 fi
 
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
 
 if [ -z ${CANADIANHOST+x} ]; then
 	CANADIANHOST=x86_64-w64-mingw32
@@ -33,15 +35,15 @@ fi
 
 BUILD=$(gcc -dumpmachine)
 TARGET=$BUILD
-PREFIX=$TOOLCHAINSPATH/$BUILD/$HOST
+PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$HOST
 PREFIXTARGET=$PREFIX/$HOST
 export PATH=$PREFIX/bin:$PATH
 export -n LD_LIBRARY_PATH
-HOSTPREFIX=$TOOLCHAINSPATH/$HOST/$HOST
+HOSTPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
-export PATH=$TOOLCHAINSPATH/$BUILD/$CANADIANHOST/bin:$PATH
-CANADIANHOSTPREFIX=$TOOLCHAINSPATH/$CANADIANHOST/$HOST
+export PATH=$TOOLCHAINSPATH_GNU/$BUILD/$CANADIANHOST/bin:$PATH
+CANADIANHOSTPREFIX=$TOOLCHAINSPATH_GNU/$CANADIANHOST/$HOST
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
@@ -417,7 +419,7 @@ if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
-		cd ${TOOLCHAINSPATH}/${BUILD}
+		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
 		rm -f $HOST.tar.xz
 		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 		chmod 755 $HOST.tar.xz
@@ -686,7 +688,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	fi
 
 	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH=$TOOLCHAINSPATH GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/sysroot/usr $relpath/buildgmpmpfrmpc.sh
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/sysroot/usr $relpath/buildgmpmpfrmpc.sh
 		if [ $? -ne 0 ]; then
 			echo "$HOST gmp mpfr mpc build failed"
 			exit 1
@@ -695,7 +697,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
-		cd ${TOOLCHAINSPATH}/${BUILD}
+		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
 		rm -f $HOST.tar.xz
 		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 		chmod 755 $HOST.tar.xz
@@ -708,7 +710,7 @@ function handlebuild
 {
 local hosttriple=$1
 local build_prefix=${currentpath}/${hosttriple}/${HOST}
-local prefix=${TOOLCHAINSPATH}/${hosttriple}/${HOST}
+local prefix=${TOOLCHAINSPATH_GNU}/${hosttriple}/${HOST}
 local prefixtarget=${prefix}/${HOST}
 
 mkdir -p ${build_prefix}
@@ -833,7 +835,7 @@ if [ -e "${prefix}/bin/gcc" ]; then
 fi
 
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
-	cd ${TOOLCHAINSPATH}/${hosttriple}
+	cd ${TOOLCHAINSPATH_GNU}/${hosttriple}
 	rm -f $HOST.tar.xz
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz
