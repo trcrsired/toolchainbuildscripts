@@ -872,7 +872,7 @@ if [[ ${CANADIANHOST} == ${HOST} ]]; then
 exit 0
 fi
 
-if [ ! -x "$(command -v ${CANADIANHOST}-g++)" ]; then
+if [ -d "$relpath/.gnuartifacts/$CANADIANHOST" ]; then
     echo "${CANADIANHOST}-g++ not found. start to build"
     ./${CANADIANHOST}.sh
 fi
