@@ -874,6 +874,7 @@ fi
 
 if [ -d "$relpath/.gnuartifacts/$CANADIANHOST" ]; then
     echo "${CANADIANHOST}-g++ not found. start to build"
+		cd "${relpath}"
     ./${CANADIANHOST}.sh
 fi
 
