@@ -1,9 +1,6 @@
 if ! ./native.sh "$@"; then
 exit 1
 fi
-if ! ./x86_64-w64-mingw32.sh "$@"; then
-exit 1
-fi
 #if ! ./aarch64-w64-mingw32.sh "$@"; then
 #exit 1
 #fi
