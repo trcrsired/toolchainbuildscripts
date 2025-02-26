@@ -47,9 +47,9 @@ CANADIANHOSTPREFIX=$TOOLCHAINSPATH_GNU/$CANADIANHOST/$HOST
 
 NEW_BUILD=$(echo "$BUILD" | sed 's/-pc//g')
 
-if [[ "${NEWBUILD}" == "${HOST}" ]]; then
-	echo "here"
-export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${$TARGET}/bin:$PATH"
+if [[ "${NEW_BUILD}" == "${HOST}" ]]; then
+    echo "here"
+    export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${TARGET}/bin:$PATH"
 fi
 
 echo "gcc=$(which gcc)"
@@ -60,6 +60,7 @@ echo "HOST=${HOST}"
 echo "TARGET=$TARGET"
 echo "NEWBUILD=${NEW_BUILD}"
 exit 1
+
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
