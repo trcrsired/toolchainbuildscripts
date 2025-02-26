@@ -1,0 +1,33 @@
+libtool: compile:  x86_64-linux-gnu-c++ -I/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/../libgcc -I/home/cqwrteur/toolchains_build/toolchainbuildscripts/gccbuild/gnu/.gnuartifacts/x86_64-linux-gnu/x86_64-w64-mingw32/x86_64-linux-gnu/gcc/x86_64-linux-gnu/libstdc++-v3/include/x86_64-linux-gnu -I/home/cqwrteur/toolchains_build/toolchainbuildscripts/gccbuild/gnu/.gnuartifacts/x86_64-linux-gnu/x86_64-w64-mingw32/x86_64-linux-gnu/gcc/x86_64-linux-gnu/libstdc++-v3/include -I/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++ -D_GLIBCXX_SHARED -fno-implicit-templates -D_GLIBCXX_EH_POOL_NOBJS=0 -Wall -Wextra -Wwrite-strings -Wcast-qual -Wabi=19 -fdiagnostics-show-location=once -ffunction-sections -fdata-sections -frandom-seed=eh_catch.lo -g -O2 -D_GNU_SOURCE -fcf-protection -mshstk -c /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_catch.cc  -fPIC -DPIC -D_GLIBCXX_SHARED -o eh_catch.o
+libtool: compile:  x86_64-linux-gnu-c++ -I/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/../libgcc -I/home/cqwrteur/toolchains_build/toolchainbuildscripts/gccbuild/gnu/.gnuartifacts/x86_64-linux-gnu/x86_64-w64-mingw32/x86_64-linux-gnu/gcc/x86_64-linux-gnu/libstdc++-v3/include/x86_64-linux-gnu -I/home/cqwrteur/toolchains_build/toolchainbuildscripts/gccbuild/gnu/.gnuartifacts/x86_64-linux-gnu/x86_64-w64-mingw32/x86_64-linux-gnu/gcc/x86_64-linux-gnu/libstdc++-v3/include -I/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++ -D_GLIBCXX_SHARED -fno-implicit-templates -D_GLIBCXX_EH_POOL_NOBJS=0 -Wall -Wextra -Wwrite-strings -Wcast-qual -Wabi=19 -fdiagnostics-show-location=once -ffunction-sections -fdata-sections -frandom-seed=eh_exception.lo -g -O2 -D_GNU_SOURCE -fcf-protection -mshstk -c /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_exception.cc  -fPIC -DPIC -D_GLIBCXX_SHARED -o eh_exception.o
+In file included from /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_arm.cc:26:
+/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/unwind-cxx.h:41:10: fatal error: sys/sdt.h: No such file or directory
+   41 | #include <sys/sdt.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+make[4]: *** [Makefile:777: eh_arm.lo] Error 1
+make[4]: *** Waiting for unfinished jobs....
+In file included from /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_alloc.cc:38:
+/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/unwind-cxx.h:41:10: fatal error: sys/sdt.h: No such file or directory
+   41 | #include <sys/sdt.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+In file included from /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_call.cc:28:
+/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/unwind-cxx.h:41:10: fatal error: sys/sdt.h: No such file or directory
+   41 | #include <sys/sdt.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+make[4]: *** [Makefile:777: eh_call.lo] Error 1
+make[4]: *** [Makefile:777: eh_alloc.lo] Error 1
+In file included from /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_aux_runtime.cc:29:
+/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/unwind-cxx.h:41:10: fatal error: sys/sdt.h: No such file or directory
+   41 | #include <sys/sdt.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+make[4]: *** [Makefile:777: eh_aux_runtime.lo] Error 1
+In file included from /home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/eh_catch.cc:26:
+/home/cqwrteur/toolchains_build/gcc/libstdc++-v3/libsupc++/unwind-cxx.h:41:10: fatal error: sys/sdt.h: No such file or directory
+   41 | #include <sys/sdt.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+make[4]: *** [Makefile:777: eh_catch.lo] Error 1
