@@ -52,15 +52,13 @@ if [[ "${NEW_BUILD}" == "${HOST}" ]]; then
     export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${TARGET}/bin:$PATH"
 fi
 
-echo "gcc=$(which gcc)"
-echo "cc=$(which cc)"
-echo "g++=$(which g++)"
-echo "PATH=$PATH"
-echo "HOST=${HOST}"
-echo "TARGET=$TARGET"
-echo "NEWBUILD=${NEW_BUILD}"
-exit 1
-
+echo "gcc=$(which gcc)
+cc=$(which cc)
+g++=$(which g++)
+PATH=$PATH
+HOST=${HOST}
+TARGET=$TARGET
+NEWBUILD=${NEW_BUILD}"
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
