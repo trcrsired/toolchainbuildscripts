@@ -197,9 +197,9 @@ cp -r ${currentpath}/installs/mingw-w64-crt/* $HOSTPREFIXTARGET/
 fi
 
 cd $TOOLCHAINSPATH_GNU/$BUILD
-if [ ! -f $TARGET.tar.xz ]; then
-	XZ_OPT=-e9T0 tar cJf $TARGET.tar.xz $TARGET
-	chmod 755 $TARGET.tar.xz
+if [ ! -f $HOST.tar.xz ]; then
+	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
+	chmod 755 $HOST.tar.xz
 fi
 
 cd $TOOLCHAINSPATH_GNU/$HOST
