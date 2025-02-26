@@ -872,8 +872,13 @@ if [[ ${CANADIANHOST} == ${HOST} ]]; then
 exit 0
 fi
 
+if [ ! -x "$(command -v ${CANADIANHOST}-g++)" ]; then
+    echo "${CANADIANHOST}-g++ not found. start to build"
+    ./${CANADIANHOST}.sh
+fi
+
 if [ -x "$(command -v ${CANADIANHOST}-g++)" ]; then
-handlebuild ${CANADIANHOST}
+    handlebuild ${CANADIANHOST}
 else
-echo "${CANADIANHOST}-g++ not found. skipped"
+    echo "${CANADIANHOST}-g++ not found. skipped"
 fi
