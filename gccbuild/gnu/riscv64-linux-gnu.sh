@@ -829,9 +829,16 @@ if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
 
-if [ -e "${prefix}/bin/gcc" ]; then
+if [ ! -f "${build_prefix}/gcc/.symlinksuccess" ]; then
+if [[ "${hosttriple}" == "{$HOST}" ]]; then
   cd "${prefix}/bin"
-  ln -s gcc cc
+	if [[ -e "${prefix}/bin/gcc" ]]; then
+	  ln -s gcc cc
+	elif [[ -e "${prefix}/bin/gcc.exe" ]]; then
+	  ln gcc.exe cc.exe
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.symlinksuccess
+fi
 fi
 
 if [ ! -f ${build_prefix}/.packagingsuccess ]; then
