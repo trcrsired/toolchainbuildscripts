@@ -85,9 +85,9 @@ fi
 echo "$(date --iso-8601=seconds)" > ${currentpath}/gcc/.installsuccess
 fi
 
-if [ -e "${PREFIXTARGET}/bin/gcc" ]; then
-  cd "${PREFIXTARGET}/bin"
-  ln -s gcc cc
+if [ ! -L "$PREFIX/bin/cc" ]; then
+cd $PREFIX/bin
+ln -s gcc cc
 fi
 
 mkdir -p ${currentpath}/binutils-gdb
