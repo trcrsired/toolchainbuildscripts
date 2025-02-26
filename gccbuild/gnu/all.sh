@@ -31,7 +31,7 @@ fi
 if ! ./i686-w64-mingw32.sh "$@"; then
 exit 1
 fi
-#if ! ./sparc64-linux-gnu.sh "$@"; then
-#exit 1
-#fi
+if ! ./riscv64-linux-gnu.sh "$@"; then
+exit 1
+fi
 
