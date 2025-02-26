@@ -48,7 +48,6 @@ CANADIANHOSTPREFIX=$TOOLCHAINSPATH_GNU/$CANADIANHOST/$HOST
 NEW_BUILD=$(echo "$BUILD" | sed 's/-pc//g')
 
 if [[ "${NEW_BUILD}" == "${HOST}" ]]; then
-    echo "here"
     export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${TARGET}/bin:$PATH"
 fi
 
