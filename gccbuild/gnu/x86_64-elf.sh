@@ -20,7 +20,7 @@ fi
 if [ -z ${TARGET+x} ]; then
 	TARGET=x86_64-elf
 fi
-currentpath="$relpath/.gnuartifacts/$TARGET"
+currentpath="$relpath/.gnuartifacts/$TARGET/$HOST"
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
 	cd ${currentpath}
