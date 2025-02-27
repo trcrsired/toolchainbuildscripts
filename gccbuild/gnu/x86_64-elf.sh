@@ -1,10 +1,5 @@
 #!/bin/bash
-relpath=$(realpath .)
-currentpath=$relpath/artifacts
-if [ ! -d ${currentpath} ]; then
-	mkdir ${currentpath}
-	cd ${currentpath}
-fi
+relpath="$(realpath .)"
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
@@ -24,6 +19,11 @@ if [ -z ${HOST+x} ]; then
 fi
 if [ -z ${TARGET+x} ]; then
 	TARGET=x86_64-elf
+fi
+currentpath="$relpath/.gnuartifacts/$TARGET"
+if [ ! -d ${currentpath} ]; then
+	mkdir ${currentpath}
+	cd ${currentpath}
 fi
 BUILD=$(gcc -dumpmachine)
 PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$TARGET
