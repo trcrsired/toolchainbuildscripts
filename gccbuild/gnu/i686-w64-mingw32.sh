@@ -74,17 +74,8 @@ fi
 cd "$TOOLCHAINS_BUILD/gcc"
 git pull --quiet
 
-if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
-cd $TOOLCHAINS_BUILD/gcc
-./contrib/download_prerequisites
-fi
-
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
-cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s ../gcc/gmp gmp
-ln -s ../gcc/mpfr mpfr
-ln -s ../gcc/mpc mpc
-fi
+cd "$relpath"
+./clonegccbinutils.sh
 
 cd "$TOOLCHAINS_BUILD"
 if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then

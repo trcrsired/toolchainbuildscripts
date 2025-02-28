@@ -20,24 +20,6 @@ fi
 cd "$TOOLCHAINS_BUILD/gcc"
 git pull --quiet
 
-if [ ! -L "$TOOLCHAINS_BUILD/gcc/gmp" ]; then
-cd $TOOLCHAINS_BUILD/gcc
-./contrib/download_prerequisites
-if [ $? -ne 0 ]; then
-echo "gcc dependencies download failed"
-exit 1
-fi
-fi
-
-if [ ! -L "$TOOLCHAINS_BUILD/binutils-gdb/gmp" ]; then
-cd $TOOLCHAINS_BUILD/binutils-gdb
-ln -s ../gcc/gmp gmp
-ln -s ../gcc/mpfr mpfr
-ln -s ../gcc/mpc mpc
-ln -s ../gcc/gettext gettext
-ln -s ../gcc/isl isl
-fi
-
 if [ -z ${CLONELINUX+x} ]; then
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
