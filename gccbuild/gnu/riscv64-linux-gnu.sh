@@ -484,7 +484,7 @@ else
 		multilibsdir=("lib")
 		multilibsingccdir=("")
 		multilibshost=("x86_64-linux-gnu")
-	elif [[ ${ARCH} == "loongarch64" ]]; then
+	elif [[ ${ARCH} == "loongarch" ]]; then
 		multilibs=(m64)
 		multilibsoptions=("")
 		multilibsdir=("lib64")

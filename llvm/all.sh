@@ -24,3 +24,8 @@ if [[ $NO_BUILD_WAVM != "yes" ]]; then
 cd "$llvmcurrentrealpath/../wavm"
 ./all.sh "$@"
 fi
+
+if [[ $NO_BUILD_WINE != "yes" ]]; then
+cd "$llvmcurrentrealpath/../wine"
+./all-min.sh "$@"
+fi
