@@ -3,7 +3,6 @@
 BUILD=$(gcc -dumpmachine)
 PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$TARGET
 PREFIXTARGET=$PREFIX/$TARGET
-export PATH=$PREFIX/bin:$TOOLCHAINSPATH_GNU/$BUILD/$HOST/bin:$PATH
 
 if [ -z ${HOST+x} ]; then
 	HOST=x86_64-w64-mingw32
@@ -12,6 +11,7 @@ if [ -z ${TARGET+x} ]; then
 	TARGET=i686-w64-mingw32
 fi
 
+export PATH="$PREFIX/bin:$TOOLCHAINSPATH_GNU/$BUILD/$HOST/bin:$PATH"
 currentpath=$(realpath .)/.gnuartifacts/$TARGET/$HOST
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
