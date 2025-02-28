@@ -22,9 +22,9 @@ fi
 if ! ./x86_64-elf.sh "$@"; then
 exit 1
 fi
-#if ! ./loongarch64-linux-gnu.sh "$@"; then
-#exit 1
-#fi
+if ! ./loongarch64-linux-gnu.sh "$@"; then
+exit 1
+fi
 #if ! ./loongarch64-linux-musl.sh "$@"; then
 #exit 1
 #fi
