@@ -165,10 +165,6 @@ fi
 if [ ! -d $CANADIANPREFIXTARGET/include/c++ ]; then
 cp -r "$PREFIXTARGET/include" "$CANADIANPREFIXTARGET/"
 cp -r "$PREFIXTARGET/lib" "$CANADIANPREFIXTARGET/"
-make all-gcc -j$(nproc)
-make install-strip-gcc -j$(nproc)
-make all-target-libgcc -j$(nproc)
-make install-strip-target-libgcc -j$(nproc)
 fi
 
 cd $TOOLCHAINSPATH_GNU/$BUILD
