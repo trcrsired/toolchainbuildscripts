@@ -824,15 +824,22 @@ if [ ! -f ${build_prefix}/gcc/.generatelimitssuccess ]; then
 fi
 
 if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
-	cd $build_prefix/gcc
+	cd "$build_prefix/gcc"
 	make -j$(nproc)
 	if [ $? -ne 0 ]; then
 		if [ -d "${build_prefix}/gcc/${HOST}/libstdc++-v3/libsupc++" ]; then
 			cd "$build_prefix/gcc/${HOST}/libstdc++-v3/libsupc++"
 			make -j$(nproc)
 			if [ $? -ne 0 ]; then
-				echo "gcc (${hosttriple}/${HOST}) build failed"
-				exit 1
+				echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
+				if [ $? -ne 0 ]; then
+					cd "$build_prefix/gcc"
+					make -j$(nproc)
+					if [ $? -ne 0 ]; then
+						echo "gcc (${hosttriple}/${HOST}) build failed"
+						exit 1
+					fi
+				fi
 			fi
 		else
 			echo "gcc (${hosttriple}/${HOST}) build failed"
