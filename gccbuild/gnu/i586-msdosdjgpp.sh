@@ -151,13 +151,20 @@ if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$CANADIANPREFIXTARGET/include/c++/v1 --prefix=$CANADIANPREFIX $CANADIANTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace --disable-libquadmath
 fi
 if [ ! -d $CANADIANPREFIX/lib/gcc ]; then
-make -j$(nproc)
-make install-strip -j$(nproc)
+make all-gcc -j$(nproc)
+make install-strip-gcc -j$(nproc)
+make all-target-libgcc -j$(nproc)
+make install-strip-target-libgcc -j$(nproc)
 fi
 
 if [ ! -f $CANADIANPREFIXTARGET/include/stdio.h ]; then
 cp -r ${currentpath}/build/${DJCRX}/include $CANADIANPREFIXTARGET/
 cp -r ${currentpath}/build/${DJCRX}/lib $CANADIANPREFIXTARGET/
+fi
+
+if [ ! -d $CANADIANPREFIXTARGET/include/c++ ]; then
+cp -r "$PREFIXTARGET/include" "$CANADIANPREFIXTARGET/"
+cp -r "$PREFIXTARGET/lib" "$CANADIANPREFIXTARGET/"
 fi
 
 cd $TOOLCHAINSPATH_GNU/$BUILD
