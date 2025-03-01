@@ -157,11 +157,6 @@ make all-target-libgcc -j$(nproc)
 make install-strip-target-libgcc -j$(nproc)
 fi
 
-if [ ! -f $CANADIANPREFIXTARGET/include/stdio.h ]; then
-cp -r ${currentpath}/build/${DJCRX}/include $CANADIANPREFIXTARGET/
-cp -r ${currentpath}/build/${DJCRX}/lib $CANADIANPREFIXTARGET/
-fi
-
 if [ ! -d $CANADIANPREFIXTARGET/include/c++ ]; then
 cp -r "$PREFIXTARGET/include" "$CANADIANPREFIXTARGET/"
 cp -r "$PREFIXTARGET/lib" "$CANADIANPREFIXTARGET/"
