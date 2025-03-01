@@ -51,6 +51,10 @@ if [[ "${NEW_BUILD}" == "${HOST}" ]]; then
     export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${TARGET}/bin:$PATH"
 fi
 
+if [[ "${NEW_BUILD}" != "${BUILD}" ]]; then
+    export PATH="$TOOLCHAINSPATH_GNU/${NEW_BUILD}/${NEW_BUILD}/bin:$PATH"
+fi
+
 echo "gcc=$(which gcc)
 cc=$(which cc)
 g++=$(which g++)
