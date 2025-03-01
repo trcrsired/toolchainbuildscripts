@@ -840,6 +840,9 @@ if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
 						exit 1
 					fi
 				fi
+			else
+				echo "gcc (${hosttriple}/${HOST}) build failed"
+				exit 1
 			fi
 		else
 			echo "gcc (${hosttriple}/${HOST}) build failed"
