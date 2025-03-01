@@ -149,10 +149,16 @@ if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
 GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
+: <<'EOF'
 if [[ ${ARCH} == "loongarch" ]]; then
 ENABLEGOLD="--disable-tui --without-debuginfod"
 else
 ENABLEGOLD="--disable-tui --without-debuginfod --enable-gold"
+fi
+EOF
+
+if [[ ${ARCH} != "loongarch" ]]; then
+ENABLEGOLD="--enable-gold"
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh
