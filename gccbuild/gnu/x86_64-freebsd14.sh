@@ -355,7 +355,11 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
-handlebuild ${HOST}
+if [[ "$FORCEFREEBSDCANADIANBUILD" == "yes" ]]; then
+    # Temporarily disable FreeBSD binutils build due to known issues.
+    # Waiting for upstream to resolve the problem.
+    handlebuild ${HOST}
+fi
 
 if [[ ${CANADIANHOST} == ${HOST} ]]; then
 exit 0
