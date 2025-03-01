@@ -827,8 +827,8 @@ if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
 	cd $build_prefix/gcc
 	make -j$(nproc)
 	if [ $? -ne 0 ]; then
-		if [ -d "${build_prefix}/gcc/${HOST}/libstdc++-v3" ]; then
-			rm -rf "${build_prefix}/gcc/${HOST}/libstdc++-v3"
+		if [ -d "${build_prefix}/gcc/${HOST}/libstdc++-v3/libsupc++" ]; then
+			cd "$build_prefix/gcc/${HOST}/libstdc++-v3/libsupc++"
 			make -j$(nproc)
 			if [ $? -ne 0 ]; then
 				echo "gcc (${hosttriple}/${HOST}) build failed"
