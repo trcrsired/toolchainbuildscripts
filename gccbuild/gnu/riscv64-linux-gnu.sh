@@ -731,6 +731,15 @@ local build_prefix=${currentpath}/${hosttriple}/${HOST}
 local prefix=${TOOLCHAINSPATH_GNU}/${hosttriple}/${HOST}
 local prefixtarget=${prefix}/${HOST}
 
+local tripletbuild=$NEW_BUILD
+
+if command -v "${NEW_BUILD}-g++" >/dev/null 2>&1; then
+    echo "${NEW_BUILD}-g++ exists!"
+else
+    echo "${NEW_BUILD}-g++ does not exist, switching to $BUILD"
+    tripletbuild=$BUILD
+fi
+
 mkdir -p ${build_prefix}
 
 echo $build_prefix
@@ -760,7 +769,7 @@ if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 		extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 	fi
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags --with-sysroot=${prefix}/sysroot
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $extra_binutils_configure_flags --with-sysroot=${prefix}/sysroot
 	if [ $? -ne 0 ]; then
 		echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 		exit 1
@@ -795,7 +804,7 @@ fi
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 	mkdir -p ${build_prefix}/gcc
 	cd $build_prefix/gcc
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --with-sysroot=$prefix/sysroot
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --with-sysroot=$prefix/sysroot
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) configure failed"
 		exit 1
@@ -826,31 +835,37 @@ fi
 if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
 	cd "$build_prefix/gcc"
 	make -j$(nproc)
+: <<'EOF'
+if [ $? -ne 0 ]; then
+        if [ -d "${build_prefix}/gcc/${HOST}/libstdc++-v3/libsupc++" ]; then
+            cd "$build_prefix/gcc/${HOST}/libstdc++-v3/libsupc++"
+            make -j$(nproc)
+            if [ $? -ne 0 ]; then
+                echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
+                cp "${currentpath}/${HOST}/${HOST}/gcc/${HOST}/libstdc++-v3/config.h" "${build_prefix}/gcc/${HOST}/libstdc++-v3/"
+                touch "${build_prefix}/gcc/${HOST}/libstdc++-v3/config.h"
+                echo "copied config.h"
+                if [ $? -ne 0 ]; then
+                    echo "gcc (${hosttriple}/${HOST}) copy libstdc++-v3/config.h failed"
+                    exit 1
+                fi
+            fi
+            make -j$(nproc)
+            if [ $? -ne 0 ]; then
+                echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
+                exit 1
+            fi
+        else
+            if [ $? -ne 0 ]; then
+                echo "gcc (${hosttriple}/${HOST}) build failed"
+                exit 1
+            fi
+        fi
+    fi
+EOF
 	if [ $? -ne 0 ]; then
-		if [ -d "${build_prefix}/gcc/${HOST}/libstdc++-v3/libsupc++" ]; then
-			cd "$build_prefix/gcc/${HOST}/libstdc++-v3/libsupc++"
-			make -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
-				cp "${currentpath}/${HOST}/${HOST}/gcc/${HOST}/libstdc++-v3/config.h" "${build_prefix}/gcc/${HOST}/libstdc++-v3/"
-				touch "${build_prefix}/gcc/${HOST}/libstdc++-v3/config.h"
-				echo "copied config.h"
-				if [ $? -ne 0 ]; then
-					echo "gcc (${hosttriple}/${HOST}) copy libstdc++-v3/config.h failed"
-					exit 1
-				fi
-			fi
-			make -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
-				exit 1
-			fi
-		else
-			if [ $? -ne 0 ]; then
-				echo "gcc (${hosttriple}/${HOST}) build failed"
-				exit 1
-			fi
-		fi
+			echo "gcc (${hosttriple}/${HOST}) build failed"
+			exit 1
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
 fi
