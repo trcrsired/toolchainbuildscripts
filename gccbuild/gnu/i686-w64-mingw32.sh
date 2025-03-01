@@ -1,17 +1,5 @@
 #!/bin/bash
 
-BUILD=$(gcc -dumpmachine)
-PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$TARGET
-PREFIXTARGET=$PREFIX/$TARGET
-
-if [ -z ${HOST+x} ]; then
-	HOST=x86_64-w64-mingw32
-fi
-if [ -z ${TARGET+x} ]; then
-	TARGET=i686-w64-mingw32
-fi
-
-export PATH="$PREFIX/bin:$TOOLCHAINSPATH_GNU/$BUILD/$HOST/bin:$PATH"
 currentpath=$(realpath .)/.gnuartifacts/$TARGET/$HOST
 if [ ! -d ${currentpath} ]; then
 	mkdir ${currentpath}
@@ -35,13 +23,25 @@ if [ -z ${THREADSNUMMAKE} ]; then
 THREADSNUMMAKE=-j$(nproc)
 fi
 
-HOSTPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$TARGET
-HOSTPREFIXTARGET=$HOSTPREFIX/$TARGET
+if [ -z ${HOST+x} ]; then
+	HOST=x86_64-w64-mingw32
+fi
+if [ -z ${TARGET+x} ]; then
+	TARGET=i686-w64-mingw32
+fi
 
 if [[ ${BUILD} == ${HOST} ]]; then
 	echo "Native compilation not supported"
 	exit 1
 fi
+
+BUILD=$(gcc -dumpmachine)
+PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$TARGET
+PREFIXTARGET=$PREFIX/$TARGET
+HOSTPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$TARGET
+HOSTPREFIXTARGET=$HOSTPREFIX/$TARGET
+
+export PATH="$PREFIX/bin:$TOOLCHAINSPATH_GNU/$BUILD/$HOST/bin:$PATH"
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
