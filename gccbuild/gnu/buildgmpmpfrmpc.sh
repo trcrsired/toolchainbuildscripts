@@ -246,3 +246,8 @@ if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/.installzstdcopy" ]; then
     echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/zstd/.installzstdcopy"
 fi
 fi
+
+if [ ! -f "${GMPMPFRMPCBUILD_DEPINSTALLS}/.rmallras" ]; then
+	rm -f "${GMPMPFRMPCPREFIX}/lib/*.la" "${GMPMPFRMPCPREFIX}/${GMPMPFRMPCBUILDUSEALTERNATIVELIB}/*.la"
+   echo "$(date --iso-8601=seconds)" > "${GMPMPFRMPCBUILD_DEPINSTALLS}/.rmallras"
+fi
