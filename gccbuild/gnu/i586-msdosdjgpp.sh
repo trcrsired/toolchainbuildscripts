@@ -141,8 +141,8 @@ make install-strip -j$(nproc)
 fi
 cd ${currentpath}/hostbuild/$HOST
 
-${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubify ${currentpath}/build/${DJCRX}/src/stub/stubify.c -s -Ofast -flto
-${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubedit ${currentpath}/build/${DJCRX}/src/stub/stubedit.c -s -Ofast -flto
+${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubify ${currentpath}/build/${DJCRX}/src/stub/stubify.c -s -O3 -flto
+${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubedit ${currentpath}/build/${DJCRX}/src/stub/stubedit.c -s -O3 -flto
 
 cd ${currentpath}/hostbuild/$HOST
 mkdir -p gcc
