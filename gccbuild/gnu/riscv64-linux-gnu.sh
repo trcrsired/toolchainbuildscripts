@@ -833,6 +833,8 @@ if [ ! -f ${build_prefix}/gcc/.buildsuccess ]; then
 			if [ $? -ne 0 ]; then
 				echo "gcc (${hosttriple}/${HOST}) build libstdc++-v3/libsupc++ failed"
 				cp "${currentpath}/${HOST}/${HOST}/gcc/${HOST}/libstdc++-v3/config.h" "${build_prefix}/gcc/${HOST}/libstdc++-v3/"
+				touch "${build_prefix}/gcc/${HOST}/libstdc++-v3/config.h"
+				echo "copied config.h"
 				if [ $? -ne 0 ]; then
 					echo "gcc (${hosttriple}/${HOST}) copy libstdc++-v3/config.h failed"
 					exit 1
