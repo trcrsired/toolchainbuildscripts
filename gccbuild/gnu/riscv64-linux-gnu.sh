@@ -397,46 +397,52 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	# Enable the precompiled sysroot
 	USE_PRECOMPILED_SYSROOT=yes
 	DISABLE_CANADIAN_NATIVE=yes
-	if [ -z ${DJCRX+x} ]; then
-					DJCRX=djcrx205
+	if [ ! -f "${currentpath}/install/.copysysrootsuccess" ]; then
+		if [ -z ${DJCRX+x} ]; then
+						DJCRX=djcrx205
+		fi
+		USRALTERNATIVENAME=dev/env/DJDIR
+		mkdir -p "${currentpath}/downloads"
+		mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
+		cd "${currentpath}/downloads"
+		# Download the zip file
+		wget http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip
+		if [ $? -ne 0 ]; then
+				echo "Error: Failed to download ${DJCRX}.zip"
+				exit 1
+		fi
+
+		# Change permissions of the downloaded zip file (ignore errors)
+		chmod 755 ${DJCRX}.zip || true
+
+		# Unzip the downloaded file
+		unzip ${DJCRX}.zip -d "${SYSROOT}/${USRALTERNATIVENAME}"
+		if [ $? -ne 0 ]; then
+				echo "Error: Failed to unzip ${DJCRX}.zip"
+				exit 1
+		fi
+
+		# Create the target directory for binaries (ignore errors)
+		mkdir -p "${PREFIXTARGET}/bin" || true
+
+		# Compile stubify
+		gcc -o $PREFIXTARGET/bin/stubify ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubify.c -s -O3 -flto
+		if [ $? -ne 0 ]; then
+				echo "Error: Failed to compile stubify"
+				exit 1
+		fi
+
+		# Compile stubedit
+		gcc -o $PREFIXTARGET/bin/stubedit ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubedit.c -s -O3 -flto
+		if [ $? -ne 0 ]; then
+				echo "Error: Failed to compile stubedit"
+				exit 1
+		fi
+		mkdir -p "${currentpath}/install"
+		mkdir -p "${PREFIX}/${USRALTERNATIVENAME}"
+		cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}"/  
+		echo "$(date --iso-8601=seconds)" > "${currentpath}/install/.copysysrootsuccess"
 	fi
-	mkdir -p "${currentpath}/downloads"
-	mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
-	cd "${currentpath}/downloads"
-	# Download the zip file
-	wget http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip
-	if [ $? -ne 0 ]; then
-			echo "Error: Failed to download ${DJCRX}.zip"
-			exit 1
-	fi
-
-	# Change permissions of the downloaded zip file (ignore errors)
-	chmod 755 ${DJCRX}.zip || true
-
-	# Unzip the downloaded file
-	unzip ${DJCRX}.zip -d "${SYSROOT}/${USRALTERNATIVENAME}"
-	if [ $? -ne 0 ]; then
-			echo "Error: Failed to unzip ${DJCRX}.zip"
-			exit 1
-	fi
-
-	# Create the target directory for binaries (ignore errors)
-	mkdir -p "${PREFIXTARGET}/bin" || true
-
-	# Compile stubify
-	gcc -o $PREFIXTARGET/bin/stubify ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubify.c -s -O3 -flto
-	if [ $? -ne 0 ]; then
-			echo "Error: Failed to compile stubify"
-			exit 1
-	fi
-
-	# Compile stubedit
-	gcc -o $PREFIXTARGET/bin/stubedit ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubedit.c -s -O3 -flto
-	if [ $? -ne 0 ]; then
-			echo "Error: Failed to compile stubedit"
-			exit 1
-	fi
-
 fi
 
 if [[ "${USE_PRECOMPILED_SYSROOT}" == "yes" ]]; then
