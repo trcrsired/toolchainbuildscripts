@@ -585,13 +585,6 @@ if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 		safe_llvm_strip ${PREFIX}
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess  || ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
-		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
-		rm -f $HOST.tar.xz
-		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-		chmod 755 $HOST.tar.xz
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess
-	fi
 else
 
 	cd ${currentpath}
@@ -860,14 +853,17 @@ if [[ $isnativebuild != "yes" ]]; then
 			exit 1
 		fi
 	fi
+fi
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess  || ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
-		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
-		rm -f $HOST.tar.xz
-		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
-		chmod 755 $HOST.tar.xz
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
-	fi
+mkdir -p "${currentpath}/targetbuild/$HOST/gcc_phase2"
+
+if [ ! -f "${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess" ] || [ ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
+		cd "${TOOLCHAINSPATH_GNU}/${BUILD}" || exit 1
+		safe_llvm_strip "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST"
+		rm -f "$HOST.tar.xz"
+		XZ_OPT=-e9T0 tar cJf "$HOST.tar.xz" "$HOST"
+		chmod 755 "$HOST.tar.xz"
+		echo "$(date --iso-8601=seconds)" > "${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess"
 fi
 
 function handlebuild
