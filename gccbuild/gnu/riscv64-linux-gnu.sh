@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ./safe-llvm-strip.sh
+
 ./dependencycheck.sh
 if [ $? -ne 0 ]; then
 exit 1
@@ -48,7 +49,6 @@ TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$HOST
 PREFIXTARGET=$PREFIX/$HOST
 export PATH=$PREFIX/bin:$PATH
-export -n LD_LIBRARY_PATH
 HOSTPREFIX=$TOOLCHAINSPATH_GNU/$HOST/$HOST
 HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
