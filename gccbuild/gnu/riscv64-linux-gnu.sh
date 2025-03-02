@@ -413,7 +413,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installsysrootsuccess ]; then
-		cp -r --preserve=links $SYSROOT/* $PREFIX/sysroot/
+		cp -r --preserve=links $SYSROOT/* $PREFIX/
 		if [ $? -ne 0 ]; then
 			echo "copy newlib-cygwin failure"
 			exit 1
@@ -645,10 +645,10 @@ fi
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 if [[ $isnativebuild != "yes" ]]; then
-	mkdir -p $PREFIX/sysroot
+	mkdir -p $PREFIX
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
-		echo cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
-		cp -r --preserve=links $SYSROOT/usr $PREFIX/sysroot/
+		echo cp -r --preserve=links $SYSROOT/usr $PREFIX/
+		cp -r --preserve=links $SYSROOT/usr $PREFIX/
 		if [ $? -ne 0 ]; then
 			echo "gcc phase1 copysysroot failure"
 			exit 1
@@ -659,7 +659,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX/sysroot
+		STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX
 		mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 		if [ $? -ne 0 ]; then
 			echo "gcc phase2 configure failure"
@@ -712,7 +712,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	fi
 
 	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/sysroot/usr $relpath/buildgmpmpfrmpc.sh
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/usr $relpath/buildgmpmpfrmpc.sh
 		if [ $? -ne 0 ]; then
 			echo "$HOST gmp mpfr mpc build failed"
 			exit 1
@@ -755,8 +755,8 @@ echo $prefixtarget
 
 if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	if [ ! -f ${build_prefix}/.installsysrootsuccess ]; then
-		mkdir -p ${prefix}/sysroot
-		cp -r --preserve=links $SYSROOT/* ${prefix}/sysroot/
+		mkdir -p "${prefix}"
+		cp -r --preserve=links $SYSROOT/* ${prefix}/
 
 		echo "$(date --iso-8601=seconds)" > ${build_prefix}/.installsysrootsuccess
 	fi
@@ -775,7 +775,7 @@ if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 		extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 	fi
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $extra_binutils_configure_flags --with-sysroot=${prefix}/sysroot
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 	if [ $? -ne 0 ]; then
 		echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 		exit 1
@@ -814,7 +814,7 @@ if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 	if [[  ${hosttriple} == ${HOST} ]]; then
 		sysrootconfigure="--with-build-sysroot"
 	fi
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON "$sysrootconfigure=$prefix/sysroot"
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON "$sysrootconfigure=$prefix"
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) configure failed"
 		exit 1
