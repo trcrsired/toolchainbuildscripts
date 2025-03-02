@@ -216,7 +216,9 @@ fi
 EOF
 
 if [[ ${ARCH} != "loongarch" ]]; then
+if [[ ${HOST_OS} == "linux" || ${HOST_OS} == "elf" || ${HOST_OS} == freebsd* ]]; then
 ENABLEGOLD="--enable-gold"
+fi
 fi
 
 if ! $relpath/clonebinutilsgccwithdeps.sh
