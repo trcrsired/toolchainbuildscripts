@@ -291,9 +291,9 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 					echo "tar extraction failure"
 					exit 1
 			fi
-
+			mkdir -p "${SYSROOT}/usr"
 			# Move all extracted files into $SYSROOT/usr
-			mv "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr"
+			mv "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr/"
 			if [ $? -ne 0 ]; then
 					echo "Failed to move files to ${SYSROOT}/usr"
 					exit 1
