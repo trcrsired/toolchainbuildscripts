@@ -334,16 +334,16 @@ USE_PRECOMPILED_SYSROOT=yes
 			fi
 
 			# Set appropriate permissions for the tarball
-			chmod 755 "${HOST}.tar.xz"
+			chmod 755 "${NEWHOST}.tar.xz"
 			if [ $? -ne 0 ]; then
-					echo "Error: Failed to set permissions on ${HOST}.tar.xz."
+					echo "Error: Failed to set permissions on ${NEWHOST}.tar.xz."
 					exit 1
 			fi
 
 			# Extract the tarball into the sysroot directory
-			tar -xf "${HOST}.tar.xz" -C "$SYSROOT"
+			tar -xf "${NEWHOST}.tar.xz" -C "$SYSROOT"
 			if [ $? -ne 0 ]; then
-					echo "Error: Failed to extract ${HOST}.tar.xz to $SYSROOT."
+					echo "Error: Failed to extract ${NEWHOST}.tar.xz to $SYSROOT."
 					exit 1
 			fi
 
