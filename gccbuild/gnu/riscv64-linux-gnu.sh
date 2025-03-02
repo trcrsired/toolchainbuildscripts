@@ -343,6 +343,12 @@ if [[ $isnativebuild != "yes" ]]; then
 		make install-strip -j$(nproc)
 		if [ $? -ne 0 ]; then
 			echo "binutils-gdb install-strip failure"
+			make install -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "binutils-gdb install failure"
+				exit 1
+			fi
+			safe_llvm_strip ${PREFIX}
 			exit 1
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
