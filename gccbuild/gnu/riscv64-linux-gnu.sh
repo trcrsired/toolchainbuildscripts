@@ -63,6 +63,37 @@ if [[ "${NEW_BUILD}" != "${BUILD}" ]]; then
     export PATH="$TOOLCHAINSPATH_GNU/${NEW_BUILD}/${NEW_BUILD}/bin:$PATH"
 fi
 
+# Echo the value of $HOST
+echo "HOST: $HOST"
+
+# Extract and assign parts from $HOST
+HOST_CPU=${HOST%%-*}                         # Extract 'cpu'
+remainder=${HOST#*-}
+if [[ "$remainder" == "$HOST" ]]; then
+    echo "Invalid format: Missing other parts"
+    exit 1
+fi
+
+if [[ "$remainder" == *-* ]]; then
+    HOST_VENDOR=${remainder%%-*}            # Extract 'vendor'
+    remainder=${remainder#*-}
+else
+    HOST_VENDOR=""
+fi
+
+if [[ "$remainder" == *-* ]]; then
+    HOST_OS=${remainder%%-*}                # Extract 'os'
+    HOST_ABI=${remainder#*-}                # Extract 'abi'
+else
+    HOST_OS=$remainder
+    HOST_ABI=""
+fi
+
+echo "HOST_CPU: $HOST_CPU"
+echo "HOST_VENDOR: $HOST_VENDOR"
+echo "HOST_OS: $HOST_OS"
+echo "HOST_ABI: $HOST_ABI"
+
 echo "gcc=$(which gcc)
 cc=$(which cc)
 g++=$(which g++)
@@ -233,6 +264,45 @@ if [[ $BUILD == $HOST ]]; then
 isnativebuild=yes
 fi
 
+
+# Ensure SYSROOT and the tarball are set
+SYSROOT="${currentpath}/install/sysroot"
+mkdir -p "${SYSROOT}/usr" # Create the /usr directory in SYSROOT if it doesn't exist
+
+# Download the tarball (if needed)
+if [[ "$HOST_OS" == freebsd* ]]; then
+    USE_PRECOMPILED_SYSROOT=yes
+		DISABLE_CANADIAN_NATIVE=yes
+
+    cd "$SYSROOT"
+    wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${HOST_CPU}-freebsd-libc.tar.xz
+    if [ $? -ne 0 ]; then
+        echo "wget ${HOST} failure"
+        exit 1
+    fi
+
+    # Decompress the tarball into a temporary directory
+    tmp_dir="${currentpath}/tmp_libc"
+    mkdir -p "$tmp_dir"
+    tar -xvf ${HOST_CPU}-freebsd-libc.tar.xz -C "$tmp_dir"
+    if [ $? -ne 0 ]; then
+        echo "tar extraction failure"
+        exit 1
+    fi
+
+    # Move all extracted files into $SYSROOT/usr
+    mv "$tmp_dir"/* "${SYSROOT}/usr"
+    if [ $? -ne 0 ]; then
+        echo "Failed to move files to ${SYSROOT}/usr"
+        exit 1
+    fi
+
+    # Clean up temporary directory
+    rm -rf "$tmp_dir"
+
+    echo "Files successfully decompressed and moved to ${SYSROOT}/usr"
+fi
+
 if [[ $isnativebuild != "yes" ]]; then
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
@@ -266,66 +336,68 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
 	fi
 
-	if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
-			mkdir -p ${currentpath}/targetbuild/$HOST/gcc
-			cd ${currentpath}/targetbuild/$HOST/gcc
-			STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
-			if [ $? -ne 0 ]; then
-				echo "gcc configure failure"
-				exit 1
+	if [[  "x${USE_PRECOMPILED_SYSROOT}" != "xyes"  ]]; then
+		if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
+				mkdir -p ${currentpath}/targetbuild/$HOST/gcc
+				cd ${currentpath}/targetbuild/$HOST/gcc
+				STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+				if [ $? -ne 0 ]; then
+					echo "gcc configure failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss
-		fi
-	else
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
-			mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
-			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-			STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
-			if [ $? -ne 0 ]; then
-				echo "gcc phase1 configure failure"
-				exit 1
+		else
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
+				mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
+				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+				STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+				if [ $? -ne 0 ]; then
+					echo "gcc phase1 configure failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss
-		fi
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
-			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-			make all-gcc -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc phase1 build gcc failure"
-				exit 1
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess ]; then
+				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+				make all-gcc -j$(nproc)
+				if [ $? -ne 0 ]; then
+					echo "gcc phase1 build gcc failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildgccsuccess
-		fi
 
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
-			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-			make all-target-libgcc -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc phase1 build libgcc failure"
-				exit 1
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess ]; then
+				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+				make all-target-libgcc -j$(nproc)
+				if [ $? -ne 0 ]; then
+					echo "gcc phase1 build libgcc failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.buildlibgccsuccess
-		fi
 
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
-			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-			make install-strip-gcc -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc phase1 install strip gcc failure"
-				exit 1
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess ]; then
+				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+				make install-strip-gcc -j$(nproc)
+				if [ $? -ne 0 ]; then
+					echo "gcc phase1 install strip gcc failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
-		fi
 
-		if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
-			cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-			make install-strip-target-libgcc -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc phase1 install strip libgcc failure"
-				exit 1
+			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess ]; then
+				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
+				make install-strip-target-libgcc -j$(nproc)
+				if [ $? -ne 0 ]; then
+					echo "gcc phase1 install strip libgcc failure"
+					exit 1
+				fi
+				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
 			fi
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
 		fi
 	fi
 fi
@@ -351,7 +423,6 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
 	fi
 
-	SYSROOT=${PREFIXTARGET}
 	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 	mkdir -p ${SYSROOT}/usr
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
@@ -365,6 +436,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 				exit 1
 			fi
 			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
+			cp -r --preserve=links ${SYSROOT}/usr/* ${PREFIXTARGET}/
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
 		fi
 
@@ -425,7 +497,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 fi
 
-if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc
 		cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
@@ -457,9 +529,7 @@ else
 	cd ${currentpath}
 	mkdir -p build
 
-	SYSROOT=${currentpath}/install/sysroot
 	linuxkernelheaders=${SYSROOT}
-	mkdir -p $SYSROOT
 
 	if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 		cd "$TOOLCHAINS_BUILD/linux"
@@ -649,14 +719,14 @@ GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p $PREFIX
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess ]; then
+	if [ ! -f ${currentpath}/targetbuild/$HOST/.copysysrootsuccess ]; then
 		echo cp -r --preserve=links $SYSROOT/usr $PREFIX/
 		cp -r --preserve=links $SYSROOT/usr $PREFIX/
 		if [ $? -ne 0 ]; then
-			echo "gcc phase1 copysysroot failure"
+			echo "Copy sysroot failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.copysysrootsuccess
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/.copysysrootsuccess
 	fi
 
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
@@ -721,7 +791,6 @@ if [[ $isnativebuild != "yes" ]]; then
 			echo "$HOST gmp mpfr mpc build failed"
 			exit 1
 		fi
-		SYSROOT=$PREFIX/sysroot
 	fi
 
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
@@ -920,8 +989,8 @@ if [ ! -f ${build_prefix}/.packagingsuccess ]; then
 fi
 }
 
-if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-handlebuild ${HOST}
+if [[ "${FREESTANDINGBUILD:-no}" != "yes" && "${DISABLE_CANADIAN_NATIVE:-no}" != "yes" ]]; then
+    handlebuild "${HOST}"
 fi
 
 if [[ ${CANADIANHOST} == ${HOST} ]]; then
