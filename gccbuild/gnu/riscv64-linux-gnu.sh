@@ -34,6 +34,15 @@ if [ -z ${CANADIANHOST+x} ]; then
 fi
 
 BUILD=$(gcc -dumpmachine)
+NEW_BUILD=$(echo "$BUILD" | sed 's/-pc//g')
+
+if command -v "${NEW_BUILD}-g++" >/dev/null 2>&1; then
+    echo "${NEW_BUILD}-g++ exists, $BUILD switching to $NEW_BUILD"
+    BUILD=$NEW_BUILD
+else
+    echo "${NEW_BUILD}-g++ does not exist, $BUILD sticking with $BUILD"
+fi
+
 TARGET=$BUILD
 PREFIX=$TOOLCHAINSPATH_GNU/$BUILD/$HOST
 PREFIXTARGET=$PREFIX/$HOST
@@ -44,8 +53,6 @@ HOSTPREFIXTARGET=$HOSTPREFIX/$HOST
 
 export PATH=$TOOLCHAINSPATH_GNU/$BUILD/$CANADIANHOST/bin:$PATH
 CANADIANHOSTPREFIX=$TOOLCHAINSPATH_GNU/$CANADIANHOST/$HOST
-
-NEW_BUILD=$(echo "$BUILD" | sed 's/-pc//g')
 
 if [[ "${NEW_BUILD}" == "${HOST}" ]]; then
     export PATH="$TOOLCHAINSPATH_GNU/${TARGET}/${TARGET}/bin:$PATH"
