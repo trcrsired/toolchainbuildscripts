@@ -324,7 +324,7 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
 		fi
 elif [[ "$HOST_OS" == darwin* ]]; then
-
+	ELIMINATESYSROOT=no
 	# Enable the precompiled sysroot
 	USE_PRECOMPILED_SYSROOT=yes
 	# Check if sysroot copying is already marked as successful
@@ -380,6 +380,9 @@ elif [[ "$HOST_OS" == darwin* ]]; then
 	fi
 elif [[ "$HOST_OS" == mingw* ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
+	if [ -z ${ELIMINATESYSROOT+x} ]; then
+		ELIMINATESYSROOT=yes
+	fi
 	cd "$TOOLCHAINS_BUILD"
 	if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
 	git clone https://git.code.sf.net/p/mingw-w64/mingw-w64
@@ -389,6 +392,7 @@ elif [[ "$HOST_OS" == mingw* ]]; then
 
 elif [[ "$USE_NEWLIB" == "yes" || "${FREESTANDINGBUILD}" == "yes" ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
+	ELIMINATESYSROOT=yes
 elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	# Enable the precompiled sysroot
 	USE_PRECOMPILED_SYSROOT=yes
@@ -453,7 +457,7 @@ function build_gcc_phase2_gcc {
     if [ ! -f "${currentpath}/targetbuild/${HOST}/gcc_phase2/.configuresuccesss" ]; then
         # Change to the gcc phase 2 directory or exit if the directory change fails
         cd "${currentpath}/targetbuild/${HOST}/gcc_phase2" || { echo "Failed to change directory"; exit 1; }
-        
+
         # Run the configuration command for gcc phase 2
         LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip \
         "$TOOLCHAINS_BUILD/gcc/configure" \
@@ -974,6 +978,20 @@ fi
 	fi
 fi
 
+if [[ "$ELIMINATESYSROOT" == "yes" ]]; then
+	if [[ -d "$PREFIX/${USRALTERNATIVENAME}" ]]; then
+		if [ ! -f "${currentpath}/targetbuild/$HOST/.eliminatesysroot" ]; then
+			if [[ -d "${PREFIXTARGET}/include/c++" ]]; then
+				cp -r --preserve=links "$PREFIX/${USRALTERNATIVENAME}"/* "${PREFIXTARGET}/"
+			else
+				cp -r --preserve=links "$PREFIX/${USRALTERNATIVENAME}"/* "${PREFIX}/"
+			fi
+			rm -rf "$PREFIX/${USRALTERNATIVENAME}"
+			echo "$(date --iso-8601=seconds)" > "${currentpath}/targetbuild/$HOST/.eliminatesysroot"
+		fi
+	fi
+fi
+
 mkdir -p "${currentpath}/targetbuild/$HOST/gcc_phase2"
 
 if [ ! -f "${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess" ] || [ ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
@@ -1203,6 +1221,20 @@ if [[ "${hosttriple}" == "{$HOST}" ]]; then
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.symlinksuccess
 fi
+fi
+
+if [[ "$ELIMINATESYSROOT" == "yes" ]]; then
+	if [[ -d "$prefix/${USRALTERNATIVENAME}" ]]; then
+		if [ ! -f "${build_prefix}/.eliminatesysroot" ]; then
+			if [[ -d "${prefixtarget}/include/c++" ]]; then
+				cp -r --preserve=links "$prefix/${USRALTERNATIVENAME}"/* "${prefixtarget}/"
+			else
+				cp -r --preserve=links "$prefix/${USRALTERNATIVENAME}"/* "${prefix}/"
+			fi
+			rm -rf "$prefix/${USRALTERNATIVENAME}"
+			echo "$(date --iso-8601=seconds)" > "${build_prefix}/.eliminatesysroot"
+		fi
+	fi
 fi
 
 if [ ! -f "${build_prefix}/.packagingsuccess" ] || [ ! -f "${TOOLCHAINSPATH_GNU}/${hosttriple}/$HOST.tar.xz" ]; then
