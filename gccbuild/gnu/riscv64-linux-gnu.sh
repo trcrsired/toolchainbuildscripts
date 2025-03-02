@@ -550,7 +550,7 @@ else
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.installsuccess
 			fi
 			if [ ! -f ${currentpath}/build/musl/$item/.stripsuccess ]; then
-				llvm-strip --strip-unneeded $currentpath/install/musl/$item/lib/*
+				safe_llvm_strip "$currentpath/install/musl/$item/lib"
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/build/musl/$item/.stripsuccess
 			fi
 			if [ ! -f ${currentpath}/build/musl/$item/.sysrootsuccess ]; then
