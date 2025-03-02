@@ -149,6 +149,11 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	FREESTANDINGBUILD=no
 	MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
 fi
+USRALTERNATIVENAME=usr
+
+if [[ ${HOST_OS} == mingw* ]]; then
+USRALTERNATIVENAME=mingw
+fi
 
 if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 	MULTILIBLISTS="$MULTILIBLISTS \
@@ -171,6 +176,13 @@ elif [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	elif [[ ${HOST_OS} == mingw* ]]; then
 		if [[ ${HOST_CPU} == "i686" ]]; then
 			MULTILIBLISTS="--disable-tls --disable-threads --disable-libstdcxx-threads --disable-multilib"
+		fi
+		if [[ $HOST_CPU == "x86_64" ]]; then
+			MINGWW64FLAGS=""
+		elif [[ $HOST_CPU == "aarch64" ]]; then
+			MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
+		elif [[ $HOST_CPU == "i686" ]]; then
+			MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64 --with-default-msvcrt=msvcrt"
 		fi
 	fi
 fi
@@ -301,11 +313,11 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 					echo "tar extraction failure"
 					exit 1
 			fi
-			mkdir -p "${SYSROOT}/usr"
-			# Move all extracted files into $SYSROOT/usr
-			cp -r --preserve=links "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr/"
+			mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
+			# Move all extracted files into $SYSROOT/${USRALTERNATIVENAME}
+			cp -r --preserve=links "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/${USRALTERNATIVENAME}/"
 			if [ $? -ne 0 ]; then
-					echo "Failed to move files to ${SYSROOT}/usr"
+					echo "Failed to move files to ${SYSROOT}/${USRALTERNATIVENAME}"
 					exit 1
 			fi
 
@@ -384,7 +396,7 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	if [ -z ${DJCRX+x} ]; then
 					DJCRX=djcrx205
 	fi
-	mkdir -p "${SYSROOT}/usr"
+	mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
 
 	# Download the zip file
 	wget http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip
@@ -397,7 +409,7 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	chmod 755 ${DJCRX}.zip || true
 
 	# Unzip the downloaded file
-	unzip ${DJCRX}.zip -d "${SYSROOT}/usr"
+	unzip ${DJCRX}.zip -d "${SYSROOT}/${USRALTERNATIVENAME}"
 	if [ $? -ne 0 ]; then
 			echo "Error: Failed to unzip ${DJCRX}.zip"
 			exit 1
@@ -407,14 +419,14 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	mkdir -p "${PREFIXTARGET}/bin" || true
 
 	# Compile stubify
-	gcc -o $PREFIXTARGET/bin/stubify ${SYSROOT}/usr/src/stub/stubify.c -s -O3 -flto
+	gcc -o $PREFIXTARGET/bin/stubify ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubify.c -s -O3 -flto
 	if [ $? -ne 0 ]; then
 			echo "Error: Failed to compile stubify"
 			exit 1
 	fi
 
 	# Compile stubedit
-	gcc -o $PREFIXTARGET/bin/stubedit ${SYSROOT}/usr/src/stub/stubedit.c -s -O3 -flto
+	gcc -o $PREFIXTARGET/bin/stubedit ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubedit.c -s -O3 -flto
 	if [ $? -ne 0 ]; then
 			echo "Error: Failed to compile stubedit"
 			exit 1
@@ -596,7 +608,7 @@ fi
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 
 
-	mkdir -p ${SYSROOT}/usr
+	mkdir -p ${SYSROOT}/${USRALTERNATIVENAME}
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
 
 	if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
@@ -607,8 +619,8 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 				echo "configure newlib-cygwin failure"
 				exit 1
 			fi
-			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
-			cp -r --preserve=links ${SYSROOT}/usr/* ${PREFIXTARGET}/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/${USRALTERNATIVENAME}/
+			cp -r --preserve=links ${SYSROOT}/${USRALTERNATIVENAME}/* ${PREFIXTARGET}/
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess
 		fi
 
@@ -634,8 +646,8 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		fi
 
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.copysysrootsuccess ]; then
-			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/usr/
-			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/usr/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/$HOST/* $SYSROOT/${USRALTERNATIVENAME}/
+			cp -r --preserve=links ${currentpath}/install/newlib-cygwin/share $SYSROOT/${USRALTERNATIVENAME}/
 			if [ $? -ne 0 ]; then
 				echo "copy newlib-cygwin failure"
 				exit 1
@@ -644,12 +656,12 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		fi
 	else
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.newlibsysrootcopied ]; then
-			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/usr/
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/include" $SYSROOT/${USRALTERNATIVENAME}/
 			if [ $? -ne 0 ]; then
 				echo "copy build sysroot include failed"
 				exit 1
 			fi
-			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/usr/
+			cp -r --preserve=links "${CUSTOM_BUILD_SYSROOT}/lib" $SYSROOT/${USRALTERNATIVENAME}/
 			if [ $? -ne 0 ]; then
 				echo "copy build sysroot lib failed"
 				exit 1
@@ -673,13 +685,6 @@ fi
 if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 	mkdir -p "${currentpath}/build"
 	if [[ ${HOST_OS} == mingw*  ]]; then
-		if [[ $HOST_CPU == "x86_64" ]]; then
-			MINGWW64FLAGS=""
-		elif [[ $HOST_CPU == "aarch64" ]]; then
-			MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
-		elif [[ $HOST_CPU == "i686" ]]; then
-			MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64 --with-default-msvcrt=msvcrt"
-		fi
 		if [ ! -d "${currentpath}/installs/mingw-w64-headers" ] || [ ! -f "${currentpath}/build/.headersinstallsuccess" ]; then
 				cd "${currentpath}/build"
 				mkdir -p mingw-w64-headers
@@ -692,8 +697,8 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 				fi
 				make -j$(nproc) || { echo "make failed for mingw-w64-headers"; exit 1; }
 				make install-strip -j$(nproc) || { echo "make install-strip failed for mingw-w64-headers"; exit 1; }
-				mkdir -p "${SYSROOT}/usr"
-				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/usr/"
+				mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
+				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/${USRALTERNATIVENAME}/"
 				cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}/"
 				echo "$(date --iso-8601=seconds)" > "${currentpath}/build/.headersinstallsuccess"
 		fi
@@ -711,8 +716,8 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 				fi
 				make -j$(nproc) 2>err.txt || { echo "make failed for mingw-w64-crt (see err.txt for details)"; exit 1; }
 				make install-strip -j$(nproc) 2>err.txt || { echo "make install-strip failed for mingw-w64-crt (see err.txt for details)"; exit 1; }
-				mkdir -p "${SYSROOT}/usr" || { echo "Failed to create directory ${SYSROOT}/usr"; exit 1; }
-				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/usr/"
+				mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}" || { echo "Failed to create directory ${SYSROOT}/${USRALTERNATIVENAME}"; exit 1; }
+				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/${USRALTERNATIVENAME}/"
 				cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}/"
 				echo "$(date --iso-8601=seconds)" > "${currentpath}/build/.libinstallsuccess"
 		fi
@@ -722,7 +727,7 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 
 		if [ ! -f ${currentpath}/install/.linuxkernelheadersinstallsuccess ]; then
 			cd "$TOOLCHAINS_BUILD/linux"
-			make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/usr
+			make headers_install ARCH=$ARCH -j INSTALL_HDR_PATH=${SYSROOT}/${USRALTERNATIVENAME}
 			if [ $? -ne 0 ]; then
 				echo "linux kernel headers install failure"
 				exit 1
@@ -782,9 +787,9 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 
 				if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
 					if [[ ${USELLVM} == "yes" ]]; then
-						LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
+						LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/${USRALTERNATIVENAME}/include --disable-shared --enable-static --without-selinux --host=$host
 					else
-						(export -n LD_LIBRARY_PATH; CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
+						(export -n LD_LIBRARY_PATH; CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/${USRALTERNATIVENAME}/include --disable-shared --enable-static --without-selinux --host=$host )
 					fi
 					if [ $? -ne 0 ]; then
 						echo "musl configure failure"
@@ -831,7 +836,7 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 			glibcfiles=(libm.a libm.so libc.so)
 
 			mkdir -p ${currentpath}/build/glibc
-			mkdir -p ${currentpath}/install/sysroot/usr
+			mkdir -p ${currentpath}/install/sysroot/${USRALTERNATIVENAME}
 
 			for i in "${!multilibs[@]}"; do
 				item=${multilibs[$i]}
@@ -842,7 +847,7 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 				mkdir -p ${currentpath}/build/glibc/$item
 				cd ${currentpath}/build/glibc/$item
 				if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-					(export -n LD_LIBRARY_PATH; CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/usr/include --without-selinux --host=$host )
+					(export -n LD_LIBRARY_PATH; CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/${USRALTERNATIVENAME}/include --without-selinux --host=$host )
 					if [ $? -ne 0 ]; then
 						echo "glibc ($item) configure failure"
 						exit 1
@@ -889,9 +894,9 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 					echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.stripsuccess
 				fi
 				if [ ! -f ${currentpath}/build/glibc/$item/.sysrootsuccess ]; then
-					cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/usr/
-					mkdir -p $SYSROOT/usr/$libdir
-					cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/usr/$libdir
+					cp -r --preserve=links ${currentpath}/install/glibc/$item/include $SYSROOT/${USRALTERNATIVENAME}/
+					mkdir -p $SYSROOT/${USRALTERNATIVENAME}/$libdir
+					cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $SYSROOT/${USRALTERNATIVENAME}/$libdir
 	#				mkdir -p $GCCSYSROOT/$libingccdir
 	#				cp -r --preserve=links ${currentpath}/install/glibc/$item/lib/* $GCCSYSROOT/$libingccdir
 					echo "$(date --iso-8601=seconds)" > ${currentpath}/build/glibc/$item/.sysrootsuccess
@@ -958,7 +963,7 @@ fi
 
 
 	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/usr $relpath/buildgmpmpfrmpc.sh
+		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/${USRALTERNATIVENAME} $relpath/buildgmpmpfrmpc.sh
 		if [ $? -ne 0 ]; then
 			echo "$HOST gmp mpfr mpc build failed"
 			exit 1
@@ -1014,14 +1019,14 @@ if [[ ${HOST_OS} == "msdosdjgpp" ]]; then
 if [ ! -f ${build_prefix}/.djgppstubifybuild ]; then
 	mkdir "$prefixtarget/bin"
 	# Compile stubify
-	${hosttriple}-gcc -o $prefixtarget/bin/stubify ${SYSROOT}/usr/src/stub/stubify.c -s -O3 -flto
+	${hosttriple}-gcc -o $prefixtarget/bin/stubify ${SYSROOT}/${USRALTERNATIVENAME}/src/stub/stubify.c -s -O3 -flto
 	if [ $? -ne 0 ]; then
 			echo "Error (${hosttriple}/${HOST}): Failed to compile stubify"
 			exit 1
 	fi
 
 	# Compile stubedit
-	${hosttriple}-gcc -o $prefixtarget/bin/stubedit ${SYSROOT}/usr/stub/stubedit.c -s -O3 -flto
+	${hosttriple}-gcc -o $prefixtarget/bin/stubedit ${SYSROOT}/${USRALTERNATIVENAME}/stub/stubedit.c -s -O3 -flto
 	if [ $? -ne 0 ]; then
 			echo "Error (${hosttriple}/${HOST}): Failed to compile stubedit"
 			exit 1
