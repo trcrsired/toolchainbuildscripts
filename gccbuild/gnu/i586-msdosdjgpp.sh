@@ -6,6 +6,7 @@ exit 1
 fi
 
 BUILD=$(gcc -dumpmachine)
+
 if [ -z ${HOST+x} ]; then
         HOST=x86_64-w64-mingw32
 fi
