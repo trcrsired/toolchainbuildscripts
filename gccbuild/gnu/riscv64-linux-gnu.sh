@@ -285,23 +285,18 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 			fi
 
 			# Decompress the tarball into a temporary directory
-			tmp_dir="${currentpath}/tmp_libc"
-			mkdir -p "$tmp_dir"
-			tar -xvf ${HOST_CPU}-freebsd-libc.tar.xz -C "$tmp_dir"
+			tar -xvf ${HOST_CPU}-freebsd-libc.tar.xz -C "${currentpath}/decompressed"
 			if [ $? -ne 0 ]; then
 					echo "tar extraction failure"
 					exit 1
 			fi
 
 			# Move all extracted files into $SYSROOT/usr
-			mv "$tmp_dir"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr"
+			mv "${currentpath}/decompressed"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr"
 			if [ $? -ne 0 ]; then
 					echo "Failed to move files to ${SYSROOT}/usr"
 					exit 1
 			fi
-
-			# Clean up temporary directory
-			rm -rf "$tmp_dir"
 
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
 		fi
