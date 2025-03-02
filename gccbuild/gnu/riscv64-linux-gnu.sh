@@ -548,6 +548,26 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
 	fi
 
+	if [[ ${HOST_OS} == mingw*  ]]; then
+		if [ ! -d "${currentpath}/installs/mingw-w64-headers" ] || [ ! -f "${currentpath}/build/.headersinstallsuccess" ]; then
+				cd "${currentpath}/build"
+				mkdir -p mingw-w64-headers
+				if [ ! -f Makefile ]; then
+						STRIP=llvm-strip $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host="$HOST" --prefix="${currentpath}/installs/mingw-w64-headers" $MINGWW64FLAGS 
+						if [ $? -ne 0 ]; then
+							echo "mingw-w64-headers configuration failed"
+							exit 1
+						fi
+				fi
+				make -j$(nproc) || { echo "make failed for mingw-w64-headers"; exit 1; }
+				make install-strip -j$(nproc) || { echo "make install-strip failed for mingw-w64-headers"; exit 1; }
+				mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
+				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/${USRALTERNATIVENAME}/"
+				cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}/"
+				echo "$(date --iso-8601=seconds)" > "${currentpath}/build/.headersinstallsuccess"
+		fi
+	fi
+
 	if [[ ${USE_ONEPHASE_GCC_BUILD} == "yes" ]]; then
 		build_gcc_phase2_gcc	1
 	else
