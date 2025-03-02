@@ -349,7 +349,6 @@ if [[ $isnativebuild != "yes" ]]; then
 				exit 1
 			fi
 			safe_llvm_strip ${PREFIX}
-			exit 1
 		fi
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/binutils-gdb/.installsuccess
 	fi
