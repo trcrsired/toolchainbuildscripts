@@ -400,8 +400,9 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	if [ -z ${DJCRX+x} ]; then
 					DJCRX=djcrx205
 	fi
+	mkdir -p "${currentpath}/downloads"
 	mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
-
+	cd "${currentpath}/downloads"
 	# Download the zip file
 	wget http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip
 	if [ $? -ne 0 ]; then
