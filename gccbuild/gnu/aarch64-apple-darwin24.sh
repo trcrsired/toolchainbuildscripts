@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ -z ${ARCH+x} ]; then
-	ARCH=aarc64
+	ARCH=aarch64
 fi
 if [ -z ${HOSTNOVERRSION+x} ]; then
 	HOSTNOVERRSION=$ARCH-apple-darwin
