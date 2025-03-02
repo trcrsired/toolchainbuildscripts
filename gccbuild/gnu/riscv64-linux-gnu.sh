@@ -810,7 +810,11 @@ fi
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 	mkdir -p ${build_prefix}/gcc
 	cd $build_prefix/gcc
-	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON --with-sysroot=$prefix/sysroot
+	local sysrootconfigure="--with-sysroot"
+	if [[  ${hosttriple} == ${HOST} ]]; then
+		sysrootconfigure="--with-build-sysroot"
+	fi
+	STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON "$sysrootconfigure=$prefix/sysroot"
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) configure failed"
 		exit 1
