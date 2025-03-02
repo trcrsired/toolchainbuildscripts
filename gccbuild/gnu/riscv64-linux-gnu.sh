@@ -320,7 +320,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	if [ ! -f ${currentpath}/targetbuild/$HOST/binutils-gdb/.configuresuccess ]; then
 		mkdir -p ${currentpath}/targetbuild/$HOST/binutils-gdb
 		cd ${currentpath}/targetbuild/$HOST/binutils-gdb
-		LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
+		LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror --with-python3 $ENABLEGOLD $CROSSTRIPLETTRIPLETS --prefix=$PREFIX
 		if [ $? -ne 0 ]; then
 			echo "binutils-gdb configure failure"
 			exit 1
@@ -359,7 +359,7 @@ if [[ $isnativebuild != "yes" ]]; then
 			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.configuresuccesss ]; then
 				mkdir -p ${currentpath}/targetbuild/$HOST/gcc
 				cd ${currentpath}/targetbuild/$HOST/gcc
-				LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
+				LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/usr/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS $GCCCONFIGUREFLAGSCOMMON
 				if [ $? -ne 0 ]; then
 					echo "gcc configure failure"
 					exit 1
@@ -370,7 +370,7 @@ if [[ $isnativebuild != "yes" ]]; then
 			if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase1/.configuresuccesss ]; then
 				mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase1
 				cd ${currentpath}/targetbuild/$HOST/gcc_phase1
-				LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
+				LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $MULTILIBLISTS $CROSSTRIPLETTRIPLETS --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib  --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --disable-libstdcxx-threads --disable-libstdcxx-backtrace --disable-hosted-libstdcxx --without-headers --disable-shared --disable-threads --disable-libsanitizer --disable-libquadmath --disable-libatomic --disable-libssp
 				if [ $? -ne 0 ]; then
 					echo "gcc phase1 configure failure"
 					exit 1
@@ -448,7 +448,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	if [ -z "${CUSTOM_BUILD_SYSROOT}" ]; then
 		if [ ! -f ${currentpath}/targetbuild/$HOST/newlib-cygwin/.configurenewlibsuccess ]; then
 			cd ${currentpath}/targetbuild/$HOST/newlib-cygwin
-			LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=${currentpath}/install/newlib-cygwin
+			LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/newlib-cygwin/configure --disable-werror --disable-nls --build=$BUILD --target=$HOST --prefix=${currentpath}/install/newlib-cygwin
 			if [ $? -ne 0 ]; then
 				echo "configure newlib-cygwin failure"
 				exit 1
@@ -611,9 +611,9 @@ else
 
 			if [ ! -f ${currentpath}/build/musl/$item/.configuresuccess ]; then
 				if [[ ${USELLVM} == "yes" ]]; then
-					LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
+					LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip AR=llvm-ar CC="clang --target=$host" CXX="clang++ --target=$host" AS=llvm-as RANLIB=llvm-ranlib CXXFILT=llvm-cxxfilt NM=llvm-nm $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host
 				else
-					(export -n LD_LIBRARY_PATH; LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
+					(export -n LD_LIBRARY_PATH; LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/musl/configure --disable-nls --disable-werror --prefix=$currentpath/install/musl/$item --build=$BUILD --with-headers=$SYSROOT/usr/include --disable-shared --enable-static --without-selinux --host=$host )
 				fi
 				if [ $? -ne 0 ]; then
 					echo "musl configure failure"
@@ -671,7 +671,7 @@ else
 			mkdir -p ${currentpath}/build/glibc/$item
 			cd ${currentpath}/build/glibc/$item
 			if [ ! -f ${currentpath}/build/glibc/$item/.configuresuccess ]; then
-				(export -n LD_LIBRARY_PATH; LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/usr/include --without-selinux --host=$host )
+				(export -n LD_LIBRARY_PATH; LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" $TOOLCHAINS_BUILD/glibc/configure --disable-nls --disable-werror --prefix=$currentpath/install/glibc/${item} --build=$BUILD --with-headers=$SYSROOT/usr/include --without-selinux --host=$host )
 				if [ $? -ne 0 ]; then
 					echo "glibc ($item) configure failure"
 					exit 1
@@ -750,7 +750,7 @@ if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-		LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX
+		LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIX/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON} --with-sysroot=$PREFIX
 		mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 		if [ $? -ne 0 ]; then
 			echo "gcc phase2 configure failure"
@@ -867,7 +867,7 @@ if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	if [[ ${hosttriple} == ${HOST} && ${MUSLLIBC} == "yes" ]]; then
 		extra_binutils_configure_flags="--disable-plugins $extra_binutils_configure_flags"
 	fi
-	LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
+	LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 	if [ $? -ne 0 ]; then
 		echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 		exit 1
@@ -906,7 +906,7 @@ if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 	if [[  ${hosttriple} == ${HOST} ]]; then
 		sysrootconfigure="--with-build-sysroot"
 	fi
-	LIPO=llvm-lipo LD=ld64.lld OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON "$sysrootconfigure=$prefix"
+	LIPO=llvm-lipo OTOOL=llvm-otool DSYMUTIL=dsymutil STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefix/include/c++/v1 --prefix=$prefix --build=$tripletbuild --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON "$sysrootconfigure=$prefix"
 	if [ $? -ne 0 ]; then
 		echo "gcc (${hosttriple}/${HOST}) configure failed"
 		exit 1
