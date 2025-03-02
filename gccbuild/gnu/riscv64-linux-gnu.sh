@@ -738,7 +738,6 @@ else
 	fi
 fi
 fi
-GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 if [[ $isnativebuild != "yes" ]]; then
 	mkdir -p $PREFIX
@@ -824,8 +823,6 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
 	fi
 fi
-GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
-
 
 function handlebuild
 {
