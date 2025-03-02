@@ -115,10 +115,8 @@ fi
 
 if [[ $ARCH == "aarch64" ] ]; then
 	ARCH="arm"
-elif [[ $ARCH == riscv* ] ]; then
-	ARCH="riscv"
-elif [[ $ARCH == loongarch* ] ]; then
-	ARCH="loongarch"
+elif [[ $ARCH != x86_64 ] ]; then
+	ARCH="${ARCH%%[0-9]*}"	
 fi
 
 if [[ $1 == "clean" ]]; then
@@ -158,28 +156,30 @@ MULTILIBLISTS="--disable-shared \
 --disable-libstdcxx-verbose \
 --with-libstdcxx-eh-pool-obj-count=0 \
 --disable-sjlj-exceptions"
+fi
 if [[ ${USE_NEWLIB} == "yes" ]]; then
-MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
-else
-MULTILIBLISTS="$MULTILIBLISTS \
---disable-hosted-libstdcxx \
---disable-libssp \
---disable-libquadmath \
---disable-libbacktarce"
+	FREESTANDINGBUILD=no
+	MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
 fi
-elif [[ ${MUSLLIBC} == "yes" ]]; then
-MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
-else
-if [[ ${ARCH} == "x86_64" ]]; then
-MULTILIBLISTS="--with-multilib-list=m64"
-else
-MULTILIBLISTS=
+
+if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
+	MULTILIBLISTS="$MULTILIBLISTS \
+	--disable-hosted-libstdcxx \
+	--disable-libssp \
+	--disable-libquadmath \
+	--disable-libbacktarce"
 fi
-if [[ ${ARCH} == "sparc" ]]; then
-MULTILIBLISTS="--disable-multilib"
-else
-MULTILIBLISTS="--disable-multilib $MULTILIBLISTS"
-fi
+
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+	if [[ ${HOST_ABI} == "musl" ]]; then
+		MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
+	elif [[ ${HOST_OS} == "linux" && ${HOST_ABI} == "gnu" ]]; then
+		if [[ ${HOST_CPU} == "x86_64" ]]; then
+			MULTILIBLISTS="--with-multilib-list=m64"
+		elif [[ ${ARCH} == "sparc" ]]; then
+			MULTILIBLISTS="--disable-multilib"
+		fi
+	fi
 fi
 
 if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
@@ -237,7 +237,7 @@ cd "$TOOLCHAINS_BUILD/musl"
 git pull --quiet
 fi
 
-if [[  $HOST_OS == "linux" || $HOST_ABI == "gnu" ]]; then
+if [[  $HOST_OS == "linux" && $HOST_ABI == "gnu" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone git://sourceware.org/git/glibc.git
@@ -384,7 +384,7 @@ elif [[ "$HOST_OS" == "mingw64" ]]; then
 	fi
 	cd "$TOOLCHAINS_BUILD/mingw-w64"
 	git pull --quiet
-elif [[ "$USE_NEWLIB" == "yes" ]]; then
+elif [[ "$USE_NEWLIB" == "yes" || "${FREESTANDINGBUILD}" == "yes" ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
 fi
 
