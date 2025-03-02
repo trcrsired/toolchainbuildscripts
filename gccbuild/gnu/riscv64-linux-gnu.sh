@@ -274,45 +274,48 @@ if [[ "$HOST_OS" == freebsd* ]]; then
     USE_PRECOMPILED_SYSROOT=yes
 		DISABLE_CANADIAN_NATIVE=yes
 
-		mkdir -p "${SYSROOT}/usr" # Create the /usr directory in SYSROOT if it doesn't exist
-    cd "$SYSROOT"
-    wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${HOST_CPU}-freebsd-libc.tar.xz
-    if [ $? -ne 0 ]; then
-        echo "wget ${HOST} failure"
-        exit 1
-    fi
+	if [ ! -f ${currentpath}/install/.copysysrootsuccess ]; then
+			mkdir -p "${SYSROOT}/usr" # Create the /usr directory in SYSROOT if it doesn't exist
+			cd "$SYSROOT"
+			wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${HOST_CPU}-freebsd-libc.tar.xz
+			if [ $? -ne 0 ]; then
+					echo "wget ${HOST} failure"
+					exit 1
+			fi
 
-    # Decompress the tarball into a temporary directory
-    tmp_dir="${currentpath}/tmp_libc"
-    mkdir -p "$tmp_dir"
-    tar -xvf ${HOST_CPU}-freebsd-libc.tar.xz -C "$tmp_dir"
-    if [ $? -ne 0 ]; then
-        echo "tar extraction failure"
-        exit 1
-    fi
+			# Decompress the tarball into a temporary directory
+			tmp_dir="${currentpath}/tmp_libc"
+			mkdir -p "$tmp_dir"
+			tar -xvf ${HOST_CPU}-freebsd-libc.tar.xz -C "$tmp_dir"
+			if [ $? -ne 0 ]; then
+					echo "tar extraction failure"
+					exit 1
+			fi
 
-    # Move all extracted files into $SYSROOT/usr
-    mv "$tmp_dir"/* "${SYSROOT}/usr"
-    if [ $? -ne 0 ]; then
-        echo "Failed to move files to ${SYSROOT}/usr"
-        exit 1
-    fi
+			# Move all extracted files into $SYSROOT/usr
+			mv "$tmp_dir"/* "${SYSROOT}/usr"
+			if [ $? -ne 0 ]; then
+					echo "Failed to move files to ${SYSROOT}/usr"
+					exit 1
+			fi
 
-    # Clean up temporary directory
-    rm -rf "$tmp_dir"
+			# Clean up temporary directory
+			rm -rf "$tmp_dir"
 
-    echo "Files successfully decompressed and moved to ${SYSROOT}/usr"
+			echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
+		fi
 elif [[ "$HOST_OS" == darwin* ]]; then
 	USE_PRECOMPILED_SYSROOT=yes
-
-	if [ -z ${DARWINVERSIONDATE+x} ]; then
-	DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+	if [ ! -f ${currentpath}/install/.copysysrootsuccess ]; then
+		if [ -z ${DARWINVERSIONDATE+x} ]; then
+			DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+		fi
+		cd "${currentpath}/downloads"
+		wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${HOST}.tar.xz
+		chmod 755 ${HOST}.tar.xz
+		tar -xf "${HOST}.tar.xz" -C "$SYSROOT"
+		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
 	fi
-
-	cd "${currentpath}/downloads"
-	wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${HOST}.tar.xz
-	chmod 755 ${HOST}.tar.xz
-	tar -xf "${HOST}.tar.xz" -C "$SYSROOT"
 fi
 
 if [[ $isnativebuild != "yes" ]]; then
