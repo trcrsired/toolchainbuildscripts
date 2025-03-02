@@ -585,7 +585,7 @@ if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 		safe_llvm_strip ${PREFIX}
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess  || ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
 		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
 		rm -f $HOST.tar.xz
 		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
@@ -861,7 +861,7 @@ if [[ $isnativebuild != "yes" ]]; then
 		fi
 	fi
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess ]; then
+	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess  || ! -f "${TOOLCHAINSPATH_GNU}/${BUILD}/$HOST.tar.xz" ]; then
 		cd ${TOOLCHAINSPATH_GNU}/${BUILD}
 		rm -f $HOST.tar.xz
 		XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
