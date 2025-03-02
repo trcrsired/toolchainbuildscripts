@@ -443,7 +443,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
 	fi
 
-	GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
+
 	mkdir -p ${SYSROOT}/usr
 	mkdir -p ${currentpath}/targetbuild/$HOST/newlib-cygwin
 
@@ -521,6 +521,7 @@ if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc
+		GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 		cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc/lib/gcc/$HOST/$GCCVERSIONSTR/include/limits.h
 		make -j$(nproc)
 		if [ $? -ne 0 ]; then
@@ -823,6 +824,7 @@ if [[ $isnativebuild != "yes" ]]; then
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.packagingsuccess
 	fi
 fi
+GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
 
 function handlebuild
