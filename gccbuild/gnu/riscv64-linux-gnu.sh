@@ -11,9 +11,6 @@ relpath=$(realpath .)
 if [ -z ${HOST+x} ]; then
 	HOST=riscv64-linux-gnu
 fi
-if [ -z ${ARCH+x} ]; then
-	ARCH=riscv
-fi
 currentpath=$relpath/.gnuartifacts/$HOST
 mkdir -p ${currentpath}
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
@@ -111,6 +108,18 @@ PATH=$PATH
 HOST=${HOST}
 TARGET=$TARGET
 NEWBUILD=${NEW_BUILD}"
+
+if [ -z ${ARCH+x} ]; then
+	ARCH=${HOST_CPU}
+fi
+
+if [[ $ARCH == "aarch64" ] ]; then
+	ARCH="arm"
+elif [[ $ARCH == riscv* ] ]; then
+	ARCH="riscv"
+elif [[ $ARCH == loongarch* ] ]; then
+	ARCH="loongarch"
+fi
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
