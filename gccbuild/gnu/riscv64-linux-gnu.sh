@@ -113,9 +113,9 @@ if [ -z ${ARCH+x} ]; then
 	ARCH=${HOST_CPU}
 fi
 
-if [[ $ARCH == "aarch64" ] ]; then
+if [[ $ARCH == "aarch64" ]]; then
 	ARCH="arm"
-elif [[ $ARCH != x86_64 ] ]; then
+elif [[ $ARCH != x86_64 ]]; then
 	ARCH="${ARCH%%[0-9]*}"	
 fi
 
