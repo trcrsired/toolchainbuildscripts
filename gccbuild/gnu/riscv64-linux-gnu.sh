@@ -447,6 +447,7 @@ if [[ $isnativebuild != "yes" ]]; then
 					echo "gcc phase1 install strip gcc failure"
 					exit 1
 				fi
+				safe_llvm_strip $PREFIX
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstripgccsuccess
 			fi
 
@@ -457,6 +458,7 @@ if [[ $isnativebuild != "yes" ]]; then
 					echo "gcc phase1 install strip libgcc failure"
 					exit 1
 				fi
+				safe_llvm_strip $PREFIX
 				echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase1/.installstriplibgccsuccess
 			fi
 		fi
@@ -481,6 +483,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 			echo "gcc install-strip gcc failure"
 			exit 1
 		fi
+		safe_llvm_strip $PREFIX
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.buildinstallstripgccsuccess
 	fi
 
@@ -518,6 +521,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 				echo "make install-strip newlib-cygwin failure"
 				exit 1
 			fi
+			safe_llvm_strip ${PREFIX}
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/newlib-cygwin/.installstripnewlibsuccess
 		fi
 
@@ -578,6 +582,7 @@ if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 		echo "gcc install-strip failure"
 		exit 1
 		fi
+		safe_llvm_strip ${PREFIX}
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc/.installstripsuccess
 	fi
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.packagingsuccess ]; then
