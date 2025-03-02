@@ -1047,8 +1047,9 @@ if [[ "${hosttriple}" == "{$HOST}" ]]; then
 fi
 fi
 
-if [ ! -f ${build_prefix}/.packagingsuccess ]; then
+if [ ! -f ${build_prefix}/.packagingsuccess || ! -f "${TOOLCHAINSPATH_GNU}/${hosttriple}/$HOST.tar.xz" ]; then
 	cd ${TOOLCHAINSPATH_GNU}/${hosttriple}
+	safe_llvm_strip "${TOOLCHAINSPATH_GNU}/${hosttriple}/$HOST"
 	rm -f $HOST.tar.xz
 	XZ_OPT=-e9T0 tar cJf $HOST.tar.xz $HOST
 	chmod 755 $HOST.tar.xz
