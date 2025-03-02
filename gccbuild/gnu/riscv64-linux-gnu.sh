@@ -448,6 +448,10 @@ fi
 
 if [[ "${USE_PRECOMPILED_SYSROOT}" == "yes" ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
+	if [ ! -f "${currentpath}/install/.copysysrootsuccess" ]; then
+		cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}"/ 
+		echo "$(date --iso-8601=seconds)" > "${currentpath}/install/.copysysrootsuccess"
+	fi
 fi
 
 echo "USE_ONEPHASE_GCC_BUILD: $USE_ONEPHASE_GCC_BUILD"
