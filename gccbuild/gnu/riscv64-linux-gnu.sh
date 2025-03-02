@@ -397,6 +397,7 @@ elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
 	# Enable the precompiled sysroot
 	USE_PRECOMPILED_SYSROOT=yes
 	DISABLE_CANADIAN_NATIVE=yes
+	GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-threads"
 	if [ ! -f "${currentpath}/install/.copysysrootsuccess" ]; then
 		if [ -z ${DJCRX+x} ]; then
 						DJCRX=djcrx205
