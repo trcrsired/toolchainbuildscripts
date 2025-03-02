@@ -145,7 +145,6 @@ fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 
-if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 MULTILIBLISTS="--disable-shared \
 --disable-threads \
 --disable-nls \
@@ -156,7 +155,6 @@ MULTILIBLISTS="--disable-shared \
 --disable-libstdcxx-verbose \
 --with-libstdcxx-eh-pool-obj-count=0 \
 --disable-sjlj-exceptions"
-fi
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 	FREESTANDINGBUILD=no
 	MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
@@ -172,12 +170,16 @@ fi
 
 if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	if [[ ${HOST_ABI} == "musl" ]]; then
-		MULTILIBLISTS="--disable-multilib --disable-shared --enable-static"
+		MULTILIBLISTS="$MULTILIBLISTS --disable-multilib --disable-shared --enable-static"
 	elif [[ ${HOST_OS} == "linux" && ${HOST_ABI} == "gnu" ]]; then
 		if [[ ${HOST_CPU} == "x86_64" ]]; then
-			MULTILIBLISTS="--with-multilib-list=m64"
+			MULTILIBLISTS="$MULTILIBLISTS --with-multilib-list=m64"
 		elif [[ ${ARCH} == "sparc" ]]; then
-			MULTILIBLISTS="--disable-multilib"
+			MULTILIBLISTS="$MULTILIBLISTS --disable-multilib"
+		fi
+	elif [[ ${HOST_OS} == mingw* ]]; then
+		if [[ ${HOST_CPU} == "i686" ]]; then
+			MULTILIBLISTS="${MULTILIBLISTS} --disable-tls --disable-threads --disable-libstdcxx-threads --disable-multilib"
 		fi
 	fi
 fi
@@ -199,7 +201,6 @@ $MULTILIBLISTS \
 --disable-libstdcxx-verbose \
 --with-libstdcxx-eh-pool-obj-count=0 \
 --disable-sjlj-exceptions \
---enable-libstdcxx-threads \
 --enable-libstdcxx-backtrace"
 fi
 
