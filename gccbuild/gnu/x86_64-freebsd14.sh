@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ./safe-llvm-strip.sh
 ./dependencycheck.sh
 if [ $? -ne 0 ]; then
 exit 1
@@ -113,11 +114,7 @@ fi
 
 SYSROOT=${currentpath}/$HOSTNOVERRSION-libc
 
-if [[ ${USELLVM} == "yes" ]]; then
 HOSTSTRIP=llvm-strip
-else
-HOSTSTRIP=$HOST-strip
-fi
 isnativebuild=
 if [[ $BUILD == $HOST ]]; then
 isnativebuild=yes
@@ -177,7 +174,7 @@ GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.configuresuccesss ]; then
 mkdir -p ${currentpath}/targetbuild/$HOST/gcc_phase2
 cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-STRIP=strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON}
+STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$PREFIXTARGET/include/c++/v1 --prefix=$PREFIX $CROSSTRIPLETTRIPLETS ${GCCCONFIGUREFLAGSCOMMON}
 if [ $? -ne 0 ]; then
 echo "gcc phase2 configure failure"
 exit 1
@@ -268,7 +265,7 @@ fi
 if [[ ${hosttriple} == ${HOST} ]]; then
 extra_binutils_configure_flags="$extra_binutils_configure_flags"
 fi
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
+STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/binutils-gdb/configure --disable-nls --disable-werror $ENABLEGOLD --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $extra_binutils_configure_flags
 if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -295,7 +292,7 @@ if [ $? -ne 0 ]; then
 echo "binutils-gdb (${hosttriple}/${HOST}) install failed"
 exit 1
 fi
-$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+safe_llvm_strip $prefix
 fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/binutils-gdb/.installsuccess
 fi
@@ -303,7 +300,7 @@ fi
 if [ ! -f ${build_prefix}/gcc/.configuresuccess ]; then
 mkdir -p ${build_prefix}/gcc
 cd $build_prefix/gcc
-STRIP=${hosttriple}-strip STRIP_FOR_TARGET=$HOSTSTRIP $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
+STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip $TOOLCHAINS_BUILD/gcc/configure --with-gxx-libcxx-include-dir=$prefixtarget/include/c++/v1 --prefix=$prefix --build=$BUILD --host=$hosttriple --target=$HOST $GCCCONFIGUREFLAGSCOMMON
 if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) configure failed"
 exit 1
@@ -330,7 +327,7 @@ if [ $? -ne 0 ]; then
 echo "gcc (${hosttriple}/${HOST}) install failed"
 exit 1
 fi
-$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+safe_llvm_strip $prefix
 fi
 echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
