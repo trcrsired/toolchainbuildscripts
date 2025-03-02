@@ -305,16 +305,57 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 			echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
 		fi
 elif [[ "$HOST_OS" == darwin* ]]; then
-	USE_PRECOMPILED_SYSROOT=yes
-	if [ ! -f ${currentpath}/install/.copysysrootsuccess ]; then
-		if [ -z ${DARWINVERSIONDATE+x} ]; then
-			DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
-		fi
-		cd "${currentpath}/downloads"
-		wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${HOST}.tar.xz
-		chmod 755 ${HOST}.tar.xz
-		tar -xf "${HOST}.tar.xz" -C "$SYSROOT"
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.copysysrootsuccess
+#!/bin/bash
+
+# Enable the precompiled sysroot
+USE_PRECOMPILED_SYSROOT=yes
+	# Check if sysroot copying is already marked as successful
+	if [ ! -f "${currentpath}/install/.copysysrootsuccess" ]; then
+
+			# Retrieve DARWINVERSIONDATE if not already set
+			if [ -z "${DARWINVERSIONDATE+x}" ]; then
+					DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+					if [ $? -ne 0 ] || [ -z "$DARWINVERSIONDATE" ]; then
+							echo "Error: Failed to retrieve DARWINVERSIONDATE."
+							exit 1
+					fi
+			fi
+
+			mkdir -p ${currentpath}/downloads
+			# Change to the downloads directory
+			cd "${currentpath}/downloads"
+
+			# Download the tarball
+			wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${HOST}.tar.xz
+			if [ $? -ne 0 ]; then
+					echo "Error: Failed to download ${HOST}.tar.xz."
+					exit 1
+			fi
+
+			# Set appropriate permissions for the tarball
+			chmod 755 "${HOST}.tar.xz"
+			if [ $? -ne 0 ]; then
+					echo "Error: Failed to set permissions on ${HOST}.tar.xz."
+					exit 1
+			fi
+
+			# Extract the tarball into the sysroot directory
+			tar -xf "${HOST}.tar.xz" -C "$SYSROOT"
+			if [ $? -ne 0 ]; then
+					echo "Error: Failed to extract ${HOST}.tar.xz to $SYSROOT."
+					exit 1
+			fi
+
+			# Mark the operation as successful
+			echo "$(date --iso-8601=seconds)" > "${currentpath}/install/.copysysrootsuccess"
+			if [ $? -ne 0 ]; then
+					echo "Error: Failed to create success marker file."
+					exit 1
+			fi
+
+			echo "Sysroot setup completed successfully."
+	else
+			echo "Sysroot is already set up. Skipping."
 	fi
 fi
 
