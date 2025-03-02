@@ -31,9 +31,9 @@ fi
 if ! ./x86_64-freebsd14.sh "$@"; then
 exit 1
 fi
-if ! ./i586-msdosdjgpp.sh "$@"; then
-exit 1
-fi
+#if ! ./i586-msdosdjgpp.sh "$@"; then
+#exit 1
+#fi
 if ! ./i686-w64-mingw32.sh "$@"; then
 exit 1
 fi
