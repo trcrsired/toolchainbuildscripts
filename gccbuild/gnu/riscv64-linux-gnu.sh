@@ -227,14 +227,21 @@ cd "$TOOLCHAINS_BUILD/linux"
 git pull --quiet
 fi
 
-if [[ ${USELLVM} == "yes" ]]; then
-HOSTSTRIP=llvm-strip
-else
-HOSTSTRIP=$HOST-strip
-fi
 isnativebuild=
 if [[ $BUILD == $HOST ]]; then
 isnativebuild=yes
+fi
+
+
+if [[ ${USELLVM} == "yes" ]]; then
+    HOSTSTRIP=llvm-strip
+else
+    HOSTSTRIP=$HOST-strip
+    if [[ $isnativebuild == "yes" ]]; then
+        if ! command -v "$HOSTSTRIP" >/dev/null 2>&1; then
+            HOSTSTRIP=strip
+        fi
+    fi
 fi
 
 if [[ $isnativebuild != "yes" ]]; then
@@ -897,6 +904,7 @@ if [ ! -f ${build_prefix}/gcc/.installsuccess ]; then
 			exit 1
 		fi
 		$hosttriple-strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
+		strip --strip-unneeded $prefix/bin/* $prefixtarget/bin/*
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.installsuccess
 fi
