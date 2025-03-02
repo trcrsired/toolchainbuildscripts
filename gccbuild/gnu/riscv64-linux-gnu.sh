@@ -550,6 +550,7 @@ if [[ $isnativebuild != "yes" ]]; then
 
 	if [[ ${HOST_OS} == mingw*  ]]; then
 		if [ ! -d "${currentpath}/installs/mingw-w64-headers" ] || [ ! -f "${currentpath}/build/.headersinstallsuccess" ]; then
+				mkdir -p "${currentpath}/build"
 				cd "${currentpath}/build"
 				mkdir -p mingw-w64-headers
 				if [ ! -f Makefile ]; then
