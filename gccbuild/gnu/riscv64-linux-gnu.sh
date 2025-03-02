@@ -39,10 +39,7 @@ BUILD=$(gcc -dumpmachine)
 NEW_BUILD=$(echo "$BUILD" | sed 's/-pc//g')
 
 if command -v "${NEW_BUILD}-g++" >/dev/null 2>&1; then
-    echo "${NEW_BUILD}-g++ exists, $BUILD switching to $NEW_BUILD"
     BUILD=$NEW_BUILD
-else
-    echo "${NEW_BUILD}-g++ does not exist, $BUILD sticking with $BUILD"
 fi
 
 TARGET=$BUILD
@@ -68,27 +65,40 @@ echo "HOST: $HOST"
 
 # Extract and assign parts from $HOST
 HOST_CPU=${HOST%%-*}                         # Extract 'cpu'
-remainder=${HOST#*-}
-if [[ "$remainder" == "$HOST" ]]; then
+HOST_REMAINDER=${HOST#*-}                    # Remaining parts after 'cpu'
+if [[ "$HOST_REMAINDER" == "$HOST" ]]; then
     echo "Invalid format: Missing other parts"
     exit 1
 fi
 
-if [[ "$remainder" == *-* ]]; then
-    HOST_VENDOR=${remainder%%-*}            # Extract 'vendor'
-    remainder=${remainder#*-}
+# Extract HOST_VENDOR and update HOST_REMAINDER
+if [[ "$HOST_REMAINDER" == *-* ]]; then
+    HOST_VENDOR=${HOST_REMAINDER%%-*}        # Extract 'vendor'
+    HOST_REMAINDER=${HOST_REMAINDER#*-}      # Update HOST_REMAINDER
 else
     HOST_VENDOR=""
 fi
 
-if [[ "$remainder" == *-* ]]; then
-    HOST_OS=${remainder%%-*}                # Extract 'os'
-    HOST_ABI=${remainder#*-}                # Extract 'abi'
+# Correct behavior if HOST_VENDOR is 'linux'
+if [[ "$HOST_VENDOR" == "linux" ]]; then
+    HOST_VENDOR=""                           # Clear HOST_VENDOR as 'linux' is part of HOST_OS
+    HOST_OS="linux"            # Shift HOST_OS from HOST_REMAINDER
+    HOST_ABI=${HOST_REMAINDER#*-}            # Extract 'abi' from HOST_REMAINDER
 else
-    HOST_OS=$remainder
-    HOST_ABI=""
+    # Normal behavior for non-'linux' HOST_VENDOR
+    if [[ "$HOST_REMAINDER" == *-* ]]; then
+        HOST_OS=${HOST_REMAINDER%%-*}        # Extract 'os'
+        HOST_ABI=${HOST_REMAINDER#*-}        # Extract 'abi'
+    else
+        HOST_OS=$HOST_REMAINDER              # Remaining part becomes OS
+        HOST_ABI=""
+    fi
 fi
 
+# Unset HOST_REMAINDER to clean up
+unset HOST_REMAINDER
+
+# Echo the results
 echo "HOST_CPU: $HOST_CPU"
 echo "HOST_VENDOR: $HOST_VENDOR"
 echo "HOST_OS: $HOST_OS"
@@ -204,8 +214,8 @@ if ! $relpath/clonebinutilsgccwithdeps.sh
 then
 exit 1
 fi
-if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-if [[ ${MUSLLIBC} == "yes" ]]; then
+
+if [[ $HOST_ABI == "musl" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/musl" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone git@github.com:bminor/musl.git
@@ -216,7 +226,9 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/musl"
 git pull --quiet
-else
+fi
+
+if [[  $HOST_OS == "linux" || $HOST_ABI == "gnu" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/glibc" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone git://sourceware.org/git/glibc.git
@@ -227,7 +239,6 @@ fi
 fi
 cd "$TOOLCHAINS_BUILD/glibc"
 git pull --quiet
-fi
 fi
 
 if [[ ${USE_NEWLIB} == "yes" ]]; then
@@ -246,7 +257,7 @@ git pull --quiet
 fi
 
 fi
-if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+if [[  $HOST_OS == "linux" ]]; then
 if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
 cd "$TOOLCHAINS_BUILD"
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
