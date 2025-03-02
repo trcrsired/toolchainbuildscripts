@@ -114,7 +114,7 @@ if [ -z ${ARCH+x} ]; then
 fi
 
 if [[ $ARCH == "aarch64" ]]; then
-	ARCH="arm"
+	ARCH="arm64"
 elif [[ $ARCH != x86_64 ]]; then
 	ARCH="${ARCH%%[0-9]*}"	
 fi
@@ -384,8 +384,52 @@ elif [[ "$HOST_OS" == "mingw64" ]]; then
 	fi
 	cd "$TOOLCHAINS_BUILD/mingw-w64"
 	git pull --quiet
+
 elif [[ "$USE_NEWLIB" == "yes" || "${FREESTANDINGBUILD}" == "yes" ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
+elif [[ "$HOST_OS" == "msdosdjgpp" ]]; then
+	# Enable the precompiled sysroot
+	USE_PRECOMPILED_SYSROOT=yes
+	DISABLE_CANADIAN_NATIVE=yes
+	if [ -z ${DJCRX+x} ]; then
+					DJCRX=djcrx205
+	fi
+	mkdir -p "${SYSROOT}/usr"
+
+	# Download the zip file
+	wget http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip
+	if [ $? -ne 0 ]; then
+			echo "Error: Failed to download ${DJCRX}.zip"
+			exit 1
+	fi
+
+	# Change permissions of the downloaded zip file (ignore errors)
+	chmod 755 ${DJCRX}.zip || true
+
+	# Unzip the downloaded file
+	unzip ${DJCRX}.zip -d "${SYSROOT}/usr"
+	if [ $? -ne 0 ]; then
+			echo "Error: Failed to unzip ${DJCRX}.zip"
+			exit 1
+	fi
+
+	# Create the target directory for binaries (ignore errors)
+	mkdir -p "${PREFIXTARGET}/bin" || true
+
+	# Compile stubify
+	gcc -o $PREFIXTARGET/bin/stubify ${SYSROOT}/usr/src/stub/stubify.c -s -O3 -flto
+	if [ $? -ne 0 ]; then
+			echo "Error: Failed to compile stubify"
+			exit 1
+	fi
+
+	# Compile stubedit
+	gcc -o $PREFIXTARGET/bin/stubedit ${SYSROOT}/usr/src/stub/stubedit.c -s -O3 -flto
+	if [ $? -ne 0 ]; then
+			echo "Error: Failed to compile stubedit"
+			exit 1
+	fi
+
 fi
 
 if [[ "${USE_PRECOMPILED_SYSROOT}" == "yes" ]]; then
@@ -972,6 +1016,26 @@ if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	fi
 fi
 
+if [[ ${HOST_OS} == "msdosdjgpp" ]]; then
+if [ ! -f ${build_prefix}/.djgppstubifybuild ]; then
+	mkdir "$prefixtarget/bin"
+	# Compile stubify
+	${hosttriple}-gcc -o $prefixtarget/bin/stubify ${SYSROOT}/usr/src/stub/stubify.c -s -O3 -flto
+	if [ $? -ne 0 ]; then
+			echo "Error (${hosttriple}/${HOST}): Failed to compile stubify"
+			exit 1
+	fi
+
+	# Compile stubedit
+	${hosttriple}-gcc -o $prefixtarget/bin/stubedit ${SYSROOT}/usr/stub/stubedit.c -s -O3 -flto
+	if [ $? -ne 0 ]; then
+			echo "Error (${hosttriple}/${HOST}): Failed to compile stubedit"
+			exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${build_prefix}/.djgppstubifybuild
+fi
+fi
+
 if [ ! -f ${build_prefix}/binutils-gdb/.configuresuccess ]; then
 	mkdir -p ${build_prefix}/binutils-gdb
 	cd $build_prefix/binutils-gdb
@@ -1084,8 +1148,31 @@ if [ $? -ne 0 ]; then
     fi
 EOF
 	if [ $? -ne 0 ]; then
+		if [[ "${HOST_OS}" == "msdosdjgpp" ]]; then
+
+			if [ -f "${build_prefix}/gcc/$HOST/libstdc++/config.h" ]; then
+					# Replace #define HAVE_FENV_H 1 with /* #undef HAVE_FENV_H */
+					sed -i 's/#define HAVE_FENV_H 1/\/\* #undef HAVE_FENV_H \*\//' "${build_prefix}/gcc/$HOST/libstdc++-v3/config.h"
+					# Replace #define _GLIBCXX_HAVE_FENV_H 1 with /* #undef _GLIBCXX_HAVE_FENV_H */
+					sed -i 's/#define _GLIBCXX_HAVE_FENV_H 1/\/\* #undef _GLIBCXX_HAVE_FENV_H \*\//' "${build_prefix}/gcc/$HOST/libstdc++-v3/include/$HOST/bits/c++config.h"
+					make -j$(nproc)
+					if [ $? -ne 0 ]; then
+							echo "gcc (${hosttriple}/${HOST}) build failed after modifying config.h"
+							exit 1
+					fi
+			else
+					echo "config.h not found: ${build_prefix}/gcc/$HOST/libstdc++-v3/config.h"
+					exit 1
+			fi
+			make -j$(nproc)
+			if [ $? -ne 0 ]; then
+				echo "gcc (${hosttriple}/${HOST}) build failed"
+				exit 1
+			fi
+		else
 			echo "gcc (${hosttriple}/${HOST}) build failed"
 			exit 1
+		fi
 	fi
 	echo "$(date --iso-8601=seconds)" > ${build_prefix}/gcc/.buildsuccess
 fi

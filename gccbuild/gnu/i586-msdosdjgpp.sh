@@ -161,9 +161,9 @@ if [ ! -d "${CANADIANPREFIX}/lib/gcc" ]; then
 
     if [ -f "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/config.h" ]; then
         # Replace #define HAVE_FENV_H 1 with /* #undef HAVE_FENV_H */
-        sed -i 's/#define HAVE_FENV_H 1/\/\* #undef HAVE_FENV_H \*\//' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/config.h"
+        sed -i 's/#define HAVE_FENV_H 1/\/\* #undef HAVE_FENV_H \*\//' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++-v3/config.h"
         # Replace #define _GLIBCXX_HAVE_FENV_H 1 with /* #undef _GLIBCXX_HAVE_FENV_H */
-        sed -i 's/#define _GLIBCXX_HAVE_FENV_H 1/\/\* #undef _GLIBCXX_HAVE_FENV_H \*\//' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/include/$TARGET/bits/c++config.h"
+        sed -i 's/#define _GLIBCXX_HAVE_FENV_H 1/\/\* #undef _GLIBCXX_HAVE_FENV_H \*\//' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++-v3/include/$TARGET/bits/c++config.h"
         make -j$(nproc)
         if [ $? -ne 0 ]; then
             echo "gcc (${HOST}/${TARGET}) build failed after modifying config.h"
