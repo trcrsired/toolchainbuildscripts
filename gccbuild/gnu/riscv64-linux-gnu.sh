@@ -325,10 +325,11 @@ USE_PRECOMPILED_SYSROOT=yes
 			# Change to the downloads directory
 			cd "${currentpath}/downloads"
 
+			NEWHOST=${HOST/arm64-/aarch64-}
 			# Download the tarball
-			wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${HOST}.tar.xz
+			wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${NEWHOST}.tar.xz
 			if [ $? -ne 0 ]; then
-					echo "Error: Failed to download ${HOST}.tar.xz."
+					echo "Error: Failed to download ${NEWHOST}.tar.xz."
 					exit 1
 			fi
 
