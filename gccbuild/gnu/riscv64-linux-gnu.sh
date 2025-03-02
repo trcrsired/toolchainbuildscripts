@@ -293,7 +293,7 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 			fi
 			mkdir -p "${SYSROOT}/usr"
 			# Move all extracted files into $SYSROOT/usr
-			mv "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr/"
+			cp -r --preserve=links "${currentpath}/downloads/sysroot_decompress"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr/"
 			if [ $? -ne 0 ]; then
 					echo "Failed to move files to ${SYSROOT}/usr"
 					exit 1
@@ -344,7 +344,7 @@ USE_PRECOMPILED_SYSROOT=yes
 					exit 1
 			fi
 
-			mv "${currentpath}/downloads/sysroot/$sysroot_decompress/*" "${SYSROOT}/"
+			cp -r --preserve=links "${currentpath}/downloads/sysroot/$sysroot_decompress/*" "${SYSROOT}/"
 
 			# Mark the operation as successful
 			echo "$(date --iso-8601=seconds)" > "${currentpath}/install/.copysysrootsuccess"
