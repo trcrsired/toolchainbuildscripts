@@ -274,9 +274,10 @@ if [[ "$HOST_OS" == freebsd* ]]; then
     USE_PRECOMPILED_SYSROOT=yes
 		DISABLE_CANADIAN_NATIVE=yes
 
+		mkdir -p ${currentpath}/downloads
+
 	if [ ! -f ${currentpath}/install/.copysysrootsuccess ]; then
-			mkdir -p "${SYSROOT}/usr" # Create the /usr directory in SYSROOT if it doesn't exist
-			cd "$SYSROOT"
+			cd "${currentpath}/downloads"
 			wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${HOST_CPU}-freebsd-libc.tar.xz
 			if [ $? -ne 0 ]; then
 					echo "wget ${HOST} failure"
@@ -293,7 +294,7 @@ if [[ "$HOST_OS" == freebsd* ]]; then
 			fi
 
 			# Move all extracted files into $SYSROOT/usr
-			mv "$tmp_dir"/* "${SYSROOT}/usr"
+			mv "$tmp_dir"/${HOST_CPU}-freebsd-libc/* "${SYSROOT}/usr"
 			if [ $? -ne 0 ]; then
 					echo "Failed to move files to ${SYSROOT}/usr"
 					exit 1
