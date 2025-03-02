@@ -302,7 +302,7 @@ if [[ "$HOST_OS" == freebsd* ]]; then
     rm -rf "$tmp_dir"
 
     echo "Files successfully decompressed and moved to ${SYSROOT}/usr"
-else [[ "$HOST_OS" == darwin* ]]; then
+elif [[ "$HOST_OS" == darwin* ]]; then
 	USE_PRECOMPILED_SYSROOT=yes
 
 	if [ -z ${DARWINVERSIONDATE+x} ]; then
