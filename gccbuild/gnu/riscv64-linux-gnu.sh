@@ -341,11 +341,13 @@ USE_PRECOMPILED_SYSROOT=yes
 			fi
 
 			# Extract the tarball into the sysroot directory
-			tar -xf "${NEWHOST}.tar.xz" -C "$SYSROOT"
+			tar -xf "${NEWHOST}.tar.xz" -C "${currentpath}/downloads/sysroot_decompress"
 			if [ $? -ne 0 ]; then
 					echo "Error: Failed to extract ${NEWHOST}.tar.xz to $SYSROOT."
 					exit 1
 			fi
+
+			mv "${currentpath}/downloads/sysroot/$sysroot_decompress/*" "${SYSROOT}/"
 
 			# Mark the operation as successful
 			echo "$(date --iso-8601=seconds)" > "${currentpath}/install/.copysysrootsuccess"
