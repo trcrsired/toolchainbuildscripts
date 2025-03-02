@@ -145,16 +145,6 @@ fi
 
 CROSSTRIPLETTRIPLETS="--build=$BUILD --host=$BUILD --target=$HOST"
 
-MULTILIBLISTS="--disable-shared \
---disable-threads \
---disable-nls \
---disable-werror \
---enable-languages=c,c++ \
---enable-multilib \
---disable-bootstrap \
---disable-libstdcxx-verbose \
---with-libstdcxx-eh-pool-obj-count=0 \
---disable-sjlj-exceptions"
 if [[ ${USE_NEWLIB} == "yes" ]]; then
 	FREESTANDINGBUILD=no
 	MULTILIBLISTS="$MULTILIBLISTS --with-newlib"
@@ -166,20 +156,21 @@ if [[ ${FREESTANDINGBUILD} == "yes" ]]; then
 	--disable-libssp \
 	--disable-libquadmath \
 	--disable-libbacktarce"
-fi
-
-if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+elif [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	if [[ ${HOST_ABI} == "musl" ]]; then
-		MULTILIBLISTS="$MULTILIBLISTS --disable-multilib --disable-shared --enable-static"
+		MULTILIBLISTS="--disable-multilib --disable-shared --enable-static --disable-libsanitizer"
 	elif [[ ${HOST_OS} == "linux" && ${HOST_ABI} == "gnu" ]]; then
 		if [[ ${HOST_CPU} == "x86_64" ]]; then
-			MULTILIBLISTS="$MULTILIBLISTS --with-multilib-list=m64"
+			MULTILIBLISTS="--with-multilib-list=m64"
 		elif [[ ${ARCH} == "sparc" ]]; then
-			MULTILIBLISTS="$MULTILIBLISTS --disable-multilib"
+			MULTILIBLISTS="--disable-multilib"
+		fi
+		if [[ ${ARCH} == "arm64" || ${ARCH} == riscv* ]]; then
+			MULTILIBLISTS="$MULTILIBLISTS --disable-libsanitizer"
 		fi
 	elif [[ ${HOST_OS} == mingw* ]]; then
 		if [[ ${HOST_CPU} == "i686" ]]; then
-			MULTILIBLISTS="${MULTILIBLISTS} --disable-tls --disable-threads --disable-libstdcxx-threads --disable-multilib"
+			MULTILIBLISTS="--disable-tls --disable-threads --disable-libstdcxx-threads --disable-multilib"
 		fi
 	fi
 fi
@@ -202,10 +193,6 @@ $MULTILIBLISTS \
 --with-libstdcxx-eh-pool-obj-count=0 \
 --disable-sjlj-exceptions \
 --enable-libstdcxx-backtrace"
-fi
-
-if [[ ${ARCH} == "arm64" || ${ARCH} == "riscv" || ${MUSLLIBC} == "yes" ]]; then
-GCCCONFIGUREFLAGSCOMMON="$GCCCONFIGUREFLAGSCOMMON --disable-libsanitizer"
 fi
 
 : <<'EOF'
