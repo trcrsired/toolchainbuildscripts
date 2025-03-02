@@ -144,23 +144,46 @@ cd ${currentpath}/hostbuild/$HOST
 ${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubify ${currentpath}/build/${DJCRX}/src/stub/stubify.c -s -O3 -flto
 ${HOST}-gcc -o $CANADIANPREFIXTARGET/bin/stubedit ${currentpath}/build/${DJCRX}/src/stub/stubedit.c -s -O3 -flto
 
-cd ${currentpath}/hostbuild/$HOST
-mkdir -p gcc
-cd gcc
+mkdir -p "${currentpath}/hostbuild/$HOST/gcc"
+cd "${currentpath}/hostbuild/$HOST/gcc"
 if [ ! -f Makefile ]; then
 $TOOLCHAINS_BUILD/gcc/configure --disable-nls --disable-werror --enable-languages=c,c++ --enable-multilib --with-gxx-libcxx-include-dir=$CANADIANPREFIXTARGET/include/c++/v1 --prefix=$CANADIANPREFIX $CANADIANTRIPLETTRIPLETS --disable-bootstrap --disable-libstdcxx-verbose --with-libstdcxx-eh-pool-obj-count=0 --disable-sjlj-exceptions --enable-libstdcxx-backtrace --disable-libquadmath
 fi
-if [ ! -d $CANADIANPREFIX/lib/gcc ]; then
-make all-gcc -j$(nproc)
-make install-strip-gcc -j$(nproc)
-make all-target-libgcc -j$(nproc)
-make install-strip-target-libgcc -j$(nproc)
+if [ ! -d "${CANADIANPREFIX}/lib/gcc" ]; then
+    cd "${currentpath}/hostbuild/$HOST/gcc" || { echo "Failed to change directory to ${currentpath}/hostbuild/$HOST/gcc"; exit 1; }
+
+    make -j$(nproc)
+    if [ $? -ne 0 ]; then
+        echo "gcc (${HOST}/${TARGET}) initial gcc build failed"
+        exit 1
+    fi
+
+    if [ -f "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/config.h" ]; then
+        sed -i 's/#define HAVE_FENV_H 1/#undef HAVE_FENV_H/' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/config.h"
+        sed -i 's/#define _GLIBCXX_HAVE_FENV_H 1/#undef _GLIBCXX_HAVE_FENV_H/' "${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/include/$TARGET/bits/c++config.h"
+        
+        make -j$(nproc)
+        if [ $? -ne 0 ]; then
+            echo "gcc (${HOST}/${TARGET}) build failed after modifying config.h"
+            exit 1
+        fi
+    else
+        echo "config.h not found: ${currentpath}/hostbuild/$HOST/gcc/$TARGET/libstdc++/config.h"
+        exit 1
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "gcc (${HOST}/${TARGET}) gcc build failed"
+        exit 1
+    fi
+
+    make install-strip -j$(nproc)
+    if [ $? -ne 0 ]; then
+        echo "gcc (${HOST}/${TARGET}) install-strip failed"
+        exit 1
+    fi
 fi
 
-if [ ! -d $CANADIANPREFIXTARGET/include/c++ ]; then
-cp -r "$PREFIXTARGET/include" "$CANADIANPREFIXTARGET/"
-cp -r "$PREFIXTARGET/lib" "$CANADIANPREFIXTARGET/"
-fi
 
 cd $TOOLCHAINSPATH_GNU/$BUILD
 if [ ! -f $TARGET.tar.xz ]; then
