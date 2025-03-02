@@ -378,7 +378,7 @@ elif [[ "$HOST_OS" == darwin* ]]; then
 	else
 			echo "Sysroot is already set up. Skipping."
 	fi
-elif [[ "$HOST_OS" == "mingw64" ]]; then
+elif [[ "$HOST_OS" == mingw* ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
 	cd "$TOOLCHAINS_BUILD"
 	if [ ! -d "$TOOLCHAINS_BUILD/mingw-w64" ]; then
@@ -437,6 +437,10 @@ fi
 if [[ "${USE_PRECOMPILED_SYSROOT}" == "yes" ]]; then
 	USE_ONEPHASE_GCC_BUILD=yes
 fi
+
+echo "USE_ONEPHASE_GCC_BUILD: $USE_ONEPHASE_GCC_BUILD"
+echo "USE_PRECOMPILED_SYSROOT: $USE_PRECOMPILED_SYSROOT"
+
 
 function build_gcc_phase2_gcc {
     # Parameter to control whether to perform the installation step (0 = skip, 1 = perform)
