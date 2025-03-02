@@ -931,50 +931,49 @@ if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 	fi
 fi
 
-	if [[  ${USE_ONEPHASE_GCC_BUILD} != "yes" ]]; then
-		build_gcc_phase2_gcc
-	fi
+if [[  ${USE_ONEPHASE_GCC_BUILD} != "yes" ]]; then
+	build_gcc_phase2_gcc
+fi
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
-		cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess ]; then
+	cat $TOOLCHAINS_BUILD/gcc/gcc/limitx.h $TOOLCHAINS_BUILD/gcc/gcc/glimits.h $TOOLCHAINS_BUILD/gcc/gcc/limity.h > ${currentpath}/targetbuild/$HOST/gcc_phase2/gcc/include/limits.h
+	if [ $? -ne 0 ]; then
+		echo "gcc phase2 generate limits failure"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	make -j$(nproc)
+	if [ $? -ne 0 ]; then
+		echo "gcc phase2 build failure"
+		exit 1
+	fi
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
+fi
+
+if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
+	cd ${currentpath}/targetbuild/$HOST/gcc_phase2
+	make install-strip -j$(nproc)
+	if [ $? -ne 0 ]; then
+		make install -j$(nproc)
 		if [ $? -ne 0 ]; then
-			echo "gcc phase2 generate limits failure"
+			echo "gcc phase2 install strip failure"
 			exit 1
 		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.generatelimitssuccess
 	fi
+	safe_llvm_strip $prefix/bin
+	safe_llvm_strip $prefixtarget/bin
+	echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
+fi
 
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-		make -j$(nproc)
-		if [ $? -ne 0 ]; then
-			echo "gcc phase2 build failure"
-			exit 1
-		fi
-		echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.buildsuccess
-	fi
-
-	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess ]; then
-		cd ${currentpath}/targetbuild/$HOST/gcc_phase2
-		make install-strip -j$(nproc)
-		if [ $? -ne 0 ]; then
-			make install -j$(nproc)
-			if [ $? -ne 0 ]; then
-				echo "gcc phase2 install strip failure"
-				exit 1
-			fi
-			safe_llvm_strip $prefix/bin
-			safe_llvm_strip $prefixtarget/bin
-			echo "$(date --iso-8601=seconds)" > ${currentpath}/targetbuild/$HOST/gcc_phase2/.installstripsuccess
-		fi
-
-
-	if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
-		TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/${USRALTERNATIVENAME} $relpath/buildgmpmpfrmpc.sh
-		if [ $? -ne 0 ]; then
-			echo "$HOST gmp mpfr mpc build failed"
-			exit 1
-		fi
+if [[ ${FREESTANDINGBUILD} != "yes" ]]; then
+	TOOLCHAINS_BUILD=$TOOLCHAINS_BUILD TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH_GNU GMPMPFRMPCHOST=$HOST GMPMPFRMPCBUILD=${currentpath}/targetbuild/$HOST GMPMPFRMPCPREFIX=$PREFIX/${USRALTERNATIVENAME} $relpath/buildgmpmpfrmpc.sh
+	if [ $? -ne 0 ]; then
+		echo "$HOST gmp mpfr mpc build failed"
+		exit 1
 	fi
 fi
 
