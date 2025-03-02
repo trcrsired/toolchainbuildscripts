@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Array of commands to check
-commands=("gcc" "g++" "rsync" "bison" "flex" "autoconf" "makeinfo" "make" "wget" "git" "tar" "which" "python3" "xz" "realpath" "hg" "gperf" "llvm-strip")
+commands=("gcc" "g++" "rsync" "bison" "flex" "autoconf" "makeinfo" "make" "wget" "git" "tar" "which" "python3" "xz" "realpath" "hg" "gperf" "llvm-strip" "llvm-lipo" "llvm-libtool-darwin" "llvm-otool" "dsymutil")
 
 # Variable to track if any command is missing
 missing_commands=false
