@@ -517,6 +517,7 @@ if [[ ${USE_NEWLIB} == "yes" ]]; then
 	fi
 fi
 
+if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 if [[ ${FREESTANDINGBUILD} == "yes"  ]]; then
 	if [ ! -f ${currentpath}/targetbuild/$HOST/gcc/.buildsuccess ]; then
 		cd ${currentpath}/targetbuild/$HOST/gcc
@@ -734,6 +735,7 @@ else
 		done
 		echo "$(date --iso-8601=seconds)" > ${currentpath}/install/.glibcinstallsuccess
 	fi
+fi
 fi
 GCCVERSIONSTR=$(${HOST}-gcc -dumpversion)
 
