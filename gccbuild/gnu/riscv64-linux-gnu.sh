@@ -553,12 +553,12 @@ if [[ $isnativebuild != "yes" ]]; then
 	fi
 
 	if [[ ${HOST_OS} == mingw*  ]]; then
-		if [ ! -d "${currentpath}/installs/mingw-w64-headers" ] || [ ! -f "${currentpath}/build/.headersinstallsuccess" ]; then
+		if [ ! -d "${currentpath}/install/mingw-w64-headers" ] || [ ! -f "${currentpath}/build/.headersinstallsuccess" ]; then
 				mkdir -p "${currentpath}/build"
 				cd "${currentpath}/build"
 				mkdir -p mingw-w64-headers
 				if [ ! -f Makefile ]; then
-						STRIP=llvm-strip $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host="$HOST" --prefix="${currentpath}/installs/mingw-w64-headers" $MINGWW64FLAGS 
+						STRIP=llvm-strip $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure --host="$HOST" --prefix="${currentpath}/install/mingw-w64-headers" $MINGWW64FLAGS 
 						if [ $? -ne 0 ]; then
 							echo "mingw-w64-headers configuration failed"
 							exit 1
@@ -567,7 +567,7 @@ if [[ $isnativebuild != "yes" ]]; then
 				make -j$(nproc) || { echo "make failed for mingw-w64-headers"; exit 1; }
 				make install-strip -j$(nproc) || { echo "make install-strip failed for mingw-w64-headers"; exit 1; }
 				mkdir -p "${SYSROOT}/${USRALTERNATIVENAME}"
-				cp -r --preserve=links "${currentpath}/installs"/mingw-w64-headers/* "${SYSROOT}/${USRALTERNATIVENAME}/"
+				cp -r --preserve=links "${currentpath}/install"/mingw-w64-headers/* "${SYSROOT}/${USRALTERNATIVENAME}/"
 				cp -r --preserve=links "${SYSROOT}"/* "${PREFIX}/"
 				echo "$(date --iso-8601=seconds)" > "${currentpath}/build/.headersinstallsuccess"
 		fi
@@ -710,7 +710,7 @@ fi
 if [[ ${USE_PRECOMPILED_SYSROOT} != "yes" ]]; then
 	mkdir -p "${currentpath}/build"
 	if [[ ${HOST_OS} == mingw*  ]]; then
-		if [ ! -d "${currentpath}/installs/mingw-w64-crt" ] || [ ! -f "${currentpath}/build/.libinstallsuccess" ]; then
+		if [ ! -d "${currentpath}/install/mingw-w64-crt" ] || [ ! -f "${currentpath}/build/.libinstallsuccess" ]; then
 				cd "${currentpath}/build"
 				mkdir -p mingw-w64-crt
 				cd mingw-w64-crt
