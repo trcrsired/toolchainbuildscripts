@@ -6,6 +6,10 @@ function safe_llvm_strip {
         echo "No directory specified. Exiting."
         return 1
     fi
+		echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+		echo "PATH=$PATH"
+		echo "llvm-strip=$(which llvm-strip)"
+		echo "ldd $(which llvm-strip)=$(ldd $(which llvm-strip))"
 
     # Directory parameter
     local dir="$1"
