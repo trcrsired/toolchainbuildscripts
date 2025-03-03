@@ -174,14 +174,14 @@ elif [[ ${FREESTANDINGBUILD} != "yes" ]]; then
 			MULTILIBLISTS="$MULTILIBLISTS --disable-libsanitizer"
 		fi
 	elif [[ ${HOST_OS} == mingw* ]]; then
-		if [[ ${HOST_CPU} == "i686" ]]; then
+		if [[ ${HOST_CPU} == "i[3-6]86" ]]; then
 			MULTILIBLISTS="--disable-tls --disable-threads --disable-libstdcxx-threads --disable-multilib"
 		fi
 		if [[ $HOST_CPU == "x86_64" ]]; then
 			MINGWW64FLAGS=""
 		elif [[ $HOST_CPU == "aarch64" ]]; then
 			MINGWW64FLAGS="--disable-libarm32 --disable-lib32 --disable-lib64 --enable-libarm64"
-		elif [[ $HOST_CPU == "i686" ]]; then
+		elif [[ $HOST_CPU == "i[3-6]86" ]]; then
 			MINGWW64FLAGS="--disable-libarm32 --enable-lib32 --disable-lib64 --disable-libarm64 --with-default-msvcrt=msvcrt"
 		fi
 	fi
