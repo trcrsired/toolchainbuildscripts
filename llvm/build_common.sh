@@ -16,6 +16,7 @@ parse_triplet $TRIPLET CPU VENDOR OS ABI
 
 if [[ "$OS" == mingw* ]]; then
 TRIPLET=$CPU-windows-gnu
+unset VENDOR
 OS=windows
 ABI=gnu
 fi
@@ -125,8 +126,7 @@ else
         BUILTINS_PHASE=0
     fi
 fi
-        echo "$SYSROOTPATHUSR"
-exit 1
+
 if [[ -z "$ABI" ]]; then
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS"
 else
