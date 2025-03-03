@@ -30,16 +30,19 @@ install_libc() {
     if [ ! -f "${currentpathlibc}/.libc_phase_done" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
+            local darwinversiondate
             if [ -z ${DARWINVERSIONDATE+x} ]; then
-                DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+                darwinversiondate=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+            else
+                darwinversiondate=${DARWINVERSIONDATE}
             fi
-            wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${TRIPLET}.tar.xz
+            wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Darwin sysroot"
                 exit 1
             fi
             chmod 755 ${TRIPLET}.tar.xz
-            tar -xf "${TRIPLET}.tar.xz" -C "$TOOLCHAINS_LLVMTRIPLETPATH"
+            tar -xf "${TRIPLET}.tar.xz" -C "${sysrootpath}"
             if [ $? -ne 0 ]; then
                 echo "Failed to extract the Darwin sysroot"
                 exit 1
@@ -69,7 +72,8 @@ install_libc() {
                 clone_or_update_dependency windows-msvc-sysroot
             elif [[ "$ABI" == "gnu" ]]; then
                 clone_or_update_dependency mingw-w64
-                MINGWTRIPLET=${CPU}-w64-mingw32
+                local MINGWTRIPLET="${CPU}-w64-mingw32"
+                local MINGWW64COMMON
                 if [[ ${CPU} == "x86_64" ]]; then
                     MINGWW64COMMON="--disable-lib32 --enable-lib64"
                 elif [[ ${CPU} == "aarch64" ]]; then
@@ -82,7 +86,7 @@ install_libc() {
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
                 MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --prefix=${sysrootpathusr}"
-                MINGWW64COMMONENV="
+                local MINGWW64COMMONENV="
                 CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 LD=lld
