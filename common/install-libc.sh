@@ -27,6 +27,7 @@ install_libc() {
     fi
 
     mkdir -p "${currentpathlibc}"
+    mkdir -p "${sysrootpath}"
     if [ ! -f "${currentpathlibc}/.libc_phase_done" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
