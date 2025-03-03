@@ -48,6 +48,10 @@ get_git_urls() {
             GIT_URL="git://gcc.gnu.org/git/gcc.git"
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/gcc.git"
             ;;
+        "windows-msvc-sysroot")
+            GIT_URL="git@github.com:trcrsired/windows-msvc-sysroot.git"
+            GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
+            ;;
         *)
             echo "Unknown dependency: $DEPENDENCY_NAME"
             exit 1
@@ -65,20 +69,28 @@ clone_or_update_dependency() {
     local GIT_URL=${URLS%% *}
     local GIT_CHINA_DOWNSTREAM_URL=${URLS##* }
 
-    # Check and set the local toolchains_build variable
-    local toolchains_build
-    if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-        toolchains_build=$HOME/toolchains_build
+    # Check and set the appropriate toolchains path variable
+    local toolchains_path
+    if [ "$DEPENDENCY_NAME" == "windows-msvc-sysroot" ]; then
+        if [ -z ${TOOLCHAINSPATH+x} ]; then
+            toolchains_path=$HOME/toolchains
+        else
+            toolchains_path=$TOOLCHAINSPATH
+        fi
     else
-        toolchains_build=$TOOLCHAINS_BUILD
+        if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+            toolchains_path=$HOME/toolchains_build
+        else
+            toolchains_path=$TOOLCHAINS_BUILD
+        fi
     fi
 
-    if [ ! -d "$toolchains_build/$DEPENDENCY_NAME" ]; then
-        cd "$toolchains_build" || return
-        if [ "x${CLONE_IN_CHINA}" == "xyes" ]; then
-            git clone $GIT_CHINA_DOWNSTREAM_URL "$toolchains_build/$DEPENDENCY_NAME"
+    if [ ! -d "$toolchains_path/$DEPENDENCY_NAME" ]; then
+        cd "$toolchains_path" || return
+        if [ "x${CLONE_IN_CHINA}" == "xyes" ] && [ "$GIT_CHINA_DOWNSTREAM_URL" != "$GIT_URL" ]; then
+            git clone $GIT_CHINA_DOWNSTREAM_URL "$toolchains_path/$DEPENDENCY_NAME"
         else
-            git clone $GIT_URL "$toolchains_build/$DEPENDENCY_NAME"
+            git clone $GIT_URL "$toolchains_path/$DEPENDENCY_NAME"
         fi
 
         if [ $? -ne 0 ]; then
@@ -86,8 +98,8 @@ clone_or_update_dependency() {
             exit 1
         fi
 
-        if [ "x${CLONE_IN_CHINA}" == "xyes" ]; then
-            cd "$toolchains_build/$DEPENDENCY_NAME" || return
+        if [ "x${CLONE_IN_CHINA}" == "xyes" ] && [ "$GIT_CHINA_DOWNSTREAM_URL" != "$GIT_URL" ]; then
+            cd "$toolchains_path/$DEPENDENCY_NAME" || return
             git remote set-url origin $GIT_URL
             if [ $? -ne 0 ]; then
                 echo "Failed to set upstream URL for $DEPENDENCY_NAME, continuing with downstream URL"
@@ -95,6 +107,6 @@ clone_or_update_dependency() {
         fi
     fi
 
-    cd "$toolchains_build/$DEPENDENCY_NAME" || return
+    cd "$toolchains_path/$DEPENDENCY_NAME" || return
     git pull --quiet
 }
