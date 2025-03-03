@@ -44,8 +44,15 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 fi
 
 
-TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
+TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
 TOOLCHAINS_LLVMTRIPLETPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
+
+if [ -z ${NO_TOOLCHAIN_DELETION+x} ]; then
+check_clang_location
+if [ $? -eq 0 ]; then
+NO_TOOLCHAIN_DELETION=yes
+fi
+fi
 
 SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
@@ -55,10 +62,17 @@ else
     RUNTIMES_USE_RPATH=0
 fi
 
-if [[ RUNTIMES_USE_RPATH -eq 1 ]]; then
-    CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes_rpath"
+CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes"
+
+TOOLCHAINS_LLVMTRIPLETPATH_LLVM="${TOOLCHAINS_LLVMTRIPLETPATH}/llvm"
+TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES="${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
+
+if [[ "x${NO_TOOLCHAIN_DELETION}" == "xyes" ]]; then
+    TOOLCHAINS_LLVMTRIPLETPATH_LLVM_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_LLVM}_tmp"
+    TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES}_tmp"
 else
-    CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes"
+    TOOLCHAINS_LLVMTRIPLETPATH_LLVM_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_LLVM}"
+    TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES}"
 fi
 
 if [[ $1 == "restart" ]]; then
@@ -75,7 +89,6 @@ cd "${currentpath}"
 mkdir -p $TOOLCHAINSPATH
 mkdir -p $TOOLCHAINS_LLVMPATH
 mkdir -p $TOOLCHAINS_LLVMTRIPLETPATH
-mkdir -p $TOOLCHAINS_BUILD
 
 capitalize() {
     echo "$1" | sed 's/.*/\L&/; s/[a-z]*/\u&/g'
@@ -173,17 +186,17 @@ if [ -n "$CPU_NUM" ]; then
 fi
 fi
 
-cat << EOF >> $currentpath/common_cmake.cmake
+cat << EOF >> "$currentpath/common_cmake.cmake"
 set(CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
 EOF
 
 if [[ x"${SYSTEMVERSION}" != "x" ]]; then
-cat << EOF >> $currentpath/common_cmake.cmake
+cat << EOF >> "$currentpath/common_cmake.cmake"
 set(CMAKE_SYSTEM_VERSION ${SYSTEMVERSION})
 EOF
 fi
 
-cat << EOF > $currentpath/compiler-rt.cmake
+cat << EOF > "$currentpath/compiler-rt.cmake"
 include("${currentpath}/common_cmake.cmake")
 set(COMPILER_RT_DEFAULT_TARGET_ONLY On)
 set(CMAKE_C_COMPILER_WORKS On)
@@ -193,13 +206,13 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION On)
 set(COMPILER_RT_USE_LIBCXX On)
 EOF
 
-cat << EOF > $currentpath/builtins.cmake
+cat << EOF > "$currentpath/builtins.cmake"
 include("${currentpath}/compiler-rt.cmake")
 set(COMPILER_RT_BAREMETAL_BUILD On)
 set(COMPILER_RT_DEFAULT_TARGET_TRIPLE "${TRIPLET}")
 EOF
 
-cat << EOF > $currentpath/runtimes.cmake
+cat << EOF > "$currentpath/runtimes.cmake"
 include("${currentpath}/common_cmake.cmake")
 
 set(LIBCXXABI_SILENT_TERMINATE "On")
@@ -272,9 +285,18 @@ fi
 
 fi
 
+clone_or_update_dependency llvm-project
+
 if [[ $LIBC_PHASE -eq 1 ]]; then
     install_libc $TRIPLET "${currentpath}/libc" "${SYSROOTPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
 
-clone_or_update_dependency llvm-project
+if [[ $BUILTINS_PHASE -eq 2 ]]; then
+CURRENTTRIPLEPATH_COMPILER_RT="${currentpath}/compiler-rt"
+mkdir -p "${CURRENTTRIPLEPATH_COMPILER_RT}"
+cd "${CURRENTTRIPLEPATH_COMPILER_RT}"
+cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
+ninja
 
+elif [[ $BUILTINS_PHASE -eq 1 ]]; then
+fi
