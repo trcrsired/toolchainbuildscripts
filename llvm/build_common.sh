@@ -14,6 +14,12 @@ cd "$currentpath"
 
 parse_triplet $TRIPLET CPU VENDOR OS ABI
 
+if [[ "$OS" == mingw* ]]; then
+TRIPLET=$CPU-windows-gnu
+OS=windows
+ABI=gnu
+fi
+
 if [ $? -ne 0 ]; then
 echo "Failed to parse the target triplet: $TRIPLET"
 exit 1
@@ -115,9 +121,12 @@ else
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
         fi
+    elif [[ "$OS" == "linux" && "$ABI" == "gnu" ]]; then
+        BUILTINS_PHASE=0
     fi
 fi
-
+        echo "$SYSROOTPATHUSR"
+exit 1
 if [[ -z "$ABI" ]]; then
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS"
 else
