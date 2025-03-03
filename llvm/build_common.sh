@@ -210,7 +210,7 @@ EOF
 fi
 
 cat << EOF > "$currentpath/compiler-rt.cmake"
-include("${currentpath}/common_cmake.cmake")
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(COMPILER_RT_DEFAULT_TARGET_ONLY On)
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
@@ -220,13 +220,13 @@ set(COMPILER_RT_USE_LIBCXX On)
 EOF
 
 cat << EOF > "$currentpath/builtins.cmake"
-include("${currentpath}/compiler-rt.cmake")
+include("\${CMAKE_CURRENT_LIST_DIR}/compiler-rt.cmake")
 set(COMPILER_RT_BAREMETAL_BUILD On)
 set(COMPILER_RT_DEFAULT_TARGET_TRIPLE "${TRIPLET}")
 EOF
 
 cat << EOF > "$currentpath/runtimes.cmake"
-include("${currentpath}/common_cmake.cmake")
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
 set(LIBCXXABI_SILENT_TERMINATE "On")
 set(LIBCXX_CXX_ABI "libcxxabi")
@@ -261,10 +261,11 @@ set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
 set(LLVM_DEFAULT_TARGET_TRIPLE $TARGETTRIPLE)
 set(LLVM_ENABLE_LTO "Thin")
 set(LLVM_ENABLE_LLD "On")
-set(LLVM_ENABLE_PROJECTS "libcxx;libcxxabi;libunwind")
+set(LLVM_ENABLE_PROJECTS libcxx;libcxxabi;libunwind)
 set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
+set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
 EOF
 
 if [[ "${OS}" == "windows" ]]; then
@@ -277,7 +278,6 @@ EOF
 elif [[ "${OS}" == "darwin"* ]]; then
 
 cat << EOF >> $currentpath/common_cmake.cmake
-set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
 set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
 set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_SYSTEM_VERSION})
 set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
@@ -306,8 +306,8 @@ if [[ $BUILTINS_PHASE -eq 2 ]]; then
 CURRENTTRIPLEPATH_COMPILER_RT="${currentpath}/compiler-rt"
 mkdir -p "${CURRENTTRIPLEPATH_COMPILER_RT}"
 cd "${CURRENTTRIPLEPATH_COMPILER_RT}"
-cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt" -DCMAKE_LIPO="$(which lipo)"
-ninja
+cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
+#ninja
 
 elif [[ $BUILTINS_PHASE -eq 1 ]]; then
 cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt/lib/builtins" -DCMAKE_TOOLCHAIN_FILE="$currentpath/builtins.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/builtins"
