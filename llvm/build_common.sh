@@ -87,7 +87,7 @@ COMPILER_RT_PHASE=1
 ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
-LLVM_PHASE=0
+LLVM_PHASE=1
 
 if [[ "$OS" == "windows" ]]; then
     echo "Operating System: Windows with ABI: $ABI"
@@ -206,12 +206,9 @@ fi
 
 fi
 
-if [[ LLVM_PHASE -eq 1 ]]; then
 
 if [ ! -d "$LLVMPROJECTPATH" ]; then
 git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
 fi
 cd "$LLVMPROJECTPATH"
 git pull --quiet
-
-fi
