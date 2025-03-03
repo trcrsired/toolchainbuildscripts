@@ -61,7 +61,7 @@ build_glibc() {
             multilibshost=("loongarch64-linux-gnu")
         fi
     fi
-
+    mkdir -p "${sysrootpathusr}"
     mkdir -p "${currentpathlibc}/build/glibc"
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then
@@ -152,6 +152,7 @@ build_musl() {
     else
         toolchains_path="$TOOLCHAINS_BUILD"
     fi
+    mkdir -p "${sysrootpathusr}"
     if [ ! -f "${currentpathlibc}/build/musl/default/.configuresuccess" ]; then
         local configure_cmd=()
         if [[ ${usellvm} == "yes" ]]; then
