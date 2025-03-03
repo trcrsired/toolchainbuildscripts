@@ -147,7 +147,7 @@ CMAKE_SIZEOF_VOID_P=4
 
 if [[ "$CPU" == "x86_64" ]]; then
 CMAKE_SIZEOF_VOID_P=8
-elif [[ "$CPU" == "x86" ]]; then
+elif [[ "$CPU" == "i686" ]]; then
 CMAKE_SIZEOF_VOID_P=4
 else
 # Extract number from CPU variable and calculate CMAKE_SIZEOF_VOID_P
