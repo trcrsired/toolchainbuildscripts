@@ -321,8 +321,8 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
                 fi
                 MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --prefix=${SYSROOTPATHUSR}"
                 MINGWW64COMMONENV="
-                CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
-                CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
+                CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATHUSR}\"\"
+                CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATHUSR}\"\"
                 LD=lld
                 NM=llvm-nm
                 RANLIB=llvm-ranlib
