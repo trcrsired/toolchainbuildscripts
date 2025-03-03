@@ -167,8 +167,21 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE "ONLY")
 set(CMAKE_LIPO "$(which llvm-lipo)")
 set(CMAKE_STRIP "$(which llvm-strip)")
 set(CMAKE_NM "$(which llvm-nm)")
+set(CMAKE_AR "$(which llvm-ar)")
+set(CMAKE_RANLIB "$(which llvm-ranlib)")
 set(CMAKE_INSTALL_NAME_TOOL "$(which llvm-install-name-tool)")
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
+set(LLVM_ENABLE_LTO thin)
+set(LLVM_ENABLE_LLD On)
+set(CMAKE_C_FLAGS "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
+set(CMAKE_CXX_FLAGS "\${CMAKE_C_FLAGS}")
+set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
+EOF
+
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -rtlib=compiler-rt")
+set(CMAKE_CXX_FLAGS "\${CMAKE_C_FLAGS} -stdlib=libc++ --unwindlib=libunwind")
+set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
 EOF
 
 # Initialize CMAKE_SIZEOF_VOID_P with default value
@@ -271,8 +284,6 @@ set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
 set(CMAKE_AR "\${CMAKE_LIBTOOL};-static")
 set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
 set(MACOS_ARM_SUPPORT On)
-set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
-set(DARWIN_macosx_OVERRIDE_SDK_VERSION "\${DARWINVERSION}")
 set(COMPILER_RT_HAS_G_FLAG On)
 EOF
 
@@ -288,7 +299,7 @@ fi
 clone_or_update_dependency llvm-project
 
 if [[ $LIBC_PHASE -eq 1 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${SYSROOTPATH}" "${SYSROOTPATHUSR}" "yes"
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
 
 if [[ $BUILTINS_PHASE -eq 2 ]]; then
@@ -299,4 +310,6 @@ cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_
 ninja
 
 elif [[ $BUILTINS_PHASE -eq 1 ]]; then
+cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt/lib/builtins" -DCMAKE_TOOLCHAIN_FILE="$currentpath/builtins.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/builtins"
+ninja
 fi
