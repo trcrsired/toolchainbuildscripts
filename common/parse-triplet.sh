@@ -21,7 +21,11 @@ parse_triplet() {
     fi
 
     # Correct behavior if TRIPLET_VENDOR is 'linux'
-    if [[ "$VENDOR_VAR" == "linux" ]]; then
+    if [[ "$VENDOR_VAR" == "windows" ]]; then
+        VENDOR_VAR=""                              # Clear TRIPLET_VENDOR as 'windows' is part of TRIPLET_OS
+        OS_VAR="windows"                           # Shift TRIPLET_OS from TRIPLET_REMAINDER
+        ABI_VAR=${TRIPLET_REMAINDER#*-}            # Extract 'abi' from TRIPLET_REMAINDER
+    elif [[ "$VENDOR_VAR" == "linux" ]]; then
         VENDOR_VAR=""                              # Clear TRIPLET_VENDOR as 'linux' is part of TRIPLET_OS
         OS_VAR="linux"                             # Shift TRIPLET_OS from TRIPLET_REMAINDER
         ABI_VAR=${TRIPLET_REMAINDER#*-}            # Extract 'abi' from TRIPLET_REMAINDER
