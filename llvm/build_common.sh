@@ -108,7 +108,6 @@ if [[ "$OS" == "darwin"* ]]; then
 else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
-        echo "Operating System: windows with ABI: $ABI"
         CPPWINRT_PHASE=1
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
@@ -303,6 +302,91 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
 					echo "Failed to move files to ${SYSROOTPATHUSR}"
 					exit 1
 			fi
+        elif [[ "$OS" == "windows" ]]; then
+            if [[ "$ABI" == "msvc" ]]; then
+                clone_or_update_dependency windows-msvc-sysroot
+            elif [[ "$ABI" == "gnu" ]]; then
+                clone_or_update_dependency mingw-w64
+                MINGWTRIPLET=${CPU}-w64-mingw32
+                if [[ ${CPU} == "x86_64" ]]; then
+                    MINGWW64COMMON="--disable-lib32 --enable-lib64"
+                elif [[ ${CPU} == "aarch64" ]]; then
+                    MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
+                elif [[ ${CPU} == "arm" ]]; then
+                    MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64"
+                elif [[ ${CPU} == "i[3-6]86" ]]; then
+                    MINGWW64COMMON="--disable-lib32 --enable-lib64"
+                else
+                    MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
+                fi
+                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --prefix=${SYSROOTPATHUSR}"
+                MINGWW64COMMONENV="
+                CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
+                CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
+                LD=lld
+                NM=llvm-nm
+                RANLIB=llvm-ranlib
+                AR=llvm-ar
+                DLLTOOL=llvm-dlltool
+                AS=llvm-as
+                STRIP=llvm-strip
+                OBJDUMP=llvm-objdump
+                WINDRES=llvm-windres
+                "
+                if [ ! -f "$currentpath/libc/.libc_phase_header" ]; then
+                    mkdir -p "${currentpath}/libc/mingw-w64-headers"
+                    cd "${currentpath}/libc/mingw-w64-headers"
+
+                    if [ ! -f Makefile ]; then
+                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
+                        if [ $? -ne 0 ]; then
+                            echo "Error: mingw-w64-headers($TRIPLET) configure failed"
+                            exit 1
+                        fi
+                    fi
+
+                    make -j$(nproc) 2>err.txt
+                    if [ $? -ne 0 ]; then
+                        echo "Error: make mingw-w64-headers($TRIPLET) install-strip failed"
+                        exit 1
+                    fi
+
+                    make install-strip -j$(nproc) 2>>err.txt
+                    if [ $? -ne 0 ]; then
+                        echo "Error: make mingw-w64-headers($TRIPLET) install-strip failed"
+                        exit 1
+                    fi
+
+                    echo "$(date --iso-8601=seconds)" > "$currentpath/libc/.libc_phase_header"
+                fi
+
+                mkdir -p "${currentpath}/libc/mingw-w64-crt"
+                cd "${currentpath}/libc/mingw-w64-crt"
+
+                if [ ! -f Makefile ]; then
+                    eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
+                    if [ $? -ne 0 ]; then
+                        echo "Error: configure mingw-w64-crt($TRIPLET) failed"
+                        exit 1
+                    fi
+                fi
+
+                make -j$(nproc) 2>err.txt
+                if [ $? -ne 0 ]; then
+                    echo "Error: make mingw-w64-crt($TRIPLET) failed"
+                    exit 1
+                fi
+
+                make install-strip -j$(nproc) 2>>err.txt
+                if [ $? -ne 0 ]; then
+                    echo "Error: make install-strip mingw-w64-crt($TRIPLET) failed"
+                    exit 1
+                fi
+
+            else
+                echo "Unknown Windows ABI: $ABI"
+                exit 1
+            fi
         elif [[ "$OS" == "linux" ]]; then
             if [[ "$ABI" == "android"* ]]; then
                 if [ -z ${ANDROIDNDKVERSION+x} ]; then
@@ -327,91 +411,6 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
                 cp -r --preserve=links ${currentpath}/libc/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${SYSROOTPATHUSR}/lib
                 cp -r --preserve=links ${currentpath}/libc/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${SYSROOTPATHUSR}/
                 cp -r --preserve=links ${SYSROOTPATHUSR}/include/${CPU}-linux-android/asm ${SYSROOTPATHUSR}/include/
-            elif [[ "$OS" == "windows" ]]; then
-                if [[ "$ABI" == "msvc" ]]; then
-                    clone_or_update_dependency windows-msvc-sysroot
-                elif [[ "$ABI" == "gnu" ]]; then
-                    clone_or_update_dependency mingw-w64
-                    MINGWTRIPLET=${CPU}-w64-mingw32
-                    if [[ ${CPU} == "x86_64" ]]; then
-                        MINGWW64COMMON="--disable-lib32 --enable-lib64"
-                    elif [[ ${CPU} == "aarch64" ]]; then
-                        MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
-                    elif [[ ${CPU} == "arm" ]]; then
-                        MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64"
-                    elif [[ ${CPU} == "i[3-6]86" ]]; then
-                        MINGWW64COMMON="--disable-lib32 --enable-lib64"
-                    else
-                        MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
-                    fi
-                    MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --prefix=${SYSROOTPATHUSR}"
-                    MINGWW64COMMONENV="
-                    CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
-                    CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${SYSROOTPATH}\"\"
-                    LD=lld
-                    NM=llvm-nm
-                    RANLIB=llvm-ranlib
-                    AR=llvm-ar
-                    DLLTOOL=llvm-dlltool
-                    AS=llvm-as
-                    STRIP=llvm-strip
-                    OBJDUMP=llvm-objdump
-                    WINDRES=llvm-windres
-                    "
-                    if [ ! -f "$currentpath/libc/.libc_phase_header" ]; then
-                        mkdir -p "${currentpath}/libc/mingw-w64-headers"
-                        cd "${currentpath}/libc/mingw-w64-headers"
-
-                        if [ ! -f Makefile ]; then
-                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
-                            if [ $? -ne 0 ]; then
-                                echo "Error: mingw-w64-headers($TRIPLET) configure failed"
-                                exit 1
-                            fi
-                        fi
-
-                        make -j$(nproc) 2>err.txt
-                        if [ $? -ne 0 ]; then
-                            echo "Error: make mingw-w64-headers($TRIPLET) install-strip failed"
-                            exit 1
-                        fi
-
-                        make install-strip -j$(nproc) 2>>err.txt
-                        if [ $? -ne 0 ]; then
-                            echo "Error: make mingw-w64-headers($TRIPLET) install-strip failed"
-                            exit 1
-                        fi
-
-                        echo "$(date --iso-8601=seconds)" > "$currentpath/libc/.libc_phase_header"
-                    fi
-
-                    mkdir -p "${currentpath}/libc/mingw-w64-crt"
-                    cd "${currentpath}/libc/mingw-w64-crt"
-
-                    if [ ! -f Makefile ]; then
-                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
-                        if [ $? -ne 0 ]; then
-                            echo "Error: configure mingw-w64-crt($TRIPLET) failed"
-                            exit 1
-                        fi
-                    fi
-
-                    make -j$(nproc) 2>err.txt
-                    if [ $? -ne 0 ]; then
-                        echo "Error: make mingw-w64-crt($TRIPLET) failed"
-                        exit 1
-                    fi
-
-                    make install-strip -j$(nproc) 2>>err.txt
-                    if [ $? -ne 0 ]; then
-                        echo "Error: make install-strip mingw-w64-crt($TRIPLET) failed"
-                        exit 1
-                    fi
-
-                else
-                    echo "Unknown Windows ABI: $ABI"
-                    exit 1
-                fi
             else
                 clone_or_update_dependency linux
                 if [[ "$ABI" == "gnu" ]]; then
