@@ -4,7 +4,11 @@ check_clang_location() {
   local resolved_path
 
   # Resolve the absolute path of $TOOLCHAINS_LLVMTRIPLETPATH/llvm/bin
-  resolved_path=$(realpath "$TOOLCHAINS_LLVMTRIPLETPATH/llvm/bin")
+  resolved_path=$(realpath "$TOOLCHAINS_LLVMTRIPLETPATH/llvm/bin" 2>/dev/null)
+
+  if [ ! -e "$resolved_path" ]; then
+    return 1
+  fi
 
   clang_path=$(command -v clang)
   clang_dir=$(dirname "$clang_path")
