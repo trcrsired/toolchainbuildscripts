@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./safe-llvm-strip.sh
+source ../../common/safe-llvm-strip.sh
 
 ./dependencycheck.sh
 if [ $? -ne 0 ]; then
