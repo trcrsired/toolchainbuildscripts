@@ -12,7 +12,7 @@ get_git_urls() {
     local GIT_CHINA_DOWNSTREAM_URL
 
     case $DEPENDENCY_NAME in
-        "llvm")
+        "llvm-project")
             GIT_URL="git@github.com:llvm/llvm-project.git"
             GIT_CHINA_DOWNSTREAM_URL="https://github.com.cnpmjs.org/llvm/llvm-project.git"
             ;;
