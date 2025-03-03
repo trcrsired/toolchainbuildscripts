@@ -25,10 +25,6 @@ echo "ABI: $ABI"
 
 # Parse the host triplet
 currentpath="$(realpath .)/.llvmartifacts/${TRIPLET}"
-if [ ! -d ${currentpath} ]; then
-	mkdir -p ${currentpath}
-	cd ${currentpath}
-fi
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD=$HOME/toolchains_build
@@ -38,24 +34,17 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
-mkdir -p $TOOLCHAINSPATH
-TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
-mkdir -p $TOOLCHAINS_LLVMPATH
 
+TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
 TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
 
 SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TRIPLET}"
-SYSROOTPATHUSR="${DARWINSYSROOTPATH}/usr"
-
-mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
-
-mkdir -p $TOOLCHAINS_BUILD
-mkdir -p $TOOLCHAINSPATH
+SYSROOTPATHUSR="${SYSROOTPATH}/usr"
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+#	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
 	echo "restart done"
 fi
 
@@ -63,11 +52,13 @@ if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 fi
 
-if [ ! -d "$LLVMPROJECTPATH" ]; then
-git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
-fi
-cd "$LLVMPROJECTPATH"
-git pull --quiet
+echo "ok ${currentpath}"
+mkdir -p "${currentpath}"
+cd "${currentpath}"
+mkdir -p $TOOLCHAINSPATH
+mkdir -p $TOOLCHAINS_LLVMPATH
+mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
+mkdir -p $TOOLCHAINS_BUILD
 
 capitalize() {
     echo "$1" | sed 's/.*/\L&/; s/[a-z]*/\u&/g'
@@ -80,11 +71,11 @@ if [ -z ${SYSTEMNAME+x} ]; then
         if [ "$SYSTEMNAME" == "Android" ]; then
             SYSTEMNAME="Linux"
             if [ -z ${ANDROIDVERSION+x} ]; then
-                ANDROIDVERSION=$(echo "${BASH_REMATCH[2]}" | bc)
+                ANDROIDVERSION=${BASH_REMATCH[2]}
             fi
         elif [ -n "${BASH_REMATCH[2]}" ]; then
             if [ -z ${SYSTEMVERSION+x} ]; then
-                SYSTEMVERSION=$(echo "${BASH_REMATCH[2]}" | bc)
+                SYSTEMVERSION=${BASH_REMATCH[2]}
             fi
         fi
     fi
@@ -96,7 +87,7 @@ COMPILER_RT_PHASE=1
 ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
-LLVM_PHASE=1
+LLVM_PHASE=0
 
 if [[ "$OS" == "windows" ]]; then
     echo "Operating System: Windows with ABI: $ABI"
@@ -108,12 +99,9 @@ if [[ "$OS" == "windows" ]]; then
     CPPWINRT_PHASE=1
 elif [[ "$OS" == "linux" ]]; then
     echo "Operating System: Linux with ABI: $ABI"
-    if [[ "$ABI" == "android"* ]]; then
-        PLATFORMVERSION=${ABI#android}
-    fi
+
 elif [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
-    PLATFORMVERSION=${OS#darwin}
     BUILTINS_PHASE=2
     COMPILER_RT_PHASE=0
     ZLIB_PHASE=0
@@ -133,14 +121,13 @@ else
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS-$ABI"
 fi
 
+if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
-
-# CMake configuration settings
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_ASM_COMPILER "clang")
+set(CMAKE_C_COMPILER "$(which clang)")
+set(CMAKE_CXX_COMPILER "$(which clang++)")
+set(CMAKE_ASM_COMPILER \${CMAKE_C_COMPILER})
 set(CMAKE_SYSROOT "${SYSROOTPATH}")
 set(CMAKE_INSTALL_PREFIX "${COMPILERRTINSTALLPATH}")
 set(CMAKE_C_COMPILER_TARGET "${TRIPLET}")
@@ -148,7 +135,6 @@ set(CMAKE_CXX_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
 set(CMAKE_ASM_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
 set(CMAKE_SYSTEM_NAME "${SYSTEMNAME}")
 set(CMAKE_SYSTEM_PROCESSOR "\${CPU}")
-
 set(CMAKE_CROSSCOMPILING "On")
 set(CMAKE_FIND_ROOT_PATH "${SYSROOTPATHUSR}")
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM "NEVER")
@@ -157,8 +143,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE "ONLY")
 set(CMAKE_LIPO "$(which llvm-lipo)")
 set(CMAKE_STRIP "$(which llvm-strip)")
 set(CMAKE_NM "$(which llvm-nm)")
-set(CMAKE_INSTALL_NAME_TOOL "$(which INSTALL_NAME_TOOLPATH)"
-
+set(CMAKE_INSTALL_NAME_TOOL "$(which llvm-install-name-tool)")
 EOF
 
 # Initialize CMAKE_SIZEOF_VOID_P with default value
@@ -172,35 +157,15 @@ fi
 
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
-
 EOF
 
 if [ -n ${SYSTEMVERSION+x} ]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_SYSTEM_VERSION ${SYSTEMVERSION})
-
 EOF
 fi
 
-if [[ "${SYSTEMNAME}" == "Darwin" ]]; then
-
-cat << EOF >> $currentpath/common_cmake.cmake
-set(CMAKE_OSX_ARCHITECTURES "\${DARWINARCHITECTURES}")
-set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
-set(CMAKE_SYSTEM_VERSION ${PLATFORMVERSION})
-set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_SYSTEM_VERSION})
-set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
-set(CMAKE_AR "\${CMAKE_LIBTOOL};-static")
-set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
-set(MACOS_ARM_SUPPORT "On")
-
-EOF
-
-fi
-
-echo "Building Builtins"
 cat << EOF > $currentpath/compiler-rt.cmake
-
 include("\${currentpath}/common_cmake.cmake")
 set(COMPILER_RT_DEFAULT_TARGET_ONLY "On")
 set(CMAKE_C_COMPILER_WORKS "On")
@@ -209,20 +174,40 @@ set(CMAKE_ASM_COMPILER_WORKS "On")
 set(CMAKE_C_FLAGS "\${FLAGSCOMMON}")
 set(CMAKE_CXX_FLAGS "\${FLAGSCOMMON}")
 set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
-
-EOF
-fi
-
-if [[ "${SYSTEMNAME}" == "Darwin" ]]; then
-
-cat << EOF >> $currentpath/compiler-rt.cmake
 set(COMPILER_RT_HAS_G_FLAG "On")
 EOF
 
-if [ -z ${PLATFORMVERSION+x} ]; then
-fi
+
+if [[ "${SYSTEMNAME}" == "Darwin" ]]; then
+
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_OSX_ARCHITECTURES "\${DARWINARCHITECTURES}")
+set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
+set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_SYSTEM_VERSION})
+set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
+set(CMAKE_AR "\${CMAKE_LIBTOOL};-static")
+set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
+set(MACOS_ARM_SUPPORT "On")
 set(CMAKE_OSX_ARCHITECTURES "\${ARCHITECTURES}")
 set(DARWIN_macosx_CACHED_SYSROOT "\${DARWINSYSROOTPATH}")
 set(DARWIN_macosx_OVERRIDE_SDK_VERSION "\${DARWINVERSION}")
+EOF
+
+cat << EOF >> $currentpath/compiler-rt.cmake
+set(COMPILER_RT_HAS_G_FLAG "On")
+
+EOF
+
+fi
+
+fi
+
+if [[ LLVM_PHASE -eq 1 ]]; then
+
+if [ ! -d "$LLVMPROJECTPATH" ]; then
+git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+fi
+cd "$LLVMPROJECTPATH"
+git pull --quiet
 
 fi
