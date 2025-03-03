@@ -7,7 +7,8 @@ fi
 currentpath="$(realpath .)/.artifacts/llvm/${TRIPLET}"
 mkdir -p "$currentpath"
 cd ../common
-source ../common/common.sh
+source ./common.sh
+
 cd "$currentpath"
 # Parse the target triplet
 
