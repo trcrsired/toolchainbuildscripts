@@ -78,7 +78,7 @@ fi
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-#	rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
+	rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
 	echo "restart done"
 fi
 
@@ -149,20 +149,9 @@ if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
 set(CMAKE_BUILD_TYPE "Release")
-# Find the path of clang
-find_program(CMAKE_C_COMPILER clang)
-if (NOT CMAKE_C_COMPILER)
-    message(FATAL_ERROR "clang not found")
-endif()
-
-# Find the path of clang++
-find_program(CMAKE_CXX_COMPILER clang++)
-if (NOT CMAKE_CXX_COMPILER)
-    message(FATAL_ERROR "clang++ not found")
-endif()
-
-# Set ASM compiler to use C compiler
-set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_ASM_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_SYSROOT "${SYSROOTPATH}")
 set(CMAKE_C_COMPILER_TARGET "${TRIPLET}")
 set(CMAKE_CXX_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
@@ -408,6 +397,9 @@ build_project() {
 
         if [ ! -f "${install_prefix}/${configure_phase_file}" ]; then
             # Run CMake to generate Ninja build files
+            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
+                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
             cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
