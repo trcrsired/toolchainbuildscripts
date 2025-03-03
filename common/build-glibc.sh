@@ -122,14 +122,25 @@ build_glibc() {
         fi
 
         if [ ! -f "${currentpathlibc}/build/glibc/$item/.stripsuccess" ]; then
-            safe_llvm_strip "${currentpathlibc}/install/glibc/${item}/lib"
+            safe_llvm_strip "${currentpathlibc}/install/glibc/${item}"
             echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.stripsuccess"
         fi
-
         if [ ! -f "${currentpathlibc}/build/glibc/$item/.sysrootsuccess" ]; then
-            cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
-            mkdir -p "${sysrootpathusr}/$libdir"
-            cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/lib/*" "${sysrootpathusr}/$libdir"
+            if [ $i -eq 0 ]; then
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
+            else
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
+                if [ $? -ne 0 ]; then
+                    echo "cp failed:" cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
+                    exit 1
+                fi
+                mkdir -p "${sysrootpathusr}/$libdir"
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/lib"/* "${sysrootpathusr}/$libdir"
+                if [ $? -ne 0 ]; then
+                    echo "cp failed:" cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/lib/*" "${sysrootpathusr}/$libdir/"
+                    exit 1
+                fi
+            fi
             echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.sysrootsuccess"
         fi
     done
@@ -224,15 +235,18 @@ build_musl() {
     fi
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.stripsuccess" ]; then
-        safe_llvm_strip "${currentpathlibc}/install/musl/default/lib"
+        safe_llvm_strip "${currentpathlibc}/install/musl"
         echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.stripsuccess"
     fi
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.sysrootsuccess" ]; then
-        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
-        mkdir -p "$sysrootpathusr/lib"
-        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib/*" "$sysrootpathusr/lib"
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
+        mkdir -p "$sysrootpathusr"
+        cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
+
+#        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
+#        mkdir -p "$sysrootpathusr/lib"
+#        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib"/* "$sysrootpathusr/lib"/
+#        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
     fi
 
     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslinstallsuccess"
