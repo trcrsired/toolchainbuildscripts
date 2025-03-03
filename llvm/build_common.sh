@@ -89,18 +89,7 @@ LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
 
-if [[ "$OS" == "windows" ]]; then
-    echo "Operating System: Windows with ABI: $ABI"
-    CPPWINRT_PHASE=1
-    if [[ "$ABI" == "msvc" ]]; then
-        BUILTINS_PHASE=0
-        COMPILER_RT_PHASE=0
-    fi
-    CPPWINRT_PHASE=1
-elif [[ "$OS" == "linux" ]]; then
-    echo "Operating System: Linux with ABI: $ABI"
-
-elif [[ "$OS" == "darwin"* ]]; then
+if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
     BUILTINS_PHASE=2
     COMPILER_RT_PHASE=0
@@ -113,6 +102,14 @@ elif [[ "$OS" == "darwin"* ]]; then
     fi
 else
     echo "Operating System: $OS with ABI: $ABI"
+    if [[ "$OS" == "windows" ]]; then
+        echo "Operating System: windows with ABI: $ABI"
+        CPPWINRT_PHASE=1
+        if [[ "$ABI" == "msvc" ]]; then
+            BUILTINS_PHASE=0
+            COMPILER_RT_PHASE=0
+        fi
+    fi
 fi
 
 if [[ -z "$ABI" ]]; then
