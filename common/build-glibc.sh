@@ -79,7 +79,7 @@ build_glibc() {
         cd "${currentpathlibc}/build/glibc/$item"
 
         if [ ! -f "${currentpathlibc}/build/glibc/$item/.configuresuccess" ]; then
-            (export -n LD_LIBRARY_PATH; CC="$HOST-gcc$marchitem" CXX="$HOST-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}" --build="$BUILD" --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
+            (export -n LD_LIBRARY_PATH; CC="$host-gcc$marchitem" CXX="$host-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}" --build="$BUILD" --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) configure failure"
                 exit 1
