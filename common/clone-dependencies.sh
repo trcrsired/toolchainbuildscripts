@@ -106,7 +106,6 @@ clone_or_update_dependency() {
             fi
         fi
     fi
-
     cd "$toolchains_path/$DEPENDENCY_NAME" || return
     git pull --quiet
 }
