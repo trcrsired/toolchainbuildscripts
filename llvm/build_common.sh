@@ -413,31 +413,38 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
                 cp -r --preserve=links ${SYSROOTPATHUSR}/include/${CPU}-linux-android/asm ${SYSROOTPATHUSR}/include/
             else
                 clone_or_update_dependency linux
-
-                linuxkernelheaders=${SYSROOTPATHUSR}
-                LINUXARCH=${CPU}
-
-                if [[ $LINUXARCH == "aarch64" ]]; then
-                    LINUXARCH="arm64"
-                elif [[ $LINUXARCH == "i[3-6]86" ]]; then
-                    LINUXARCH="x86"
-                elif [[ $LINUXARCH != x86_64 ]]; then
-                    LINUXARCH="${LINUXARCH%%[0-9]*}"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to clone or update linux"
+                    exit 1
                 fi
-                if [ ! -f "${currentpath}/libc/.linuxkernelheadersinstallsuccess" ]; then
-                    cd "$TOOLCHAINS_BUILD/linux"
-                    make headers_install ARCH=$LINUXARCH -j "INSTALL_HDR_PATH=${SYSROOTPATHUSR}"
-                    if [ $? -ne 0 ]; then
-                        echo "linux kernel headers install failure"
-                        exit 1
-                    fi
-                    echo "$(date --iso-8601=seconds)" > "${currentpath}/libc/.linuxkernelheadersinstallsuccess"
+                install_linux_kernel_headers $CPU "$currentpath/libc" "${SYSROOTPATHUSR}"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to install Linux kernel headers"
+                    exit 1
                 fi
+
                 if [[ "$ABI" == "gnu" ]]; then
                     clone_or_update_dependency glibc
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Failed to clone or update glibc"
+                        exit 1
+                    fi
                     build_glibc $CPU "$currentpath/libc" "${SYSROOTPATHUSR}"
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Failed to build glibc"
+                        exit 1
+                    fi
                 elif [[ "$ABI" == "musl" ]]; then
                     clone_or_update_dependency musl
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Failed to clone or update musl"
+                        exit 1
+                    fi
+                    build_musl $TRIPLET "$currentpath/libc" "${SYSROOTPATHUSR}" "yes"
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Failed to build musl"
+                        exit 1
+                    fi
                 fi
             fi
         fi
