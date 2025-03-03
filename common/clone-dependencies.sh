@@ -73,15 +73,15 @@ clone_or_update_dependency() {
     local toolchains_path
     if [ "$DEPENDENCY_NAME" == "windows-msvc-sysroot" ]; then
         if [ -z ${TOOLCHAINSPATH+x} ]; then
-            toolchains_path=$HOME/toolchains
+            toolchains_path="$HOME/toolchains"
         else
-            toolchains_path=$TOOLCHAINSPATH
+            toolchains_path="$TOOLCHAINSPATH"
         fi
     else
         if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-            toolchains_path=$HOME/toolchains_build
+            toolchains_path="$HOME/toolchains_build"
         else
-            toolchains_path=$TOOLCHAINS_BUILD
+            toolchains_path="$TOOLCHAINS_BUILD"
         fi
     fi
 
