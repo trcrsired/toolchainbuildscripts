@@ -7,6 +7,7 @@ fi
 
 source ../common/safe-llvm-strip.sh
 source ../common/parse-triplet.sh
+source ../common/clone-dependencies.sh
 
 # Parse the target triplet
 
@@ -36,28 +37,37 @@ fi
 
 
 TOOLCHAINS_LLVMPATH=$TOOLCHAINSPATH/llvm
-TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
+TOOLCHAINS_LLVMTRIPLETPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
 
-SYSROOTPATH="$TOOLCHAINS_LLVMSYSROOTSPATH/${TRIPLET}"
+SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
+if [[ $OS == "darwin"* ]]; then
+    RUNTIMES_USE_RPATH=1
+else
+    RUNTIMES_USE_RPATH=0
+fi
+
+if [[ RUNTIMES_USE_RPATH -eq 1 ]]; then
+    CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes_rpath"
+else
+    CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes"
+fi
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-#	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
+#	rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
 	echo "restart done"
 fi
 
-if [ -z ${LLVMPROJECTPATH+x} ]; then
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
-fi
 
 echo "ok ${currentpath}"
 mkdir -p "${currentpath}"
 cd "${currentpath}"
 mkdir -p $TOOLCHAINSPATH
 mkdir -p $TOOLCHAINS_LLVMPATH
-mkdir -p $TOOLCHAINS_LLVMSYSROOTSPATH
+mkdir -p $TOOLCHAINS_LLVMTRIPLETPATH
 mkdir -p $TOOLCHAINS_BUILD
 
 capitalize() {
@@ -68,12 +78,7 @@ if [ -z ${SYSTEMNAME+x} ]; then
     SYSTEMNAME=$(capitalize "${OS}")
     if [[ "$SYSTEMNAME" =~ ([a-zA-Z]+)([0-9]*) ]]; then
         SYSTEMNAME=$(capitalize "${BASH_REMATCH[1]}")
-        if [ "$SYSTEMNAME" == "Android" ]; then
-            SYSTEMNAME="Linux"
-            if [ -z ${ANDROIDVERSION+x} ]; then
-                ANDROIDVERSION=${BASH_REMATCH[2]}
-            fi
-        elif [ -n "${BASH_REMATCH[2]}" ]; then
+        if [ -n "${BASH_REMATCH[2]}" ]; then
             if [ -z ${SYSTEMVERSION+x} ]; then
                 SYSTEMVERSION=${BASH_REMATCH[2]}
             fi
@@ -81,6 +86,7 @@ if [ -z ${SYSTEMNAME+x} ]; then
     fi
 fi
 
+LIBC_PHASE=1
 BUILTINS_PHASE=1
 RUNTIMES_PHASE=1
 COMPILER_RT_PHASE=1
@@ -140,6 +146,7 @@ set(CMAKE_LIPO "$(which llvm-lipo)")
 set(CMAKE_STRIP "$(which llvm-strip)")
 set(CMAKE_NM "$(which llvm-nm)")
 set(CMAKE_INSTALL_NAME_TOOL "$(which llvm-install-name-tool)")
+set(CMAKE_POSITION_INDEPENDENT_CODE On)
 EOF
 
 # Initialize CMAKE_SIZEOF_VOID_P with default value
@@ -173,14 +180,66 @@ set(COMPILER_RT_DEFAULT_TARGET_ONLY On)
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
-set(CMAKE_C_FLAGS "\${FLAGSCOMMON}")
-set(CMAKE_CXX_FLAGS "\${FLAGSCOMMON}")
-set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
-set(COMPILER_RT_HAS_G_FLAG On)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION On)
+set(COMPILER_RT_USE_LIBCXX On)
 EOF
 
+cat << EOF > $currentpath/builtins.cmake
+include("${currentpath}/compiler-rt.cmake")
+set(COMPILER_RT_BAREMETAL_BUILD On)
+set(COMPILER_RT_DEFAULT_TARGET_TRIPLE "${TRIPLET}")
+EOF
 
-if [[ "${SYSTEMNAME}" == "Darwin" ]]; then
+cat << EOF > $currentpath/runtimes.cmake
+include("${currentpath}/common_cmake.cmake")
+
+set(LIBCXXABI_SILENT_TERMINATE "On")
+set(LIBCXX_CXX_ABI "libcxxabi")
+set(LIBCXX_ENABLE_SHARED "On")
+set(LIBCXX_ABI_VERSION "1")
+set(LIBCXX_CXX_ABI_INCLUDE_PATHS "${LLVMPROJECTPATH}/libcxxabi/include")
+set(THREADS_FLAGS ${THREADS_FLAGS})
+set(LIBCXX_ENABLE_EXCEPTIONS On)
+set(LIBCXXABI_ENABLE_EXCEPTIONS On)
+set(LIBCXX_ENABLE_RTTI On)
+set(LIBCXXABI_ENABLE_RTTI $On)
+set(LLVM_ENABLE_ASSERTIONS "Off")
+set(LLVM_INCLUDE_EXAMPLES "Off")
+set(LLVM_ENABLE_BACKTRACES "Off")
+set(LLVM_INCLUDE_TESTS "Off")
+set(LIBCXX_INCLUDE_BENCHMARKS "Off")
+set(LIBCXX_ENABLE_SHARED "On")
+set(LIBCXXABI_ENABLE_SHARED "On")
+set(LIBUNWIND_ENABLE_SHARED "On")
+set(LIBUNWIND_ADDITIONAL_COMPILE_FLAGS "-fuse-ld=lld;-flto=thin;-rtlib=compiler-rt;-Wno-macro-redefined")
+set(LIBCXX_ADDITIONAL_COMPILE_FLAGS "\${LIBUNWIND_ADDITIONAL_COMPILE_FLAGS};-Wno-user-defined-literals")
+set(LIBCXXABI_ADDITIONAL_COMPILE_FLAGS "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS}")
+set(LIBCXX_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS} -nostdinc++ -L${CURRENTTRIPLEPATH_RUNTIMES}/lib")
+set(LIBCXXABI_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_LIBRARIES}")
+set(LIBUNWIND_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS}")
+set(LIBCXX_USE_COMPILER_RT "On")
+set(LIBCXXABI_USE_COMPILER_RT "On")
+set(LIBCXX_USE_LLVM_UNWINDER "On")
+set(LIBCXXABI_USE_LLVM_UNWINDER "On")
+set(LIBUNWIND_USE_COMPILER_RT "On")
+set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
+set(LLVM_DEFAULT_TARGET_TRIPLE $TARGETTRIPLE)
+set(LLVM_ENABLE_LTO "Thin")
+set(LLVM_ENABLE_LLD "On")
+set(LLVM_ENABLE_PROJECTS "libcxx;libcxxabi;libunwind")
+set(LIBCXX_ENABLE_THREADS On)
+set(LIBCXXABI_ENABLE_THREADS On)
+set(LIBUNWIND_ENABLE_THREADS On)
+EOF
+
+if [[ "${OS}" == "windows" ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
+set(CMAKE_CXX_LINKER_DEPFILE_SUPPORTED FALSE)
+set(CMAKE_ASM_LINKER_DEPFILE_SUPPORTED FALSE)
+EOF
+
+elif [[ "${OS}" == "darwin"* ]]; then
 
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
@@ -192,20 +251,116 @@ set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
 set(MACOS_ARM_SUPPORT On)
 set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
 set(DARWIN_macosx_OVERRIDE_SDK_VERSION "\${DARWINVERSION}")
-EOF
-
-cat << EOF >> $currentpath/compiler-rt.cmake
 set(COMPILER_RT_HAS_G_FLAG On)
+EOF
 
+cat << EOF >> $currentpath/runtimes.cmake
+set(LIBCXX_CXX_ABI "system-libcxxabi")
+set(LLVM_EXTERNALIZE_DEBUGINFO On)
 EOF
 
 fi
 
 fi
 
+update_llvm_project() {
+    if [ ! -d "$TOOLCHAINS_BUILD/llvm" ]; then
+        git clone git@github.com:llvm/llvm-project.git "$TOOLCHAINS_BUILD/llvm"
+    fi
+    
+    cd "$TOOLCHAINS_BUILD/llvm" || return
+    git pull --quiet
+}
 
-if [ ! -d "$LLVMPROJECTPATH" ]; then
-git clone git@github.com:llvm/llvm-project.git $LLVMPROJECTPATH
+update_linux_project() {
+    if [ ! -d "$TOOLCHAINS_BUILD/linux" ]; then
+        cd "$TOOLCHAINS_BUILD" || return
+        git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+        if [ $? -ne 0 ]; then
+            echo "linux clone failed"
+            exit 1
+        fi
+    fi
+
+    cd "$TOOLCHAINS_BUILD/linux" || return
+    git pull --quiet
+}
+
+update_llvm_project
+update_linux_project
+
+
+if [[ $LIBC_PHASE -eq 1 ]]; then
+    mkdir -p "${currentpath}/libc"
+    if [ ! -f "$currentpath/libc/.libc_phase_done" ]; then
+        if [[ "$OS" == "darwin"* ]]; then
+            cd "${currentpath}/libc"
+            if [ -z ${DARWINVERSIONDATE+x} ]; then
+                DARWINVERSIONDATE=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+            fi
+            wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${DARWINVERSIONDATE}/${TRIPLET}.tar.xz
+            if [ $? -ne 0 ]; then
+                echo "Failed to download the Darwin sysroot"
+                exit 1
+            fi
+            chmod 755 ${TRIPLET}.tar.xz
+            tar -xf "${TRIPLET}.tar.xz" -C "$TOOLCHAINS_LLVMTRIPLETPATH"
+            if [ $? -ne 0 ]; then
+                echo "Failed to extract the Darwin sysroot"
+                exit 1
+            fi
+        elif [[ "$OS" == "freebsd"* ]]; then
+			cd "${currentpath}/libc"
+			wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
+			if [ $? -ne 0 ]; then
+					echo "wget ${HOST} failure"
+					exit 1
+			fi
+
+			mkdir -p ${currentpath}/libc/sysroot_decompress
+			# Decompress the tarball into a temporary directory
+			tar -xvf ${CPU}-freebsd-libc.tar.xz -C "${currentpath}/libc/sysroot_decompress"
+			if [ $? -ne 0 ]; then
+					echo "tar extraction failure"
+					exit 1
+			fi
+			mkdir -p "${SYSROOTPATHUSR}"
+			# Move all extracted files into ${SYSROOTPATHUSR}
+			cp -r --preserve=links "${currentpath}/libc/sysroot_decompress"/${CPU}-freebsd-libc/* "${SYSROOTPATHUSR}/"
+			if [ $? -ne 0 ]; then
+					echo "Failed to move files to ${SYSROOTPATHUSR}"
+					exit 1
+			fi
+        elif [[ "$OS" == "linux" ]]; then
+            if [[ "$ABI" == "android"* ]]; then
+                if [ -z ${ANDROIDNDKVERSION+x} ]; then
+                    ANDROIDNDKVERSION=r28
+                fi
+                mkdir -p ${currentpath}/libc
+                cd ${currentpath}/libc
+                ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
+                ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
+                wget https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
+                if [ $? -ne 0 ]; then
+                        echo "wget ${HOST} failure"
+                        exit 1
+                fi
+                chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
+                unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
+                if [ $? -ne 0 ]; then
+                        echo "unzip ${HOST} failure"
+                        exit 1
+                fi
+                mkdir -p "${SYSROOTPATHUSR}"
+                cp -r --preserve=links ${currentpath}/libc/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${SYSROOTPATHUSR}/lib
+                cp -r --preserve=links ${currentpath}/libc/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${SYSROOTPATHUSR}/
+                cp -r --preserve=links ${SYSROOTPATHUSR}/include/${CPU}-linux-android/asm ${SYSROOTPATHUSR}/include/
+            else
+
+                if [[ "$ABI" == "gnu" ]]; then
+                fi
+            fi
+        fi
+        echo "$(date --iso-8601=seconds)" > "$currentpath/libc/.libc_phase_done"
+    fi
 fi
-cd "$LLVMPROJECTPATH"
-git pull --quiet

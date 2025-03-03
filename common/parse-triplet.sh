@@ -1,3 +1,5 @@
+#!/bin/bash
+
 parse_triplet() {
     local TRIPLET=$1
     local -n CPU_VAR=$2
