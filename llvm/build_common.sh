@@ -117,10 +117,11 @@ LLVM_PHASE=1
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
-    BUILTINS_PHASE=2
-    COMPILER_RT_PHASE=0
+    BUILTINS_PHASE=0
+    COMPILER_RT_PHASE=2
     ZLIB_PHASE=0
     LIBXML2_PHASE=0
+    macosxs_SDK_VERSION=15.2
     if [[ "$CPU" == "aarch64" ]]; then
         DARWINARCHITECTURES="arm64;x86_64"
     else
@@ -135,8 +136,6 @@ else
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
         fi
-    elif [[ "$OS" == "linux" && "$ABI" == "gnu" ]]; then
-        BUILTINS_PHASE=0
     fi
 fi
 
@@ -150,9 +149,20 @@ if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_C_COMPILER "$(which clang)")
-set(CMAKE_CXX_COMPILER "$(which clang++)")
-set(CMAKE_ASM_COMPILER "\${CMAKE_C_COMPILER}")
+# Find the path of clang
+find_program(CMAKE_C_COMPILER clang)
+if (NOT CMAKE_C_COMPILER)
+    message(FATAL_ERROR "clang not found")
+endif()
+
+# Find the path of clang++
+find_program(CMAKE_CXX_COMPILER clang++)
+if (NOT CMAKE_CXX_COMPILER)
+    message(FATAL_ERROR "clang++ not found")
+endif()
+
+# Set ASM compiler to use C compiler
+set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 set(CMAKE_SYSROOT "${SYSROOTPATH}")
 set(CMAKE_C_COMPILER_TARGET "${TRIPLET}")
 set(CMAKE_CXX_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
@@ -164,24 +174,49 @@ set(CMAKE_FIND_ROOT_PATH "${SYSROOTPATHUSR}")
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM "NEVER")
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY "ONLY")
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE "ONLY")
-set(CMAKE_LIPO "$(which llvm-lipo)")
-set(CMAKE_STRIP "$(which llvm-strip)")
-set(CMAKE_NM "$(which llvm-nm)")
-set(CMAKE_AR "$(which llvm-ar)")
-set(CMAKE_RANLIB "$(which llvm-ranlib)")
-set(CMAKE_INSTALL_NAME_TOOL "$(which llvm-install-name-tool)")
+
+find_program(CMAKE_LIPO llvm-lipo)
+if (NOT CMAKE_LIPO)
+    message(FATAL_ERROR "llvm-lipo not found")
+endif()
+
+find_program(CMAKE_STRIP llvm-strip)
+if (NOT CMAKE_STRIP)
+    message(FATAL_ERROR "llvm-strip not found")
+endif()
+
+find_program(CMAKE_NM llvm-nm)
+if (NOT CMAKE_NM)
+    message(FATAL_ERROR "llvm-nm not found")
+endif()
+
+find_program(CMAKE_AR llvm-ar)
+if (NOT CMAKE_AR)
+    message(FATAL_ERROR "llvm-ar not found")
+endif()
+
+find_program(CMAKE_RANLIB llvm-ranlib)
+if (NOT CMAKE_RANLIB)
+    message(FATAL_ERROR "llvm-ranlib not found")
+endif()
+
+find_program(CMAKE_INSTALL_NAME_TOOL llvm-install-name-tool)
+if (NOT CMAKE_INSTALL_NAME_TOOL)
+    message(FATAL_ERROR "llvm-install-name-tool not found")
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
 set(LLVM_ENABLE_LTO thin)
 set(LLVM_ENABLE_LLD On)
-set(CMAKE_C_FLAGS "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
-set(CMAKE_CXX_FLAGS "\${CMAKE_C_FLAGS}")
-set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS_INIT "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
 cat << EOF >> $currentpath/common_cmake.cmake
-set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -rtlib=compiler-rt")
-set(CMAKE_CXX_FLAGS "\${CMAKE_C_FLAGS} -stdlib=libc++ --unwindlib=libunwind")
-set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -rtlib=compiler-rt")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libunwind")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
 # Initialize CMAKE_SIZEOF_VOID_P with default value
@@ -233,7 +268,6 @@ set(LIBCXX_CXX_ABI "libcxxabi")
 set(LIBCXX_ENABLE_SHARED "On")
 set(LIBCXX_ABI_VERSION "1")
 set(LIBCXX_CXX_ABI_INCLUDE_PATHS "${LLVMPROJECTPATH}/libcxxabi/include")
-set(THREADS_FLAGS ${THREADS_FLAGS})
 set(LIBCXX_ENABLE_EXCEPTIONS On)
 set(LIBCXXABI_ENABLE_EXCEPTIONS On)
 set(LIBCXX_ENABLE_RTTI On)
@@ -265,7 +299,6 @@ set(LLVM_ENABLE_PROJECTS libcxx;libcxxabi;libunwind)
 set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
-set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
 EOF
 
 if [[ "${OS}" == "windows" ]]; then
@@ -278,38 +311,191 @@ EOF
 elif [[ "${OS}" == "darwin"* ]]; then
 
 cat << EOF >> $currentpath/common_cmake.cmake
-set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
-set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_SYSTEM_VERSION})
-set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
-set(CMAKE_AR "\${CMAKE_LIBTOOL};-static")
-set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
+set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
 set(MACOS_ARM_SUPPORT On)
+# Find the path of llvm-libtool-darwin
+find_program(CMAKE_LIBTOOL llvm-libtool-darwin)
+if (NOT CMAKE_LIBTOOL)
+    message(FATAL_ERROR "llvm-libtool-darwin not found")
+endif()
+
+# Set CMAKE_AR and CMAKE_RANLIB to use CMAKE_LIBTOOL with -static
+set(CMAKE_AR "${CMAKE_LIBTOOL};-static")
+set(CMAKE_RANLIB "${CMAKE_LIBTOOL};-static")
+EOF
+
+
+cat << EOF >> "$currentpath/compiler-rt.cmake"
 set(COMPILER_RT_HAS_G_FLAG On)
+set(DARWIN_osx_BUILTIN_ARCHS "\${CMAKE_OSX_ARCHITECTURES}")
+set(OSX_SYSROOT "\${CMAKE_SYSROOT}")
+set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
+set(DARWIN_macosx_OVERRIDE_SDK_VERSION ${macosxs_SDK_VERSION})
+set(COMPILER_RT_BUILD_SANITIZERS On)
 EOF
 
 cat << EOF >> $currentpath/runtimes.cmake
 set(LIBCXX_CXX_ABI "system-libcxxabi")
 set(LLVM_EXTERNALIZE_DEBUGINFO On)
+set(COMPILER_RT_HAS_G_FLAG On)
 EOF
 
 fi
 
 fi
+#!/bin/bash
 
-clone_or_update_dependency llvm-project
+#!/bin/bash
+
+# Define the function to build and install
+build_project() {
+    local project_name=$1
+    local source_path=$2
+    local toolchain_file=$3
+    local install_prefix=$4
+    local current_phase_file=".${project_name}_phase_done"
+    local configure_phase_file=".${project_name}_phase_configure"
+    local build_phase_file=".${project_name}_phase_build"
+    
+    if [ ! -f "${install_prefix}/${current_phase_file}" ]; then
+        mkdir -p "${install_prefix}"
+        cd "${install_prefix}"
+
+        if [ ! -f "${install_prefix}/${configure_phase_file}" ]; then
+            # Run CMake to generate Ninja build files
+            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
+                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
+            if [ $? -ne 0 ]; then
+                echo "${project_name}: CMake configuration failed for $TRIPLET"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${install_prefix}/${configure_phase_file}"
+        fi
+
+        if [ ! -f "${install_prefix}/${build_phase_file}" ]; then
+            # Run Ninja to build the project
+            ninja
+            if [ $? -ne 0 ]; then
+                echo "${project_name}: Ninja build failed for $TRIPLET"
+                exit 1
+            fi
+        fi
+
+        # Run Ninja to install and strip the build
+        ninja install/strip
+        if [ $? -ne 0 ]; then
+            echo "${project_name}: Ninja install/strip failed for $TRIPLET"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${install_prefix}/${current_phase_file}"
+    fi
+}
+
+# Define the function to build and install
+build_project() {
+    local project_name=$1
+    local source_path=$2
+    local toolchain_file=$3
+    local install_prefix=$4
+    local current_phase_file=".${project_name}_phase_done"
+    local configure_phase_file=".${project_name}_phase_configure"
+    local build_phase_file=".${project_name}_phase_build"
+    
+    if [ ! -f "${install_prefix}/${current_phase_file}" ]; then
+        mkdir -p "${install_prefix}"
+        cd "${install_prefix}"
+
+        if [ ! -f "${install_prefix}/${configure_phase_file}" ]; then
+            # Run CMake to generate Ninja build files
+            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
+                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
+            if [ $? -ne 0 ]; then
+                echo "${project_name}: CMake configuration failed for $TRIPLET"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${configure_phase_file}"
+        fi
+
+        if [ ! -f "${install_prefix}/${build_phase_file}" ]; then
+            # Run Ninja to build the project
+            ninja
+            if [ $? -ne 0 ]; then
+                echo "${project_name}: Ninja build failed for $TRIPLET"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_phase_file}"
+        fi
+
+        # Run Ninja to install and strip the build
+        ninja install/strip
+        if [ $? -ne 0 ]; then
+            echo "${project_name}: Ninja install/strip failed for $TRIPLET"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${current_phase_file}"
+    fi
+}
+
+# Function to build and install compiler-rt
+build_compiler_rt() {
+    build_project "compiler-rt" "$LLVMPROJECTPATH/compiler-rt" "$currentpath/compiler-rt.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
+}
+
+# Function to build and install builtins
+build_builtins() {
+    build_project "builtins" "$LLVMPROJECTPATH/compiler-rt/lib/builtins" "$currentpath/builtins.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/builtins"
+}
+
+build_runtimes() {
+    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
+}
+
+# Function to build either compiler-rt or builtins based on phase values
+build_compiler_rt_or_builtins() {
+    local phase=$1
+    if [[ $phase -eq 0 ]]; then
+        if [[ $COMPILER_RT_PHASE -eq 3 ]]; then
+            build_compiler_rt
+        elif [[ $BUILTINS_PHASE -eq 2 ]]; then
+            build_builtins
+        fi
+    elif [[ $phase -eq 1 ]]; then
+        if [[ $COMPILER_RT_PHASE -eq 2 ]]; then
+            build_compiler_rt
+        elif [[ $BUILTINS_PHASE -eq 1 ]]; then
+            build_builtins
+        fi
+    elif [[ $phase -eq 2 ]]; then
+        if [[ $COMPILER_RT_PHASE -eq 1 ]]; then
+            build_compiler_rt
+        fi
+    fi
+}
+
+# Example usage of the functions
+build_compiler_rt_or_builtins 0
 
 if [[ $LIBC_PHASE -eq 1 ]]; then
     install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
 
-if [[ $BUILTINS_PHASE -eq 2 ]]; then
-CURRENTTRIPLEPATH_COMPILER_RT="${currentpath}/compiler-rt"
-mkdir -p "${CURRENTTRIPLEPATH_COMPILER_RT}"
-cd "${CURRENTTRIPLEPATH_COMPILER_RT}"
-cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
-#ninja
 
-elif [[ $BUILTINS_PHASE -eq 1 ]]; then
-cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt/lib/builtins" -DCMAKE_TOOLCHAIN_FILE="$currentpath/builtins.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/builtins"
-ninja
+
+
+
+
+clone_or_update_dependency llvm-project
+
+build_compiler_rt_or_builtins 0
+
+if [[ $LIBC_PHASE -eq 1 ]]; then
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
+
+build_compiler_rt_or_builtins 1
+
+build_runtimes
+
+build_compiler_rt_or_builtins 02
