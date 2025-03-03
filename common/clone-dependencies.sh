@@ -52,6 +52,10 @@ get_git_urls() {
             GIT_URL="git@github.com:trcrsired/windows-msvc-sysroot.git"
             GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
             ;;
+        "cppwinrt")
+            GIT_URL="https://github.com/microsoft/cppwinrt.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/microsoft/cppwinrt.git"
+            ;;
         *)
             echo "Unknown dependency: $DEPENDENCY_NAME"
             exit 1
