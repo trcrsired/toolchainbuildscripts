@@ -5,8 +5,8 @@ echo "TRIPLET is not set. Please set the TRIPLET environment variable to the tar
 exit 1
 fi
 
-source ../../common/safe-llvm-strip.sh
-source ../../common/parse-triplet.sh
+source ../common/safe-llvm-strip.sh
+source ../common/parse-triplet.sh
 
 # Parse the target triplet
 
