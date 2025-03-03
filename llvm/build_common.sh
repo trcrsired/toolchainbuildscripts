@@ -127,15 +127,14 @@ cat << EOF > $currentpath/common_cmake.cmake
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_C_COMPILER "$(which clang)")
 set(CMAKE_CXX_COMPILER "$(which clang++)")
-set(CMAKE_ASM_COMPILER \${CMAKE_C_COMPILER})
+set(CMAKE_ASM_COMPILER "\${CMAKE_C_COMPILER}")
 set(CMAKE_SYSROOT "${SYSROOTPATH}")
-set(CMAKE_INSTALL_PREFIX "${COMPILERRTINSTALLPATH}")
 set(CMAKE_C_COMPILER_TARGET "${TRIPLET}")
 set(CMAKE_CXX_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
 set(CMAKE_ASM_COMPILER_TARGET "\${CMAKE_C_COMPILER_TARGET}")
 set(CMAKE_SYSTEM_NAME "${SYSTEMNAME}")
-set(CMAKE_SYSTEM_PROCESSOR "\${CPU}")
-set(CMAKE_CROSSCOMPILING "On")
+set(CMAKE_SYSTEM_PROCESSOR "${CPU}")
+set(CMAKE_CROSSCOMPILING On)
 set(CMAKE_FIND_ROOT_PATH "${SYSROOTPATHUSR}")
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM "NEVER")
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY "ONLY")
@@ -149,52 +148,57 @@ EOF
 # Initialize CMAKE_SIZEOF_VOID_P with default value
 CMAKE_SIZEOF_VOID_P=4
 
+if [[ "$CPU" == "x86_64" ]]; then
+CMAKE_SIZEOF_VOID_P=8
+elif [[ "$CPU" == "x86" ]]; then
+CMAKE_SIZEOF_VOID_P=4
+else
 # Extract number from CPU variable and calculate CMAKE_SIZEOF_VOID_P
 CPU_NUM=$(echo "$CPU" | grep -o '[0-9]*')
 if [ -n "$CPU_NUM" ]; then
     CMAKE_SIZEOF_VOID_P=$((CPU_NUM / 8))
+fi
 fi
 
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
 EOF
 
-if [ -n ${SYSTEMVERSION+x} ]; then
+if [[ x"${SYSTEMVERSION}" != "x" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_SYSTEM_VERSION ${SYSTEMVERSION})
 EOF
 fi
 
 cat << EOF > $currentpath/compiler-rt.cmake
-include("\${currentpath}/common_cmake.cmake")
-set(COMPILER_RT_DEFAULT_TARGET_ONLY "On")
-set(CMAKE_C_COMPILER_WORKS "On")
-set(CMAKE_CXX_COMPILER_WORKS "On")
-set(CMAKE_ASM_COMPILER_WORKS "On")
+include("${currentpath}/common_cmake.cmake")
+set(COMPILER_RT_DEFAULT_TARGET_ONLY On)
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_C_FLAGS "\${FLAGSCOMMON}")
 set(CMAKE_CXX_FLAGS "\${FLAGSCOMMON}")
 set(CMAKE_ASM_FLAGS "\${CMAKE_C_FLAGS}")
-set(COMPILER_RT_HAS_G_FLAG "On")
+set(COMPILER_RT_HAS_G_FLAG On)
 EOF
 
 
 if [[ "${SYSTEMNAME}" == "Darwin" ]]; then
 
 cat << EOF >> $currentpath/common_cmake.cmake
-set(CMAKE_OSX_ARCHITECTURES "\${DARWINARCHITECTURES}")
+set(CMAKE_OSX_ARCHITECTURES "${DARWINARCHITECTURES}")
 set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
 set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_SYSTEM_VERSION})
 set(CMAKE_LIBTOOL "$(which llvm-libtool-darwin)")
 set(CMAKE_AR "\${CMAKE_LIBTOOL};-static")
 set(CMAKE_RANLIB "\${CMAKE_LIBTOOL};-static")
-set(MACOS_ARM_SUPPORT "On")
-set(CMAKE_OSX_ARCHITECTURES "\${ARCHITECTURES}")
-set(DARWIN_macosx_CACHED_SYSROOT "\${DARWINSYSROOTPATH}")
+set(MACOS_ARM_SUPPORT On)
+set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
 set(DARWIN_macosx_OVERRIDE_SDK_VERSION "\${DARWINVERSION}")
 EOF
 
 cat << EOF >> $currentpath/compiler-rt.cmake
-set(COMPILER_RT_HAS_G_FLAG "On")
+set(COMPILER_RT_HAS_G_FLAG On)
 
 EOF
 
