@@ -3,7 +3,7 @@
 install_libc() {
     local TRIPLET="$1"
     local currentpathlibc="$2"
-    local sysrootpath="$3"
+    local tripletpath="$3"
     local sysrootpathusr="$4"
     local usellvm="$5"
     local CPU
@@ -27,7 +27,7 @@ install_libc() {
     fi
 
     mkdir -p "${currentpathlibc}"
-    mkdir -p "${sysrootpath}"
+    mkdir -p "${tripletpath}"
     if [ ! -f "${currentpathlibc}/.libc_phase_done" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
@@ -43,7 +43,7 @@ install_libc() {
                 exit 1
             fi
             chmod 755 ${TRIPLET}.tar.xz
-            tar -xf "${TRIPLET}.tar.xz" -C "${sysrootpath}"
+            tar -xf "${TRIPLET}.tar.xz" -C "${tripletpath}"
             if [ $? -ne 0 ]; then
                 echo "Failed to extract the Darwin sysroot"
                 exit 1
