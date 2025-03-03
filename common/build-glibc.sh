@@ -2,7 +2,7 @@
 
 install_linux_kernel_headers() {
     local cpu=$1
-    local currentpath=$2
+    local currentpathlibc=$2
     local sysrootpathusr=$3
 
     local linuxarch=$cpu
@@ -34,7 +34,7 @@ install_linux_kernel_headers() {
 
 build_glibc() {
     local cpu=$1
-    local currentpath=$2
+    local currentpathlibc=$2
     local sysrootpathusr=$3
     local buildmulitlib=$4
     local multilibs=(default)
@@ -135,4 +135,104 @@ build_glibc() {
     done
 
     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.glibcinstallsuccess"
+}
+
+build_musl() {
+    local host=$1
+    local currentpathlibc=$2
+    local sysrootpathusr=$3
+    local usellvm=$4
+    local build=${5:-}
+
+    mkdir -p "${currentpathlibc}/build/musl/default"
+    cd "${currentpathlibc}/build/musl/default"
+    local toolchains_path
+    if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+        toolchains_path="$HOME/toolchains_build"
+    else
+        toolchains_path="$TOOLCHAINS_BUILD"
+    fi
+    if [ ! -f "${currentpathlibc}/build/musl/default/.configuresuccess" ]; then
+        local configure_cmd=()
+        if [[ ${usellvm} == "yes" ]]; then
+            configure_cmd=(
+                LIPO=llvm-lipo
+                OTOOL=llvm-otool
+                DSYMUTIL=dsymutil
+                STRIP=llvm-strip
+                AR=llvm-ar
+                CC="clang --target=$host"
+                CXX="clang++ --target=$host"
+                AS=llvm-as
+                RANLIB=llvm-ranlib
+                CXXFILT=llvm-cxxfilt
+                NM=llvm-nm
+                "$toolchains_path/musl/configure"
+                --disable-nls
+                --disable-werror
+                --prefix="$currentpathlibc/install/musl/default"
+                --with-headers="$sysrootpathusr/include"
+                --disable-shared
+                --enable-static
+                --without-selinux
+                --host="$host"
+            )
+        else
+            configure_cmd=(
+                export -n LD_LIBRARY_PATH
+                CC="$host-gcc"
+                CXX="$host-g++"
+                "$toolchains_path/musl/configure"
+                --disable-nls
+                --disable-werror
+                --prefix="$currentpathlibc/install/musl/default"
+                --with-headers="$sysrootpathusr/include"
+                --disable-shared
+                --enable-static
+                --without-selinux
+                --host="$host"
+            )
+        fi
+        if [ -n "$build" ]; then
+            configure_cmd+=(--build="$build")
+        fi
+        "${configure_cmd[@]}"
+        if [ $? -ne 0 ]; then
+            echo "musl configure failure"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.configuresuccess"
+    fi
+
+    if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then
+        (export -n LD_LIBRARY_PATH; make -j$(nproc))
+        if [ $? -ne 0 ]; then
+            echo "musl build failure"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.buildsuccess"
+    fi
+
+    if [ ! -f "${currentpathlibc}/build/musl/default/.installsuccess" ]; then
+        (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+        if [ $? -ne 0 ]; then
+            echo "musl install failure"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.installsuccess"
+    fi
+
+    if [ ! -f "${currentpathlibc}/build/musl/default/.stripsuccess" ]; then
+        safe_llvm_strip "${currentpathlibc}/install/musl/default/lib"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.stripsuccess"
+    fi
+
+    if [ ! -f "${currentpathlibc}/build/musl/default/.sysrootsuccess" ]; then
+        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
+        mkdir -p "$sysrootpathusr/lib"
+        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib/*" "$sysrootpathusr/lib"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
+    fi
+
+    echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslinstallsuccess"
 }
