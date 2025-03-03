@@ -4,8 +4,8 @@ if [ -z ${TRIPLET+x} ]; then
 echo "TRIPLET is not set. Please set the TRIPLET environment variable to the target triplet."
 exit 1
 fi
-currentpath="$(realpath .)/.llvmartifacts/${TRIPLET}"
-mkdir -p $currentpath
+currentpath="$(realpath .)/.artifacts/llvm/${TRIPLET}"
+mkdir -p "$currentpath"
 cd ../common
 source ../common/common.sh
 cd "$currentpath"
