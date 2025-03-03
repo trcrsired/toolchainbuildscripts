@@ -1,11 +1,11 @@
 #!/bin/bash
 
 install_libc() {
-    local currentpathlibc=$1
-    local TRIPLET=$2
-    local sysrootpath=$3
-    local sysrootpathusr=$4
-    local usellvm=$5
+    local currentpathlibc="$1"
+    local TRIPLET="$2"
+    local sysrootpath="$3"
+    local sysrootpathusr="$4"
+    local usellvm="$5"
     local CPU
     local VENDOR
     local OS
