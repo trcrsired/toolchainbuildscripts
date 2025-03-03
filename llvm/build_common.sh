@@ -109,6 +109,7 @@ else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
         CPPWINRT_PHASE=1
+        SYSROOTPATHUSR="$SYSROOTPATH"
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
@@ -382,7 +383,6 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
                     echo "Error: make install-strip mingw-w64-crt($TRIPLET) failed"
                     exit 1
                 fi
-
             else
                 echo "Unknown Windows ABI: $ABI"
                 exit 1
@@ -413,8 +413,29 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
                 cp -r --preserve=links ${SYSROOTPATHUSR}/include/${CPU}-linux-android/asm ${SYSROOTPATHUSR}/include/
             else
                 clone_or_update_dependency linux
+
+                linuxkernelheaders=${SYSROOTPATHUSR}
+                LINUXARCH=${CPU}
+
+                if [[ $LINUXARCH == "aarch64" ]]; then
+                    LINUXARCH="arm64"
+                elif [[ $LINUXARCH == "i[3-6]86" ]]; then
+                    LINUXARCH="x86"
+                elif [[ $LINUXARCH != x86_64 ]]; then
+                    LINUXARCH="${LINUXARCH%%[0-9]*}"
+                fi
+                if [ ! -f "${currentpath}/libc/.linuxkernelheadersinstallsuccess" ]; then
+                    cd "$TOOLCHAINS_BUILD/linux"
+                    make headers_install ARCH=$LINUXARCH -j "INSTALL_HDR_PATH=${SYSROOTPATHUSR}"
+                    if [ $? -ne 0 ]; then
+                        echo "linux kernel headers install failure"
+                        exit 1
+                    fi
+                    echo "$(date --iso-8601=seconds)" > "${currentpath}/libc/.linuxkernelheadersinstallsuccess"
+                fi
                 if [[ "$ABI" == "gnu" ]]; then
                     clone_or_update_dependency glibc
+                    build_glibc $CPU "$currentpath/libc" "${SYSROOTPATHUSR}"
                 elif [[ "$ABI" == "musl" ]]; then
                     clone_or_update_dependency musl
                 fi
