@@ -306,7 +306,7 @@ if [[ $BUILTINS_PHASE -eq 2 ]]; then
 CURRENTTRIPLEPATH_COMPILER_RT="${currentpath}/compiler-rt"
 mkdir -p "${CURRENTTRIPLEPATH_COMPILER_RT}"
 cd "${CURRENTTRIPLEPATH_COMPILER_RT}"
-cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
+cmake -GNinja -DCMAKE_BUILD_TYPE=Release "$LLVMPROJECTPATH/compiler-rt" -DCMAKE_TOOLCHAIN_FILE="$currentpath/compiler-rt.cmake" -DCMAKE_INSTALL_PREFIX="${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt" -DCMAKE_LIPO="$(which lipo)"
 ninja
 
 elif [[ $BUILTINS_PHASE -eq 1 ]]; then
