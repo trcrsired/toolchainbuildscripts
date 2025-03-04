@@ -4,8 +4,11 @@ if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "$llvmcurrentrealpath/.llvmartifacts"
 	rm -rf "$llvmcurrentrealpath/.llvmwasmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wavm/.wavmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wine/.wineartifacts"
 	echo "restart done"
 fi
+cd "$llvmcurrentrealpath"
 ./x86_64-linux-gnu.sh "$@"
 ./x86_64-windows-gnu.sh "$@"
 ./aarch64-windows-gnu.sh "$@"
