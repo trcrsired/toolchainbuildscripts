@@ -203,6 +203,12 @@ if (NOT CMAKE_INSTALL_NAME_TOOL)
     message(FATAL_ERROR "llvm-install-name-tool not found")
 endif()
 
+find_program(CMAKE_RC_COMPILER llvm-windres)
+if (NOT CMAKE_RC_COMPILER)
+    message(CMAKE_RC_COMPILER "llvm-windres not found")
+endif()
+set(CMAKE_RC_FLAGS "--target=\${CMAKE_C_COMPILER_TARGET} -I\${CMAKE_FIND_ROOT_PATH}/include")
+
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
 set(LLVM_ENABLE_LTO thin)
 set(LLVM_ENABLE_LLD On)
@@ -270,6 +276,11 @@ cat << EOF >> "$currentpath/builtins.cmake"
 set(COMPILER_RT_BAREMETAL_BUILD On)
 EOF
 fi
+cat << EOF > "$currentpath/zlib.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+
+set(ZLIB_BUILD_TESTING Off)
+EOF
 
 cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
@@ -277,6 +288,10 @@ set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
 set(BUILD_SHARED_LIBS Off)
 set(BUILD_STATIC_LIBS On)
+EOF
+
+cat << EOF > "$currentpath/cppwinrt.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 EOF
 
 cat << EOF > "$currentpath/runtimes.cmake"
@@ -381,6 +396,9 @@ cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 EOF
 else
+cat << EOF >> $currentpath/cppwinrt.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
 
 cat << EOF >> $currentpath/runtimes.cmake
 # Toolchain file for CMake
@@ -632,7 +650,7 @@ build_library() {
 }
 
 build_zlib() {
-    build_library "zlib"
+    build_library "zlib" "$currentpath/zlib.cmake"
 }
 
 build_libxml2() {
@@ -640,7 +658,7 @@ build_libxml2() {
 }
 
 build_cppwinrt() {
-    build_library "cppwinrt"
+    build_library "cppwinrt" "$currentpath/cppwinrt.cmake"
 }
 
 # Function to build either compiler-rt or builtins based on phase values
