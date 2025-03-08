@@ -153,7 +153,7 @@ if [[ -z "$ABI" ]]; then
 else
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS-$ABI"
 fi
-
+rm "$currentpath/common_cmake.cmake"
 if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
@@ -428,6 +428,15 @@ if [[ "${OS}" != "darwin"* ]]; then
 cat << EOF >> $currentpath/llvm.cmake
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
+
+cat << EOF >> $currentpath/compiler-rt.cmake
+set(COMPILER_RT_USE_LLVM_UNWINDER "On")
+set(LLVM_INCLUDE_EXAMPLES "Off")
+set(LLVM_ENABLE_BACKTRACES "Off")
+set(LLVM_INCLUDE_TESTS "Off")
+set(COMPILER_RT_USE_LIBCXX "Off")
+set(COMPILER_RT_USE_BUILTINS_LIBRARY "On")
+EOF
 fi
 
 # Define the function to build and install
@@ -547,8 +556,7 @@ build_project() {
         fi
         if [[ "x${need_move_tmp}" == "xyes" ]]; then
             mkdir -p "${TOOLCHAINS_LLVMTRIPLETPATH}"
-            if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}_tmp" &&
-                ! -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}" ]]; then
+            if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}_tmp" ]]; then
                 rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
                 cd "$TOOLCHAINS_LLVMTRIPLETPATH"
                 mv "${project_name_alternative}_tmp" "${project_name_alternative}"
