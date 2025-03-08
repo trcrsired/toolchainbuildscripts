@@ -364,13 +364,13 @@ set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.so")
 endif()
 
 if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
+set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
+set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
+set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
 else()
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
+set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
 endif()
 EOF
 
