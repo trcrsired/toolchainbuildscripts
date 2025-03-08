@@ -340,10 +340,6 @@ set(LLVM_ENABLE_PROJECTS clang;clang-tools-extra;lld;lldb)
 set(BUILD_SHARED_LIBS On)
 set(LLVM_ENABLE_LIBCXX On)
 set(LLVM_ENABLE_ZLIB FORCE_ON)
-set(CMAKE_FIND_ROOT_PATH "${SYSROOTPATHUSR}")
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM "NEVER")
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY "ONLY")
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE "ONLY")
 set(ZLIB_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include")
 
 set(LLVM_ENABLE_LIBXML2 FORCE_ON)
@@ -420,6 +416,12 @@ EOF
 
 fi
 
+fi
+
+if [[ "${OS}" != "darwin"* ]]; then
+cat << EOF >> $currentpath/llvm.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
 fi
 
 # Define the function to build and install
