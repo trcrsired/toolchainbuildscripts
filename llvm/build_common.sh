@@ -422,6 +422,8 @@ EOF
 
 fi
 
+fi
+
 if [[ "${OS}" != "darwin"* ]]; then
 cat << EOF >> $currentpath/llvm.cmake
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
