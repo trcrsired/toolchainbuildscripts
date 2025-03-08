@@ -358,7 +358,11 @@ build_project() {
         cd "${build_prefix}"
 
         if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
+            cd "${build_prefix}"
             # Run CMake to generate Ninja build files
+            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
+                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
             cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
@@ -370,6 +374,7 @@ build_project() {
         fi
 
         if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
+            cd "${build_prefix}"
             # Run Ninja to build the project
             if [[ "$project_name" == "runtimes" ]]; then
                 ninja -C . cxx_static
@@ -383,17 +388,18 @@ build_project() {
                 echo "${project_name}: Ninja build failed for $TRIPLET"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${build_phase_file}"
+            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${build_phase_file}"
         fi
 
         if [ ! -f "${build_prefix}/${install_phase_file}" ]; then
+            cd "${build_prefix}"
             # Run Ninja to install and strip the build
             ninja install/strip
             if [ $? -ne 0 ]; then
                 echo "${project_name}: Ninja install/strip failed for $TRIPLET"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${install_phase_file}"
+            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
         fi
 
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
@@ -455,11 +461,6 @@ if [[ $LIBC_PHASE -eq 1 ]]; then
     install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
 
-
-
-
-
-
 clone_or_update_dependency llvm-project
 
 build_compiler_rt_or_builtins 0
@@ -472,4 +473,4 @@ build_compiler_rt_or_builtins 1
 
 build_runtimes
 
-#build_compiler_rt_or_builtins 2
+build_compiler_rt_or_builtins 2
