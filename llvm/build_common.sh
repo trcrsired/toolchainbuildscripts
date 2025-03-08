@@ -25,12 +25,14 @@ if [ $? -ne 0 ]; then
 echo "Failed to parse the target triplet: $TRIPLET"
 exit 1
 fi
+ABI_NO_VERSION="${ABI//[0-9]/}"
 
 echo "TRIPLET: $TRIPLET"
 echo "CPU: $CPU"
 echo "VENDOR: $VENDOR"
 echo "OS: $OS"
 echo "ABI: $ABI"
+echo "ABI_NO_VERSION: $ABI_NO_VERSION"
 
 # Parse the host triplet
 
@@ -114,7 +116,7 @@ ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
-COPY_COMPILER_RT_WITH_OS_NAME=0
+COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -137,6 +139,8 @@ else
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
         fi
+    elif [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
+        COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
     fi
 fi
 
@@ -352,6 +356,7 @@ build_project() {
     local build_phase_file=".${project_name}_phase_build"
     local install_phase_file=".${project_name}_phase_install"
     local copy_phase_file=".${project_name}_phase_copy"
+    local rt_rename_phase_file=".${project_name}_phase_rt_rename_phase_file"
     
     if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         mkdir -p "${build_prefix}"
@@ -399,10 +404,30 @@ build_project() {
                 echo "${project_name}: Ninja install/strip failed for $TRIPLET"
                 exit 1
             fi
+            if [[ "$project_name" == "runtimes" && "$OS" == "linux" && "$ABI" == "android"* ]]; then
+                cd "${install_prefix}/lib"
+                rm libc++.so
+                ln -s libc++.so.1 libc++.so
+            fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
         fi
 
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
+            if [[ ${COPY_COMPILER_RT_WITH_SPECIAL_NAME} -eq 1 ]]; then
+                if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
+                    cd "${install_prefix}/lib"
+                    mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
+                    cd "${TRIPLET_WITH_UNKNOWN}"
+                    for file in *-${CPU}*; do
+                        new_name="${file//-${CPU}-${ABI_NO_VERSION}/}"
+                        mv "$file" "$new_name"
+                    done
+                    for file in *.so; do
+                        filename="${file%.so}"
+                        ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                    done
+                fi
+            fi
             if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
                 local clang_path=`which clang`
                 local clang_directory=$(dirname "$clang_path")
@@ -413,6 +438,8 @@ build_project() {
                 cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
                 echo "$(date --iso-8601=seconds)" > "${build_prefix}/${copy_phase_file}"
             fi
+        elif [[ "$project_name" == "runtimes" ]]; then
+            cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
     fi
