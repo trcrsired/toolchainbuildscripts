@@ -380,6 +380,32 @@ if [[ "${ABI}" == "msvc" ]]; then
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 EOF
+else
+
+cat << EOF >> $currentpath/runtimes.cmake
+# Toolchain file for CMake
+
+# Ensure we are setting the correct options for LIBCXXABI
+set(LIBCXXABI_ENABLE_THREADS On CACHE BOOL "Enable threads for libc++abi")
+set(LIBCXXABI_HAS_PTHREAD_API Off CACHE BOOL "Disable PTHREAD API for libc++abi")
+set(LIBCXXABI_HAS_WIN32_THREAD_API On CACHE BOOL "Enable Win32 Thread API for libc++abi")
+set(LIBCXXABI_HAS_EXTERNAL_THREAD_API Off CACHE BOOL "Disable External Thread API for libc++abi")
+
+# Ensure we are setting the correct options for LIBCXX
+set(LIBCXX_ENABLE_THREADS On CACHE BOOL "Enable threads for libc++")
+set(LIBCXX_HAS_PTHREAD_API Off CACHE BOOL "Disable PTHREAD API for libc++")
+set(LIBCXX_HAS_WIN32_THREAD_API On CACHE BOOL "Enable Win32 Thread API for libc++")
+set(LIBCXX_HAS_EXTERNAL_THREAD_API Off CACHE BOOL "Disable External Thread API for libc++")
+
+# Ensure we are setting the correct options for LIBUNWIND
+set(LIBUNWIND_ENABLE_THREADS On CACHE BOOL "Enable threads for libunwind")
+set(LIBUNWIND_HAS_PTHREAD_API Off CACHE BOOL "Disable PTHREAD API for libunwind")
+set(LIBUNWIND_HAS_WIN32_THREAD_API On CACHE BOOL "Enable Win32 Thread API for libunwind")
+set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off CACHE BOOL "Disable External Thread API for libunwind")
+
+# Add any additional settings or compiler/linker options here
+EOF
+
 fi
 
 elif [[ "${OS}" == "darwin"* ]]; then
