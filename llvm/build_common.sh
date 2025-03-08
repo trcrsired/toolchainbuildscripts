@@ -70,14 +70,6 @@ CURRENTTRIPLEPATH_RUNTIMES="${currentpath}/runtimes"
 TOOLCHAINS_LLVMTRIPLETPATH_LLVM="${TOOLCHAINS_LLVMTRIPLETPATH}/llvm"
 TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES="${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
 
-if [[ "x${NO_TOOLCHAIN_DELETION}" == "xyes" ]]; then
-    TOOLCHAINS_LLVMTRIPLETPATH_LLVM_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_LLVM}_tmp"
-    TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES}_tmp"
-else
-    TOOLCHAINS_LLVMTRIPLETPATH_LLVM_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_LLVM}"
-    TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES_TMP="${TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES}"
-fi
-
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
@@ -277,6 +269,7 @@ cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
+set(BUILD_SHARED_LIBS Off)
 EOF
 
 cat << EOF > "$currentpath/runtimes.cmake"
@@ -326,12 +319,61 @@ set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
 EOF
 
+cat << EOF > "$currentpath/llvm.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+
+set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
+set(LLVM_DEFAULT_TARGET_TRIPLE \${LLVM_HOST_TRIPLE})
+set(LLVM_ENABLE_LTO "Thin")
+set(LLVM_ENABLE_LLD "On")
+set(C_SUPPORTS_CUSTOM_LINKER On)
+set(CXX_SUPPORTS_CUSTOM_LINKER On)
+set(ASM_SUPPORTS_CUSTOM_LINKER On)
+set(LLVM_ENABLE_RUNTIMES clang;clang-tools-extra;lld;lldb)
+set(BUILD_SHARED_LIBS On)
+set(LLVM_ENABLE_LIBCXX On)
+set(LLVM_ENABLE_ZLIB FORCE_ON)
+set(ZLIB_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include")
+
+set(LLVM_ENABLE_LIBXML2 FORCE_ON)
+if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/include/libxml2")
+set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include/libxml2")
+else()
+set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include/libxml")
+endif()
+
+if(EXISTS "\${SYSROOTPATH}/lib/libzlib.dll.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
+else
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.so")
+endif()
+
+if(EXISTS "\${SYSROOTPATH}/lib/libxml2.dll.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
+else
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
+endif()
+EOF
+
 if [[ "${OS}" == "windows" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_CXX_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_ASM_LINKER_DEPFILE_SUPPORTED FALSE)
 EOF
+if [[ "${ABI}" == "msvc" ]]; then
+cat << EOF >> "$currentpath/llvm.cmake"
+unset(BUILD_SHARED_LIBS)
+EOF
+fi
 
 elif [[ "${OS}" == "darwin"* ]]; then
 
@@ -383,7 +425,14 @@ build_project() {
     local install_phase_file=".${project_name}_phase_install"
     local copy_phase_file=".${project_name}_phase_copy"
     local rt_rename_phase_file=".${project_name}_phase_rt_rename_phase_file"
-    
+    local need_move_tmp
+    if [[ "$project_name" == "runtimes" || "$projects" == "llvm" ]]; then
+        if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
+            install_prefix="${install_prefix}_tmp"
+            need_move_tmp=yes
+        fi
+    fi
+
     if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         mkdir -p "${build_prefix}"
         cd "${build_prefix}"
@@ -472,6 +521,15 @@ build_project() {
             mkdir -p "${SYSROOTPATHUSR}"
             cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
         fi
+        if [[ "x${need_move_tmp}" == "xyes" ]]; then
+            mkdir -p "${TOOLCHAINS_LLVMTRIPLETPATH}"
+            if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}_tmp" &&
+                ! -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}" ]]; then
+                rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}"
+                cd "$TOOLCHAINS_LLVMTRIPLETPATH"
+                mv "${project_name}_tmp" "${project_name}"
+            fi
+        fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
     fi
 }
@@ -488,6 +546,12 @@ build_builtins() {
 
 build_runtimes() {
     build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+}
+
+build_llvm() {
+    if [[ LLVM_PHASE -eq 1 ]]; then
+        build_project "llvm" "$LLVMPROJECTPATH/llvm" "$currentpath/llvm.cmake" "${currentpath}/llvm"
+    fi
 }
 
 build_library() {
@@ -560,4 +624,14 @@ build_zlib
 
 build_libxml2
 
-#build_cppwinrt
+build_cppwinrt
+
+build_llvm
+
+if [ ! -f "$currentpath/.packagesuccess" ]; then
+	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
+	cd "$TOOLCHAINS_LLVMPATH"
+	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
+	chmod 755 ${TARGETTRIPLE}.tar.xz
+	echo "$(date --iso-8601=seconds)" > "$currentpath/.packagesuccess"
+fi
