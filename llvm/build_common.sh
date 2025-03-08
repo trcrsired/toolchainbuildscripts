@@ -26,6 +26,7 @@ echo "Failed to parse the target triplet: $TRIPLET"
 exit 1
 fi
 ABI_NO_VERSION="${ABI//[0-9]/}"
+ABI_VERSION=${ABI//[!0-9]/}
 
 echo "TRIPLET: $TRIPLET"
 echo "CPU: $CPU"
@@ -117,6 +118,7 @@ LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
+USE_EMULATED_TLS=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -141,6 +143,9 @@ else
         fi
     elif [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
         COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
+            USE_EMULATED_TLS=1
+        fi
     fi
 fi
 
@@ -214,6 +219,14 @@ set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libu
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
+if [[ $USE_EMULATED_TLS -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -femulated-tls")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -femulated-tls")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -femulated-tls")
+EOF
+fi
+
 # Initialize CMAKE_SIZEOF_VOID_P with default value
 CMAKE_SIZEOF_VOID_P=4
 
@@ -251,8 +264,13 @@ EOF
 
 cat << EOF > "$currentpath/builtins.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/compiler-rt.cmake")
+EOF
+
+if [[ "$USE_COMPILER_RT_BAREMETAL_BUILD" -eq 1 ]]; then
+cat << EOF >> "$currentpath/builtins.cmake"
 set(COMPILER_RT_BAREMETAL_BUILD On)
 EOF
+fi
 
 cat << EOF > "$currentpath/runtimes.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
@@ -411,21 +429,24 @@ build_project() {
             fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
         fi
-
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
             if [[ ${COPY_COMPILER_RT_WITH_SPECIAL_NAME} -eq 1 ]]; then
                 if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
                     cd "${install_prefix}/lib"
                     mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
                     cd "${TRIPLET_WITH_UNKNOWN}"
-                    for file in *-${CPU}*; do
-                        new_name="${file//-${CPU}-${ABI_NO_VERSION}/}"
+                    for file in *-"${CPU}"*; do
+                        new_name="${file//-${CPU}/}"
                         mv "$file" "$new_name"
                     done
-                    for file in *.so; do
-                        filename="${file%.so}"
-                        ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
-                    done
+                    if [[ "$project_name" == "compiler-rt" ]]; then
+                        for file in *.so; do
+                            filename="${file%.so}"
+                            ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                        done
+                        exit 1
+                    fi
+                    echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                 fi
             fi
             if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
@@ -435,6 +456,7 @@ build_project() {
                 local clang_major_version="${clang_version%%.*}"
                 local llvm_install_directory="$clang_directory/.."
                 local clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+                mkdir -p "${clangbuiltin}"
                 cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
                 echo "$(date --iso-8601=seconds)" > "${build_prefix}/${copy_phase_file}"
             fi
@@ -482,12 +504,6 @@ build_compiler_rt_or_builtins() {
 }
 
 # Example usage of the functions
-build_compiler_rt_or_builtins 0
-
-if [[ $LIBC_PHASE -eq 1 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
-fi
-
 clone_or_update_dependency llvm-project
 
 build_compiler_rt_or_builtins 0
