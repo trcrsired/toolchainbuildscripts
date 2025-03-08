@@ -73,7 +73,11 @@ TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES="${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-	rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
+    if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
+        find "${TOOLCHAINS_LLVMTRIPLETPATH}" -mindepth 1 -maxdepth 1 -type d ! -name "llvm" ! -name "runtimes" -exec rm -rf {} +
+    else
+        rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
+    fi
 	echo "restart done"
 fi
 
@@ -111,6 +115,7 @@ CPPWINRT_PHASE=0
 LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 USE_EMULATED_TLS=0
+USE_RUNTIMES_RPATH=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -119,6 +124,7 @@ if [[ "$OS" == "darwin"* ]]; then
     ZLIB_PHASE=0
     LIBXML2_PHASE=0
     macosxs_SDK_VERSION=15.2
+    USE_RUNTIMES_RPATH=1
     if [[ "$CPU" == "aarch64" ]]; then
         DARWINARCHITECTURES="arm64;x86_64"
     else
@@ -349,7 +355,7 @@ elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
-else
+else()
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.so")
 endif()
 
@@ -359,7 +365,7 @@ elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
-else
+else()
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
 endif()
 EOF
@@ -546,7 +552,11 @@ build_builtins() {
 }
 
 build_runtimes() {
-    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    local runtimes_install_path="$LLVMPROJECTPATH/runtimes"
+    if [[ $USE_RUNTIMES_RPATH -eq 1 ]]; then
+        runtimes_install_path="$LLVMPROJECTPATH/runtimes_rpath"
+    fi
+    build_project "runtimes" "$runtimes_install_path" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
 }
 
 build_llvm() {
