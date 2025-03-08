@@ -451,10 +451,10 @@ build_project() {
         if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
             cd "${build_prefix}"
             # Run CMake to generate Ninja build files
-            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+            cmake -GNinja -DCMAKE_CROSSCOMPILING=On -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
-            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
+            cmake -GNinja -DCMAKE_CROSSCOMPILING=On -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
             if [ $? -ne 0 ]; then
