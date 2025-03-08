@@ -269,7 +269,8 @@ cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
-set(BUILD_SHARED_LIBS Off)
+set(BUILD_SHARED_LIBS On)
+set(BUILD_STATIC_LIBS On)
 EOF
 
 cat << EOF > "$currentpath/runtimes.cmake"
@@ -306,8 +307,8 @@ set(LIBCXXABI_USE_COMPILER_RT "On")
 set(LIBCXX_USE_LLVM_UNWINDER "On")
 set(LIBCXXABI_USE_LLVM_UNWINDER "On")
 set(LIBUNWIND_USE_COMPILER_RT "On")
-set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
-set(LLVM_DEFAULT_TARGET_TRIPLE $TARGETTRIPLE)
+set(LLVM_HOST_TRIPLE $TRIPLET)
+set(LLVM_DEFAULT_TARGET_TRIPLE \${LLVM_HOST_TRIPLE})
 set(LLVM_ENABLE_LTO "Thin")
 set(LLVM_ENABLE_LLD "On")
 set(C_SUPPORTS_CUSTOM_LINKER On)
@@ -322,7 +323,7 @@ EOF
 cat << EOF > "$currentpath/llvm.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
-set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
+set(LLVM_HOST_TRIPLE $TRIPLET)
 set(LLVM_DEFAULT_TARGET_TRIPLE \${LLVM_HOST_TRIPLE})
 set(LLVM_ENABLE_LTO "Thin")
 set(LLVM_ENABLE_LLD "On")
@@ -631,7 +632,7 @@ build_llvm
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
 	cd "$TOOLCHAINS_LLVMPATH"
-	XZ_OPT=-e9T0 tar cJf ${TARGETTRIPLE}.tar.xz ${TARGETTRIPLE}
-	chmod 755 ${TARGETTRIPLE}.tar.xz
+	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
+	chmod 755 ${TRIPLET}.tar.xz
 	echo "$(date --iso-8601=seconds)" > "$currentpath/.packagesuccess"
 fi
