@@ -431,7 +431,6 @@ build_project() {
     local toolchain_file=$3
     local build_prefix=$4
     local copy_to_sysroot_usr=$5
-    local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}" 
     local current_phase_file=".${project_name}_phase_done"
     local configure_phase_file=".${project_name}_phase_configure"
     local build_phase_file=".${project_name}_phase_build"
@@ -439,13 +438,19 @@ build_project() {
     local copy_phase_file=".${project_name}_phase_copy"
     local rt_rename_phase_file=".${project_name}_phase_rt_rename_phase_file"
     local need_move_tmp
+    local project_name_alternative="${project_name}"
+    if [[ "$project_name" == "runtimes" ]]; then
+        if [[ $USE_RUNTIMES_RPATH -eq 1 ]]; then
+            project_name_alternative="${project_name_alternative}_rpath"
+        fi
+    fi
+    local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
     if [[ "$project_name" == "runtimes" || "$projects" == "llvm" ]]; then
         if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
             install_prefix="${install_prefix}_tmp"
             need_move_tmp=yes
         fi
     fi
-
     if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         mkdir -p "${build_prefix}"
         cd "${build_prefix}"
@@ -536,11 +541,11 @@ build_project() {
         fi
         if [[ "x${need_move_tmp}" == "xyes" ]]; then
             mkdir -p "${TOOLCHAINS_LLVMTRIPLETPATH}"
-            if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}_tmp" &&
-                ! -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}" ]]; then
-                rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}"
+            if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}_tmp" &&
+                ! -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}" ]]; then
+                rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
                 cd "$TOOLCHAINS_LLVMTRIPLETPATH"
-                mv "${project_name}_tmp" "${project_name}"
+                mv "${project_name_alternative}_tmp" "${project_name_alternative}"
             fi
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
@@ -558,11 +563,7 @@ build_builtins() {
 }
 
 build_runtimes() {
-    local runtimes_install_path="$LLVMPROJECTPATH/runtimes"
-    if [[ $USE_RUNTIMES_RPATH -eq 1 ]]; then
-        runtimes_install_path="$LLVMPROJECTPATH/runtimes_rpath"
-    fi
-    build_project "runtimes" "$runtimes_install_path" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
 }
 
 build_llvm() {
