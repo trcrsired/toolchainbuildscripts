@@ -154,6 +154,7 @@ else
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS-$ABI"
 fi
 
+rm $currentpath/common_cmake.cmake
 if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
@@ -259,7 +260,6 @@ fi
 
 cat << EOF > "$currentpath/compiler-rt.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
-set(COMPILER_RT_DEFAULT_TARGET_ONLY On)
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
@@ -364,7 +364,11 @@ else()
 set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include/libxml")
 endif()
 
-if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
+if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
@@ -473,12 +477,12 @@ set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
 
 cat << EOF >> $currentpath/compiler-rt.cmake
-set(COMPILER_RT_USE_LLVM_UNWINDER "On")
 set(LLVM_INCLUDE_EXAMPLES "Off")
 set(LLVM_ENABLE_BACKTRACES "Off")
 set(LLVM_INCLUDE_TESTS "Off")
 set(COMPILER_RT_USE_LIBCXX "Off")
 set(COMPILER_RT_USE_BUILTINS_LIBRARY "On")
+set(COMPILER_RT_DEFAULT_TARGET_TRIPLE "$CMAKE_C_COMPILER_TARGET")
 EOF
 fi
 
