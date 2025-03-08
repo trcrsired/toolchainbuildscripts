@@ -288,7 +288,10 @@ set(LLVM_HOST_TRIPLE $TARGETTRIPLE)
 set(LLVM_DEFAULT_TARGET_TRIPLE $TARGETTRIPLE)
 set(LLVM_ENABLE_LTO "Thin")
 set(LLVM_ENABLE_LLD "On")
-set(LLVM_ENABLE_PROJECTS libcxx;libcxxabi;libunwind)
+set(C_SUPPORTS_CUSTOM_LINKER On)
+set(CXX_SUPPORTS_CUSTOM_LINKER On)
+set(ASM_SUPPORTS_CUSTOM_LINKER On)
+set(LLVM_ENABLE_RUNTIMES libcxx;libcxxabi;libunwind)
 set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
@@ -336,76 +339,26 @@ EOF
 fi
 
 fi
-#!/bin/bash
-
-#!/bin/bash
 
 # Define the function to build and install
 build_project() {
     local project_name=$1
     local source_path=$2
     local toolchain_file=$3
-    local install_prefix=$4
-    local current_phase_file=".${project_name}_phase_done"
-    local configure_phase_file=".${project_name}_phase_configure"
-    local build_phase_file=".${project_name}_phase_build"
-    
-    if [ ! -f "${install_prefix}/${current_phase_file}" ]; then
-        mkdir -p "${install_prefix}"
-        cd "${install_prefix}"
-
-        if [ ! -f "${install_prefix}/${configure_phase_file}" ]; then
-            # Run CMake to generate Ninja build files
-            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
-                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
-                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
-            if [ $? -ne 0 ]; then
-                echo "${project_name}: CMake configuration failed for $TRIPLET"
-                exit 1
-            fi
-            echo "$(date --iso-8601=seconds)" > "${install_prefix}/${configure_phase_file}"
-        fi
-
-        if [ ! -f "${install_prefix}/${build_phase_file}" ]; then
-            # Run Ninja to build the project
-            ninja
-            if [ $? -ne 0 ]; then
-                echo "${project_name}: Ninja build failed for $TRIPLET"
-                exit 1
-            fi
-        fi
-
-        # Run Ninja to install and strip the build
-        ninja install/strip
-        if [ $? -ne 0 ]; then
-            echo "${project_name}: Ninja install/strip failed for $TRIPLET"
-            exit 1
-        fi
-        echo "$(date --iso-8601=seconds)" > "${install_prefix}/${current_phase_file}"
-    fi
-}
-
-# Define the function to build and install
-build_project() {
-    local project_name=$1
-    local source_path=$2
-    local toolchain_file=$3
-    local install_prefix=$4
+    local build_prefix=$4
+    local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}" 
     local current_phase_file=".${project_name}_phase_done"
     local configure_phase_file=".${project_name}_phase_configure"
     local build_phase_file=".${project_name}_phase_build"
     local install_phase_file=".${project_name}_phase_install"
     local copy_phase_file=".${project_name}_phase_copy"
     
-    if [ ! -f "${install_prefix}/${current_phase_file}" ]; then
-        mkdir -p "${install_prefix}"
-        cd "${install_prefix}"
+    if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
+        mkdir -p "${build_prefix}"
+        cd "${build_prefix}"
 
-        if [ ! -f "${install_prefix}/${configure_phase_file}" ]; then
+        if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
             # Run CMake to generate Ninja build files
-            cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
-                -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
-                -DCMAKE_INSTALL_PREFIX="${install_prefix}"
             cmake -GNinja -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
@@ -416,8 +369,15 @@ build_project() {
             echo "$(date --iso-8601=seconds)" > "${configure_phase_file}"
         fi
 
-        if [ ! -f "${install_prefix}/${build_phase_file}" ]; then
+        if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
             # Run Ninja to build the project
+            if [[ "$project_name" == "runtimes" ]]; then
+                ninja -C . cxx_static
+                if [ $? -ne 0 ]; then
+                    echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
+                    exit 1
+                fi
+            fi
             ninja
             if [ $? -ne 0 ]; then
                 echo "${project_name}: Ninja build failed for $TRIPLET"
@@ -426,7 +386,7 @@ build_project() {
             echo "$(date --iso-8601=seconds)" > "${build_phase_file}"
         fi
 
-        if [ ! -f "${install_prefix}/${install_phase_file}" ]; then
+        if [ ! -f "${build_prefix}/${install_phase_file}" ]; then
             # Run Ninja to install and strip the build
             ninja install/strip
             if [ $? -ne 0 ]; then
@@ -437,7 +397,7 @@ build_project() {
         fi
 
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
-            if [ ! -f "${install_prefix}/${copy_phase_file}" ]; then
+            if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
                 local clang_path=`which clang`
                 local clang_directory=$(dirname "$clang_path")
                 local clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
@@ -445,25 +405,25 @@ build_project() {
                 local llvm_install_directory="$clang_directory/.."
                 local clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
                 cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
-                echo "$(date --iso-8601=seconds)" > "${copy_phase_file}"
+                echo "$(date --iso-8601=seconds)" > "${build_prefix}/${copy_phase_file}"
             fi
         fi
-        echo "$(date --iso-8601=seconds)" > "${current_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
     fi
 }
 
 # Function to build and install compiler-rt
 build_compiler_rt() {
-    build_project "compiler-rt" "$LLVMPROJECTPATH/compiler-rt" "$currentpath/compiler-rt.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/compiler-rt"
+    build_project "compiler-rt" "$LLVMPROJECTPATH/compiler-rt" "$currentpath/compiler-rt.cmake" "${currentpath}/compiler-rt"
 }
 
 # Function to build and install builtins
 build_builtins() {
-    build_project "builtins" "$LLVMPROJECTPATH/compiler-rt/lib/builtins" "$currentpath/builtins.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/builtins"
+    build_project "builtins" "$LLVMPROJECTPATH/compiler-rt/lib/builtins" "$currentpath/builtins.cmake" "${currentpath}/builtins"
 }
 
 build_runtimes() {
-    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
+    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes"
 }
 
 # Function to build either compiler-rt or builtins based on phase values
