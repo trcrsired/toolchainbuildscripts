@@ -154,7 +154,7 @@ else
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS-$ABI"
 fi
 
-rm $currentpath/common_cmake.cmake
+#rm $currentpath/common_cmake.cmake
 if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
@@ -286,7 +286,7 @@ cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
-set(BUILD_SHARED_LIBS Off)
+set(BUILD_SHARED_LIBS On)
 set(BUILD_STATIC_LIBS On)
 EOF
 
@@ -361,7 +361,7 @@ set(LLVM_ENABLE_LIBXML2 FORCE_ON)
 if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/include/libxml2")
 set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include/libxml2")
 else()
-set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include/libxml")
+set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include")
 endif()
 
 if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
@@ -387,6 +387,7 @@ set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
 else()
 set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
 endif()
+set(HAVE_LIBXML2 On)
 EOF
 
 if [[ "${OS}" == "windows" ]]; then
