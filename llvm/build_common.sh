@@ -448,7 +448,6 @@ EOF
 
 fi
 
-fi
 
 if [[ "${OS}" != "darwin"* ]]; then
 cat << EOF >> $currentpath/llvm.cmake
@@ -464,6 +463,9 @@ set(COMPILER_RT_USE_LIBCXX "Off")
 set(COMPILER_RT_USE_BUILTINS_LIBRARY "On")
 EOF
 fi
+
+fi
+
 
 # Define the function to build and install
 build_project() {
