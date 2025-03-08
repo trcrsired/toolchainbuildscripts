@@ -272,6 +272,12 @@ set(COMPILER_RT_BAREMETAL_BUILD On)
 EOF
 fi
 
+cat << EOF > "$currentpath/libxml2.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+set(LIBXML2_WITH_ICONV Off)
+set(LIBXML2_WITH_PYTHON Off)
+EOF
+
 cat << EOF > "$currentpath/runtimes.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
@@ -368,6 +374,7 @@ build_project() {
     local source_path=$2
     local toolchain_file=$3
     local build_prefix=$4
+    local copy_to_sysroot_usr=$5
     local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name}" 
     local current_phase_file=".${project_name}_phase_done"
     local configure_phase_file=".${project_name}_phase_configure"
@@ -444,7 +451,6 @@ build_project() {
                             filename="${file%.so}"
                             ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
                         done
-                        exit 1
                     fi
                     echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                 fi
@@ -460,7 +466,9 @@ build_project() {
                 cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
                 echo "$(date --iso-8601=seconds)" > "${build_prefix}/${copy_phase_file}"
             fi
-        elif [[ "$project_name" == "runtimes" ]]; then
+        fi
+        if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
+            mkdir -p "${SYSROOTPATHUSR}"
             cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
@@ -478,7 +486,36 @@ build_builtins() {
 }
 
 build_runtimes() {
-    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes"
+    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+}
+
+build_library() {
+    local lib_name=$1
+    local phase_var="${lib_name^^}_PHASE"
+    local toolchain_file
+
+    if [ -z "$2" ]; then
+        toolchain_file="$currentpath/common_cmake.cmake"
+    else
+        toolchain_file="$2"
+    fi
+
+    if [[ ${!phase_var} -eq 1 ]]; then
+        clone_or_update_dependency $lib_name
+        build_project "$lib_name" "$TOOLCHAINS_BUILD/$lib_name" "$toolchain_file" "${currentpath}/$lib_name" "yes"
+    fi
+}
+
+build_zlib() {
+    build_library "zlib"
+}
+
+build_libxml2() {
+    build_library "libxml2" "$currentpath/libxml2.cmake"
+}
+
+build_cppwinrt() {
+    build_library "cppwinrt"
 }
 
 # Function to build either compiler-rt or builtins based on phase values
@@ -517,3 +554,9 @@ build_compiler_rt_or_builtins 1
 build_runtimes
 
 build_compiler_rt_or_builtins 2
+
+build_zlib
+
+build_libxml2
+
+#build_cppwinrt
