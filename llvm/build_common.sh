@@ -418,7 +418,7 @@ cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
 set(CMAKE_INSTALL_RPATH "@executable_path/../lib;@executable_path/../../runtimes_rpath/lib")
-fi
+EOF
 
 fi
 
