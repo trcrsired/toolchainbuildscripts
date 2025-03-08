@@ -114,6 +114,7 @@ ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
+COPY_COMPILER_RT_WITH_OS_NAME=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -197,6 +198,7 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
 set(LLVM_ENABLE_LTO thin)
 set(LLVM_ENABLE_LLD On)
+set(CMAKE_LINKER_TYPE LLD)
 set(CMAKE_C_FLAGS_INIT "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
@@ -246,12 +248,14 @@ EOF
 cat << EOF > "$currentpath/builtins.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/compiler-rt.cmake")
 set(COMPILER_RT_BAREMETAL_BUILD On)
-set(COMPILER_RT_DEFAULT_TARGET_TRIPLE "${TRIPLET}")
 EOF
 
 cat << EOF > "$currentpath/runtimes.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
 set(LIBCXXABI_SILENT_TERMINATE "On")
 set(LIBCXX_CXX_ABI "libcxxabi")
 set(LIBCXX_ENABLE_SHARED "On")
@@ -390,6 +394,8 @@ build_project() {
     local current_phase_file=".${project_name}_phase_done"
     local configure_phase_file=".${project_name}_phase_configure"
     local build_phase_file=".${project_name}_phase_build"
+    local install_phase_file=".${project_name}_phase_install"
+    local copy_phase_file=".${project_name}_phase_copy"
     
     if [ ! -f "${install_prefix}/${current_phase_file}" ]; then
         mkdir -p "${install_prefix}"
@@ -420,11 +426,27 @@ build_project() {
             echo "$(date --iso-8601=seconds)" > "${build_phase_file}"
         fi
 
-        # Run Ninja to install and strip the build
-        ninja install/strip
-        if [ $? -ne 0 ]; then
-            echo "${project_name}: Ninja install/strip failed for $TRIPLET"
-            exit 1
+        if [ ! -f "${install_prefix}/${install_phase_file}" ]; then
+            # Run Ninja to install and strip the build
+            ninja install/strip
+            if [ $? -ne 0 ]; then
+                echo "${project_name}: Ninja install/strip failed for $TRIPLET"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${install_phase_file}"
+        fi
+
+        if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
+            if [ ! -f "${install_prefix}/${copy_phase_file}" ]; then
+                local clang_path=`which clang`
+                local clang_directory=$(dirname "$clang_path")
+                local clang_version=$(clang --version | grep -oP '\d+\.\d+\.\d+')
+                local clang_major_version="${clang_version%%.*}"
+                local llvm_install_directory="$clang_directory/.."
+                local clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
+                cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
+                echo "$(date --iso-8601=seconds)" > "${copy_phase_file}"
+            fi
         fi
         echo "$(date --iso-8601=seconds)" > "${current_phase_file}"
     fi
@@ -490,4 +512,4 @@ build_compiler_rt_or_builtins 1
 
 build_runtimes
 
-build_compiler_rt_or_builtins 02
+#build_compiler_rt_or_builtins 2
