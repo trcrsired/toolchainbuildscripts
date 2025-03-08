@@ -153,7 +153,7 @@ if [[ -z "$ABI" ]]; then
 else
     TRIPLET_WITH_UNKNOWN="$CPU-unknown-$OS-$ABI"
 fi
-rm "$currentpath/common_cmake.cmake"
+
 if [ ! -f "$currentpath/common_cmake.cmake" ]; then
 
 cat << EOF > $currentpath/common_cmake.cmake
