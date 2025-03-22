@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+restart_paramter=$1
+
 llvmcurrentrealpath="$(realpath .)"
 cd ../common
 source ./common.sh
@@ -14,6 +16,7 @@ main() {
         "aarch64-linux-android30"
         "aarch64-linux-gnu"
         "aarch64-windows-gnu"
+        "i686-windows-gnu"
         "loongarch64-linux-gnu"
         "riscv64-linux-gnu"
         "x86_64-linux-android30"
@@ -54,6 +57,9 @@ main() {
     echo "Updated TRIPLETS2 array:"
     for triplet in "${TRIPLETS2[@]}"; do
         echo "$triplet"
+    done
+    for triplet in "${TRIPLETS2[@]}"; do
+        TRIPLET=$triplet ./build_common.sh $restart_paramter
     done
 }
 
