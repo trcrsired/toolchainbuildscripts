@@ -3,6 +3,15 @@
 
 restart_paramter=$1
 
+if [[ $restart_paramter == "restart" ]]; then
+	echo "restarting"
+	rm -rf "$llvmcurrentrealpath/.llvmartifacts"
+	rm -rf "$llvmcurrentrealpath/.llvmwasmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wavm/.wavmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wine/.wineartifacts"
+	echo "restart done"
+fi
+
 llvmcurrentrealpath="$(realpath .)"
 cd ../common
 source ./common.sh
@@ -15,12 +24,16 @@ main() {
         "aarch64-apple-darwin24"
         "aarch64-linux-android30"
         "aarch64-linux-gnu"
+        "aarch64-linux-musl"
         "aarch64-windows-gnu"
-        # "i686-windows-gnu"
+        "i686-windows-gnu"
+        "i686-linux-gnu"
+        "i686-linux-musl"
         "loongarch64-linux-gnu"
         "riscv64-linux-gnu"
         "x86_64-linux-android30"
         "x86_64-linux-gnu"
+        "x86_64-linux-musl"
         "x86_64-windows-gnu"
     )
 
@@ -66,3 +79,12 @@ main() {
 
 main
 
+if [[ $NO_BUILD_WAVM != "yes" ]]; then
+cd "$llvmcurrentrealpath/../wavm"
+./all.sh "$@"
+fi
+
+if [[ $NO_BUILD_WINE != "yes" ]]; then
+cd "$llvmcurrentrealpath/../wine"
+./all-min.sh "$@"
+fi
