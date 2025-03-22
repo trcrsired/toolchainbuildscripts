@@ -390,6 +390,14 @@ endif()
 set(HAVE_LIBXML2 On)
 EOF
 
+if [[ "${ABI}" == "musl" ]]; then
+cat << EOF >> $currentpath/runtimes.cmake
+set(LIBCXX_HAS_MUSL_LIBC On)
+set(LIBCXXABI_HAS_MUSL_LIBC On)
+set(LIBUNWIND_HAS_MUSL_LIBC On)
+EOF
+fi
+
 if [[ "${OS}" == "windows" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
