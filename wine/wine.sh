@@ -149,6 +149,8 @@ if [[ ${ARCH} == "aarch64" ]]; then
 ENABLEDARCHS=aarch64
 elif [[ ${ARCH} == "x86_64" ]]; then
 ENABLEDARCHS=i386,x86_64
+elif [[ ${ARCH} =~ i[3-6]86 ]]; then
+ENABLEDARCHS=i386
 fi
 fi
 
