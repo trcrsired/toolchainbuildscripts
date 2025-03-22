@@ -16,7 +16,7 @@ main() {
         "aarch64-linux-android30"
         "aarch64-linux-gnu"
         "aarch64-windows-gnu"
-        "i686-windows-gnu"
+        # "i686-windows-gnu"
         "loongarch64-linux-gnu"
         "riscv64-linux-gnu"
         "x86_64-linux-android30"
