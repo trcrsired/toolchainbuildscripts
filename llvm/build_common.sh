@@ -559,6 +559,7 @@ build_project() {
                     echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
                     exit 1
                 fi
+                touch "${toolchain_file}"
             fi
             ninja
             if [ $? -ne 0 ]; then
