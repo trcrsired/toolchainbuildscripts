@@ -184,7 +184,7 @@ build_musl() {
                 --disable-werror
                 --prefix="$currentpathlibc/install/musl/default"
                 --with-headers="$sysrootpathusr/include"
-                --disable-shared
+                --enable-shared
                 --enable-static
                 --without-selinux
                 --host="$host"
@@ -199,7 +199,7 @@ build_musl() {
                 --disable-werror
                 --prefix="$currentpathlibc/install/musl/default"
                 --with-headers="$sysrootpathusr/include"
-                --disable-shared
+                --enable-shared
                 --enable-static
                 --without-selinux
                 --host="$host"
