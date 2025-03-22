@@ -139,8 +139,12 @@ else
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
         fi
-    elif [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
-        COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+    elif [[ "$OS" == "linux" ]]; then
+        if [[ "$ABI" == "android"* ]]; then
+            COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+        elif [[ "$ABI" == "musl" ]]; then
+            COMPILER_RT_PHASE=0
+        end
 #       clang should understand it is emulated-tls based on triplet
 #        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
 #            USE_EMULATED_TLS=1
