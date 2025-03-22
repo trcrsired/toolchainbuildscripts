@@ -413,7 +413,16 @@ cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 EOF
 else
-cat << EOF >> $currentpath/cppwinrt.cmake
+
+cat << EOF >> "$currentpath/llvm.cmake"
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+
+cat << EOF >> "$currentpath/cppwinrt.cmake"
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+
+cat << EOF >> "$currentpath/compiler-rt.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
 
