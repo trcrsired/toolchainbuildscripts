@@ -165,55 +165,50 @@ build_musl() {
     fi
     mkdir -p "${sysrootpathusr}"
     if [ ! -f "${currentpathlibc}/build/musl/default/.configuresuccess" ]; then
-        local configure_cmd=()
         if [[ ${usellvm} == "yes" ]]; then
-            configure_cmd=(
-                LIPO=llvm-lipo
-                OTOOL=llvm-otool
-                DSYMUTIL=dsymutil
-                STRIP=llvm-strip
-                AR=llvm-ar
-                CC="clang --target=$host"
-                CXX="clang++ --target=$host"
-                AS=llvm-as
-                RANLIB=llvm-ranlib
-                CXXFILT=llvm-cxxfilt
-                NM=llvm-nm
-                "$toolchains_path/musl/configure"
-                --disable-nls
-                --disable-werror
-                --prefix="$currentpathlibc/install/musl/default"
-                --with-headers="$sysrootpathusr/include"
-                --enable-shared
-                --enable-static
-                --without-selinux
-                --host="$host"
-            )
+            LIPO=llvm-lipo \
+            OTOOL=llvm-otool \
+            DSYMUTIL=dsymutil \
+            STRIP=llvm-strip \
+            AR=llvm-ar \
+            CC="clang --target=$host" \
+            CXX="clang++ --target=$host" \
+            AS=llvm-as \
+            RANLIB=llvm-ranlib \
+            CXXFILT=llvm-cxxfilt \
+            NM=llvm-nm \
+            "$toolchains_path/musl/configure" \
+            --disable-nls \
+            --disable-werror \
+            --prefix="$currentpathlibc/install/musl/default" \
+            --with-headers="$sysrootpathusr/include" \
+            --enable-shared \
+            --enable-static \
+            --without-selinux \
+            --host="$host" \
+            $( [ -n "$build" ] && echo "--build=$build" )
         else
-            configure_cmd=(
-                export -n LD_LIBRARY_PATH
-                CC="$host-gcc"
-                CXX="$host-g++"
-                "$toolchains_path/musl/configure"
-                --disable-nls
-                --disable-werror
-                --prefix="$currentpathlibc/install/musl/default"
-                --with-headers="$sysrootpathusr/include"
-                --enable-shared
-                --enable-static
-                --without-selinux
-                --host="$host"
-            )
+            CC="$host-gcc" \
+            CXX="$host-g++" \
+            "$toolchains_path/musl/configure" \
+            --disable-nls \
+            --disable-werror \
+            --prefix="$currentpathlibc/install/musl/default" \
+            --with-headers="$sysrootpathusr/include" \
+            --enable-shared \
+            --enable-static \
+            --without-selinux \
+            --host="$host" \
+            $( [ -n "$build" ] && echo "--build=$build" )
         fi
-        if [ -n "$build" ]; then
-            configure_cmd+=(--build="$build")
-        fi
-        "${configure_cmd[@]}"
+
         if [ $? -ne 0 ]; then
             echo "musl configure failure"
             exit 1
         fi
+
         echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.configuresuccess"
+
     fi
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then
