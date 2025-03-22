@@ -30,6 +30,7 @@ main() {
         "i686-linux-gnu"
         "i686-linux-musl"
         "loongarch64-linux-gnu"
+        "loongarch64-linux-musl"
         "riscv64-linux-gnu"
         "x86_64-linux-android30"
         "x86_64-linux-gnu"
