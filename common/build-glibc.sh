@@ -8,7 +8,7 @@ install_linux_kernel_headers() {
     local linuxarch=$cpu
     if [[ $linuxarch == "aarch64" ]]; then
         linuxarch="arm64"
-    elif [[ $linuxarch == "i[3-6]86" ]]; then
+    elif [[ $linuxarch =~ i[3-6]86 ]]; then
         linuxarch="x86"
     elif [[ $linuxarch != x86_64 ]]; then
         linuxarch="${linuxarch%%[0-9]*}"

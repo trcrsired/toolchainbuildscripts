@@ -81,7 +81,7 @@ install_libc() {
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
                 elif [[ ${CPU} == "arm" ]]; then
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64"
-                elif [[ ${CPU} == "i[3-6]86" ]]; then
+                elif [[ ${CPU} =~ i[3-6]86 ]]; then
                     MINGWW64COMMON="--enable-lib32 --disable-lib64 --with-default-msvcrt=msvcrt"
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
