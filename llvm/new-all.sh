@@ -79,6 +79,8 @@ main() {
 
 
 main
+cd "$llvmcurrentrealpath"
+./wasm-sysroots.sh "$1"
 
 if [[ $NO_BUILD_WAVM != "yes" ]]; then
 cd "$llvmcurrentrealpath/../wavm"
