@@ -27,7 +27,6 @@ main() {
         "aarch64-linux-musl"
         "aarch64-windows-gnu"
         "i686-windows-gnu"
-        "i686-linux-gnu"
         "i686-linux-musl"
         "loongarch64-linux-gnu"
         "loongarch64-linux-musl"
