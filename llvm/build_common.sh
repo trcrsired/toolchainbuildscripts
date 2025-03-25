@@ -419,10 +419,6 @@ if [ -z ${WINDOWSMSVCSYSROOT+x} ]; then
 fi
 
 cat << EOF >> $currentpath/common_cmake.cmake
-find_program(CMAKE_LINKER lld-link)
-if (NOT CMAKE_LINKER)
-    message(FATAL_ERROR "lld-link not found")
-endif()
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
