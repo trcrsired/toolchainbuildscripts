@@ -659,11 +659,13 @@ build_builtins() {
 }
 
 build_runtimes() {
-    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    if [[ RUNTIMES_PHASE -ne 0 ]]; then
+        build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    fi
 }
 
 build_llvm() {
-    if [[ LLVM_PHASE -eq 1 ]]; then
+    if [[ LLVM_PHASE -ne 0 ]]; then
         build_project "llvm" "$LLVMPROJECTPATH/llvm" "$currentpath/llvm.cmake" "${currentpath}/llvm"
     fi
 }
@@ -679,7 +681,7 @@ build_library() {
         toolchain_file="$2"
     fi
 
-    if [[ ${!phase_var} -eq 1 ]]; then
+    if [[ ${!phase_var} -ne 0 ]]; then
         clone_or_update_dependency $lib_name
         build_project "$lib_name" "$TOOLCHAINS_BUILD/$lib_name" "$toolchain_file" "${currentpath}/$lib_name" "yes"
     fi
@@ -724,7 +726,7 @@ clone_or_update_dependency llvm-project
 
 build_compiler_rt_or_builtins 0
 
-if [[ $LIBC_PHASE -eq 1 ]]; then
+if [[ LIBC_PHASE -ne 0 ]]; then
     install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
 fi
 
