@@ -141,6 +141,7 @@ else
             COMPILER_RT_PHASE=0
             RUNTIMES_PHASE=0
             USE_LLVM_LIBS=0
+            CPPWINRT_PHASE=0
         fi
     elif [[ "$OS" == "linux" ]]; then
         if [[ "$ABI" == "android"* ]]; then
