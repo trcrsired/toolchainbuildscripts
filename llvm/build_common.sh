@@ -423,6 +423,9 @@ find_program(CMAKE_LINKER lld-link)
 if (NOT CMAKE_LINKER)
     message(FATAL_ERROR "lld-link not found")
 endif()
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
 EOF
 cat << EOF >> "$currentpath/llvm.cmake"
