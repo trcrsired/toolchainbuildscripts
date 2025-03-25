@@ -116,6 +116,7 @@ LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
+USE_LLVM_LIBS=1
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -139,6 +140,7 @@ else
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
             RUNTIMES_PHASE=0
+            USE_LLVM_LIBS=0
         fi
     elif [[ "$OS" == "linux" ]]; then
         if [[ "$ABI" == "android"* ]]; then
@@ -224,11 +226,13 @@ set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
+if [[ USE_LLVM_LIBS -ne 0 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -rtlib=compiler-rt")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libunwind")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
+fi
 
 if [[ $USE_EMULATED_TLS -eq 1 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
