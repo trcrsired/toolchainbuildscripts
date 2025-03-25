@@ -138,6 +138,7 @@ else
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
+            RUNTIMES_PHASE=0
         fi
     elif [[ "$OS" == "linux" ]]; then
         if [[ "$ABI" == "android"* ]]; then
