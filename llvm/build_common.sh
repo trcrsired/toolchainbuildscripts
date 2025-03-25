@@ -430,8 +430,7 @@ set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
 set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
 EOF
 cat << EOF >> "$currentpath/zlib.cmake"
-set(ZLIB_BUILD_SHARED Off)
-set(ZLIB_BUILD_STATIC Off)
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "Force disable shared library" FORCE)
 EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
