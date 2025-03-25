@@ -429,6 +429,9 @@ set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
 set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
 EOF
+cat << EOF >> "$currentpath/zlib.cmake"
+set(BUILD_SHARED_LIBS Off)
+EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 set(LLVM_ENABLE_LIBCXX Off)
