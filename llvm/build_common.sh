@@ -414,6 +414,17 @@ set(CMAKE_CXX_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_ASM_LINKER_DEPFILE_SUPPORTED FALSE)
 EOF
 if [[ "${ABI}" == "msvc" ]]; then
+if [ -z ${WINDOWSMSVCSYSROOT+x} ]; then
+	WINDOWSMSVCSYSROOT="$HOME/toolchains/windows-msvc-sysroot"
+fi
+
+cat << EOF >> $currentpath/common_cmake.cmake
+find_program(CMAKE_LINKER lld-link)
+if (NOT CMAKE_LINKER)
+    message(FATAL_ERROR "lld-link not found")
+endif()
+set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
+EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 set(LLVM_ENABLE_LIBCXX Off)
