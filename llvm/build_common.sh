@@ -435,6 +435,7 @@ EOF
 cat << EOF >> "$currentpath/libxml2.cmake"
 set(LIBXML2_WITH_TESTS OFF)
 set(LIBXML2_WITH_CATALOG OFF)
+set(LIBXML2_WITH_PROGRAMS Off)
 EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
