@@ -411,6 +411,7 @@ EOF
 if [[ "${ABI}" == "msvc" ]]; then
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
+set(LLVM_ENABLE_LIBCXX Off)
 EOF
 else
 
