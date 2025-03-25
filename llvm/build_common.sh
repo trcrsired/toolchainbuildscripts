@@ -290,7 +290,7 @@ cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
-set(BUILD_SHARED_LIBS On)
+set(BUILD_SHARED_LIBS Off)
 set(BUILD_STATIC_LIBS On)
 EOF
 
