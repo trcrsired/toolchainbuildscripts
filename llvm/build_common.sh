@@ -431,6 +431,7 @@ set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
 EOF
 cat << EOF >> "$currentpath/zlib.cmake"
 set(ZLIB_BUILD_SHARED Off)
+set(ZLIB_BUILD_STATIC Off)
 EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
