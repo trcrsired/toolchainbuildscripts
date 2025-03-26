@@ -561,6 +561,7 @@ build_project() {
     local build_prefix=$4
     local copy_to_sysroot_usr=$5
     local current_phase_file=".${project_name}_phase_done"
+    local delete_previous_phase_file=".${project_name}_phase_delete_previous"
     local configure_phase_file=".${project_name}_phase_configure"
     local build_phase_file=".${project_name}_phase_build"
     local install_phase_file=".${project_name}_phase_install"
@@ -583,6 +584,13 @@ build_project() {
     if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         mkdir -p "${build_prefix}"
         cd "${build_prefix}"
+
+        if [ ! -f "${build_prefix}/${delete_previous_phase_file}" ]; then
+            if [ -d "${SYSROOTPATHUSR}/include/c++/v1" ]; then
+                rm -rf "${SYSROOTPATHUSR}/include/c++/v1"
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${delete_previous_phase_file}"
+        fi
 
         if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
             cd "${build_prefix}"
