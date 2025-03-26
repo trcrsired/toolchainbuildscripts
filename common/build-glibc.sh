@@ -230,6 +230,8 @@ build_musl() {
                 echo "musl install-headers failure"
                 exit 1
             fi
+            mkdir -p "$sysrootpathusr"
+            cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
             echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.headersinstallsuccess"
         fi
         return
