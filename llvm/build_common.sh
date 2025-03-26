@@ -374,14 +374,16 @@ else()
 set(LIBXML2_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include")
 endif()
 
-if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
+if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlibstatic.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlibstatic.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
-elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
 else()
@@ -439,6 +441,10 @@ unset(BUILD_SHARED_LIBS)
 set(LLVM_ENABLE_LIBCXX Off)
 EOF
 else
+
+cat << EOF >> "$currentpath/libxml2.cmake"
+set(BUILD_SHARED_LIBS On)
+EOF
 
 cat << EOF >> "$currentpath/llvm.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
