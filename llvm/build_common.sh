@@ -586,11 +586,13 @@ build_project() {
         mkdir -p "${build_prefix}"
         cd "${build_prefix}"
 
-        if [ ! -f "${build_prefix}/${delete_previous_phase_file}" ]; then
-            if [ -d "${SYSROOTPATHUSR}/include/c++/v1" ]; then
-                rm -rf "${SYSROOTPATHUSR}/include/c++/v1"
+        if [[ "$project_name" == "runtimes" ]]; then
+            if [ ! -f "${build_prefix}/${delete_previous_phase_file}" ]; then
+                if [ -d "${SYSROOTPATHUSR}/include/c++/v1" ]; then
+                    rm -rf "${SYSROOTPATHUSR}/include/c++/v1"
+                fi
+                echo "$(date --iso-8601=seconds)" > "${build_prefix}/${delete_previous_phase_file}"
             fi
-            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${delete_previous_phase_file}"
         fi
 
         if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
