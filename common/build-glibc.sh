@@ -156,8 +156,6 @@ build_musl() {
     local headersonly=$5
     local build=${6:-}
 
-    mkdir -p "${currentpathlibc}/build/musl/default"
-    cd "${currentpathlibc}/build/musl/default"
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then
         toolchains_path="$HOME/toolchains_build"
@@ -171,6 +169,8 @@ build_musl() {
     else
         phase_dir="build"
     fi
+    mkdir -p "${currentpathlibc}/${phase_dir}/musl/default"
+    cd "${currentpathlibc}/${phase_dir}/musl/default"
 
     mkdir -p "${sysrootpathusr}"
     if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess" ]; then
