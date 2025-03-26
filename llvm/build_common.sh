@@ -644,31 +644,33 @@ build_project() {
         fi
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
             if [[ ${COPY_COMPILER_RT_WITH_SPECIAL_NAME} -eq 1 ]]; then
-                if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
-                    cd "${install_prefix}/lib"
-                    mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
-                    cd "${TRIPLET_WITH_UNKNOWN}"
-                    for file in *-"${CPU}"*; do
-                        new_name="${file//-${CPU}/}"
-                        mv "$file" "$new_name"
-                    done
-                    # Iterate through files matching the pattern libclang_rt.*-${ABI_NO_VERSION}.a
-                    for file in libclang_rt.*-"${ABI_NO_VERSION}".a; do
-                        # Check if the file exists
-                        if [ -e "$file" ]; then
-                            # Construct the new file name by removing "-${ABI_NO_VERSION}" from the original file name
-                            new_file="${file/-${ABI_NO_VERSION}/}"
-                            # Copy the file to the new file name (preserve the original file)
-                            cp "$file" "$new_file"
-                        fi
-                    done
-                    if [[ "$project_name" == "compiler-rt" ]]; then
-                        for file in *.so; do
-                            filename="${file%.so}"
-                            ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                if [ -d "${install_prefix}/lib" ]; then
+                    if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
+                        cd "${install_prefix}/lib"
+                        mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
+                        cd "${TRIPLET_WITH_UNKNOWN}"
+                        for file in *-"${CPU}"*; do
+                            new_name="${file//-${CPU}/}"
+                            mv "$file" "$new_name"
                         done
+                        # Iterate through files matching the pattern libclang_rt.*-${ABI_NO_VERSION}.a
+                        for file in libclang_rt.*-"${ABI_NO_VERSION}".a; do
+                            # Check if the file exists
+                            if [ -e "$file" ]; then
+                                # Construct the new file name by removing "-${ABI_NO_VERSION}" from the original file name
+                                new_file="${file/-${ABI_NO_VERSION}/}"
+                                # Copy the file to the new file name (preserve the original file)
+                                cp "$file" "$new_file"
+                            fi
+                        done
+                        if [[ "$project_name" == "compiler-rt" ]]; then
+                            for file in *.so; do
+                                filename="${file%.so}"
+                                ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                            done
+                        fi
+                        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                     fi
-                    echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                 fi
             fi
             if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
