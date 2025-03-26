@@ -177,6 +177,13 @@ build_musl() {
             RANLIB=llvm-ranlib \
             CXXFILT=llvm-cxxfilt \
             NM=llvm-nm \
+            LD=lld \
+            OBJDUMP=llvm-objdump \
+            READELF=llvm-readelf \
+            SIZE=llvm-size \
+            STRINGS=llvm-strings \
+            OBJCOPY=llvm-objcopy \
+            ADDR2LINE=llvm-addr2line \
             "$toolchains_path/musl/configure" \
             --disable-nls \
             --disable-werror \
