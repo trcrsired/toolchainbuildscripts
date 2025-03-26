@@ -410,7 +410,13 @@ set(LIBUNWIND_HAS_MUSL_LIBC On)
 EOF
 fi
 
-if [[ "${OS}" == "windows" ]]; then
+if [[ "${OS}" == "linux" ]]; then
+    if [[ "${ABI}" == "android"* ]]; then
+cat << EOF >> "$currentpath/compiler-rt.cmake"
+set(ANDROID On)
+EOF
+    fi
+elif [[ "${OS}" == "windows" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_CXX_LINKER_DEPFILE_SUPPORTED FALSE)
