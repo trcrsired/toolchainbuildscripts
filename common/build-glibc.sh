@@ -98,6 +98,7 @@ build_glibc() {
                 AR=llvm-ar \
                 CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
                 CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                TEST_CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
                 AS=llvm-as \
                 RANLIB=llvm-ranlib \
                 CXXFILT=llvm-cxxfilt \
