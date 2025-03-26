@@ -194,6 +194,8 @@ build_musl() {
             --enable-static \
             --without-selinux \
             --host="$host" \
+            --exec-prefix="$currentpathlibc/install/musl/default" \
+            --syslibdir="$sysrootpathusr/lib" \
             $( [ -n "$build" ] && echo "--build=$build" )
         else
             CC="$host-gcc" \
@@ -207,6 +209,8 @@ build_musl() {
             --enable-static \
             --without-selinux \
             --host="$host" \
+            --exec-prefix="$currentpathlibc/install/musl/default" \
+            --syslibdir="$sysrootpathusr/lib" \
             $( [ -n "$build" ] && echo "--build=$build" )
         fi
 
