@@ -148,6 +148,7 @@ else
             COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
         elif [[ "$ABI" == "musl" ]]; then
             COMPILER_RT_PHASE=0
+            BUILTINS_PHASE=2
         fi
 #       clang should understand it is emulated-tls based on triplet
 #        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
