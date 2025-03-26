@@ -105,6 +105,7 @@ if [ -z ${SYSTEMNAME+x} ]; then
     fi
 fi
 
+LIBC_HEADERS_PHASE=0
 LIBC_PHASE=1
 BUILTINS_PHASE=1
 RUNTIMES_PHASE=1
@@ -147,6 +148,7 @@ else
         if [[ "$ABI" == "android"* ]]; then
             COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
         elif [[ "$ABI" == "musl" ]]; then
+            LIBC_HEADERS_PHASE=1
             COMPILER_RT_PHASE=0
             BUILTINS_PHASE=2
         fi
@@ -751,6 +753,10 @@ build_compiler_rt_or_builtins() {
         fi
     fi
 }
+
+if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes" "yes"
+fi
 
 # Example usage of the functions
 clone_or_update_dependency llvm-project
