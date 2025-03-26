@@ -220,16 +220,18 @@ build_musl() {
     fi
 
     if [[ "$headersonly" == "yes" ]]; then
-        if [[ ${usellvm} == "yes" ]]; then
-            LD=lld make install-headers -j$(nproc)
-        else
-            (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+        if [ ! -f "${currentpathlibc}/build/musl/default/.headersinstallsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                LD=lld make install-headers -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+            fi
+            if [ $? -ne 0 ]; then
+                echo "musl install-headers failure"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.headersinstallsuccess"
         fi
-        if [ $? -ne 0 ]; then
-            echo "musl install-headers failure"
-            exit 1
-        fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslheadersinstallsuccess"
         return
     fi
 
