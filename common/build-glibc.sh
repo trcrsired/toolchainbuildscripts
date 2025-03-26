@@ -276,10 +276,17 @@ build_musl() {
         mkdir -p "$sysrootpathusr"
         cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
 
+        cd "$sysrootpathusr/lib"
+        for file in ld-musl-*.so.1; do
+            if [ -e "$file" ]; then
+                ln -sf libc.so "$file"
+            fi
+        done
+
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
 #        mkdir -p "$sysrootpathusr/lib"
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib"/* "$sysrootpathusr/lib"/
-#        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
     fi
 
     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslinstallsuccess"
