@@ -33,10 +33,13 @@ install_linux_kernel_headers() {
 }
 
 build_glibc() {
-    local cpu=$1
+    local host=$1
     local currentpathlibc=$2
     local sysrootpathusr=$3
-    local buildmulitlib=$4
+    local usellvm=$4
+    local headersonly=$5
+    local buildmulitlib=$6
+    local build=${7:-}
     local multilibs=(default)
     local multilibsoptions=("")
     local multilibsdir=("lib")
@@ -61,8 +64,15 @@ build_glibc() {
             multilibshost=("loongarch64-linux-gnu")
         fi
     fi
+    local phase_dir
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_dir="build-headers"
+    else
+        phase_dir="build"
+    fi
+
     mkdir -p "${sysrootpathusr}"
-    mkdir -p "${currentpathlibc}/build/glibc"
+    mkdir -p "${currentpathlibc}/${phase_dir}/glibc"
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then
         toolchains_path="$HOME/toolchains_build"
@@ -75,37 +85,89 @@ build_glibc() {
         local libdir=${multilibsdir[$i]}
         local host=${multilibshost[$i]}
 
-        mkdir -p "${currentpathlibc}/build/glibc/$item"
-        cd "${currentpathlibc}/build/glibc/$item"
+        mkdir -p "${currentpathlibc}/${phase_dir}/glibc/$item"
+        cd "${currentpathlibc}/${phase_dir}/glibc/$item"
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.configuresuccess" ]; then
-            (export -n LD_LIBRARY_PATH; CC="$host-gcc$marchitem" CXX="$host-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}" --build="$BUILD" --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                LIPO=llvm-lipo \
+                OTOOL=llvm-otool \
+                DSYMUTIL=dsymutil \
+                STRIP=llvm-strip \
+                AR=llvm-ar \
+                CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                AS=llvm-as \
+                RANLIB=llvm-ranlib \
+                CXXFILT=llvm-cxxfilt \
+                NM=llvm-nm \
+                LD=lld \
+                OBJDUMP=llvm-objdump \
+                READELF=llvm-readelf \
+                SIZE=llvm-size \
+                STRINGS=llvm-strings \
+                OBJCOPY=llvm-objcopy \
+                ADDR2LINE=llvm-addr2line \
+                CC="clang --target=$host $marchitem" CXX="clang --target=$host $marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
+                $( [ -n "$build" ] && echo "--build=$build" ) \
+                --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host"
+            else
+                (export -n LD_LIBRARY_PATH; CC="$host-gcc$marchitem" CXX="$host-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
+                $( [ -n "$build" ] && echo "--build=$build" ) \
+                --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) configure failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.configuresuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.buildsuccess" ]; then
-            (export -n LD_LIBRARY_PATH; make -j$(nproc))
+        if [[ "$headersonly" == "yes" ]]; then
+            if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess" ]; then
+                if [[ ${usellvm} == "yes" ]]; then
+                    LD=lld make install-headers -j$(nproc)
+                else
+                    (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+                fi
+                if [ $? -ne 0 ]; then
+                    echo "glibc install-headers failure"
+                    exit 1
+                fi
+                mkdir -p "$sysrootpathusr"
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "$sysrootpathusr/"
+                echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess"
+            fi
+            return
+        fi
+
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                make -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make -j$(nproc))
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) build failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.buildsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.installsuccess" ]; then
-            (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                make install -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) install failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.installsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.removehardcodedpathsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess" ]; then
             local canadianreplacedstring="${currentpathlibc}/install/glibc/${item}/lib/"
             for file in "${glibcfiles[@]}"; do
                 local filepath="$canadianreplacedstring/$file"
@@ -118,14 +180,14 @@ build_glibc() {
                     fi
                 fi
             done
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.removehardcodedpathsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.stripsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess" ]; then
             safe_llvm_strip "${currentpathlibc}/install/glibc/${item}"
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.stripsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess"
         fi
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.sysrootsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess" ]; then
             if [ $i -eq 0 ]; then
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
             else
@@ -141,7 +203,7 @@ build_glibc() {
                     exit 1
                 fi
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.sysrootsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess"
         fi
     done
 
@@ -154,7 +216,8 @@ build_musl() {
     local sysrootpathusr=$3
     local usellvm=$4
     local headersonly=$5
-    local build=${6:-}
+    local buildmulitlib=$6
+    local build=${7:-}
 
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then

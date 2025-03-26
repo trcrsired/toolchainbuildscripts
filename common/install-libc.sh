@@ -208,7 +208,7 @@ install_libc() {
                         echo "Error: Failed to clone or update glibc"
                         exit 1
                     fi
-                    build_glibc $CPU "${currentpathlibc}" "${sysrootpathusr}"
+                    build_glibc $CPU "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build glibc"
                         exit 1
@@ -219,7 +219,7 @@ install_libc() {
                         echo "Error: Failed to clone or update musl"
                         exit 1
                     fi
-                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}"
+                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build musl"
                         exit 1
