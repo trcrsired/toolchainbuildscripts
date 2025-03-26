@@ -220,7 +220,7 @@ build_musl() {
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
-            make -j$(nproc)
+            LD=lld make -j$(nproc)
         else
             (export -n LD_LIBRARY_PATH; make -j$(nproc))           
         fi
@@ -233,7 +233,7 @@ build_musl() {
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.installsuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
-            make install -j$(nproc)
+            LD=lld make install -j$(nproc)
         else
             (export -n LD_LIBRARY_PATH; make install -j$(nproc))
         fi
