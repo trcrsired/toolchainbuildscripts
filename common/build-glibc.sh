@@ -102,7 +102,7 @@ build_glibc() {
                 RANLIB=llvm-ranlib \
                 CXXFILT=llvm-cxxfilt \
                 NM=llvm-nm \
-                LD=lld \
+                LDNAME=ld.lld \
                 OBJDUMP=llvm-objdump \
                 READELF=llvm-readelf \
                 SIZE=llvm-size \
