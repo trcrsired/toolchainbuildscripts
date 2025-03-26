@@ -164,8 +164,16 @@ build_musl() {
     else
         toolchains_path="$TOOLCHAINS_BUILD"
     fi
+
+    local phase_dir
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_dir="build-headers"
+    else
+        phase_dir="build"
+    fi
+
     mkdir -p "${sysrootpathusr}"
-    if [ ! -f "${currentpathlibc}/build/musl/default/.configuresuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
             LIPO=llvm-lipo \
             OTOOL=llvm-otool \
@@ -219,12 +227,12 @@ build_musl() {
             exit 1
         fi
 
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.configuresuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess"
 
     fi
 
     if [[ "$headersonly" == "yes" ]]; then
-        if [ ! -f "${currentpathlibc}/build/musl/default/.headersinstallsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess" ]; then
             if [[ ${usellvm} == "yes" ]]; then
                 LD=lld make install-headers -j$(nproc)
             else
@@ -236,25 +244,25 @@ build_musl() {
             fi
             mkdir -p "$sysrootpathusr"
             cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.headersinstallsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess"
         fi
         return
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
             LD=lld make -j$(nproc)
         else
             (export -n LD_LIBRARY_PATH; make -j$(nproc))           
         fi
         if [ $? -ne 0 ]; then
-            echo "musl build failure"
+            echo "musl ${phase_dir} failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.buildsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.installsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
             LD=lld make install -j$(nproc)
         else
@@ -264,20 +272,19 @@ build_musl() {
             echo "musl install failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.installsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.stripsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess" ]; then
         safe_llvm_strip "${currentpathlibc}/install/musl"
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.stripsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.sysrootsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess" ]; then
         mkdir -p "$sysrootpathusr"
         cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
 
-        cd "$sysrootpathusr/lib"
-        for file in ld-musl-*.so.1; do
+        for file in "$sysrootpathusr/lib"/ld-musl-*.so.1; do
             if [ -e "$file" ]; then
                 ln -sf libc.so "$file"
             fi
@@ -286,8 +293,6 @@ build_musl() {
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
 #        mkdir -p "$sysrootpathusr/lib"
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib"/* "$sysrootpathusr/lib"/
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess"
     fi
-
-    echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslinstallsuccess"
 }
