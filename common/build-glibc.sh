@@ -172,8 +172,8 @@ build_musl() {
             DSYMUTIL=dsymutil \
             STRIP=llvm-strip \
             AR=llvm-ar \
-            CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo" \
-            CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo" \
+            CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+            CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
             AS=llvm-as \
             RANLIB=llvm-ranlib \
             CXXFILT=llvm-cxxfilt \
