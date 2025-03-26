@@ -153,7 +153,8 @@ build_musl() {
     local currentpathlibc=$2
     local sysrootpathusr=$3
     local usellvm=$4
-    local build=${5:-}
+    local headersonly=$5
+    local build=${6:-}
 
     mkdir -p "${currentpathlibc}/build/musl/default"
     cd "${currentpathlibc}/build/musl/default"
@@ -216,6 +217,20 @@ build_musl() {
 
         echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.configuresuccess"
 
+    fi
+
+    if [[ "$headersonly" == "yes" ]]; then
+        if [[ ${usellvm} == "yes" ]]; then
+            LD=lld make install-headers -j$(nproc)
+        else
+            (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+        fi
+        if [ $? -ne 0 ]; then
+            echo "musl install-headers failure"
+            exit 1
+        fi
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslheadersinstallsuccess"
+        return
     fi
 
     if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then

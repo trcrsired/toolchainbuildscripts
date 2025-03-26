@@ -6,6 +6,7 @@ install_libc() {
     local tripletpath="$3"
     local sysrootpathusr="$4"
     local usellvm="$5"
+    local buildheadersonly="$6"
     local CPU
     local VENDOR
     local OS
@@ -211,7 +212,7 @@ install_libc() {
                         echo "Error: Failed to clone or update musl"
                         exit 1
                     fi
-                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "$usellvm"
+                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build musl"
                         exit 1
