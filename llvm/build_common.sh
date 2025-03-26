@@ -118,6 +118,7 @@ COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
+BUILD_LIBC_WITH_LLVM=1
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -151,6 +152,14 @@ else
             LIBC_HEADERS_PHASE=1
             COMPILER_RT_PHASE=0
             BUILTINS_PHASE=2
+        elif [[ "$ABI" == "gnu" ]]; then
+            if [[ "x$BUILD_GLIBC_WITH_LLVM"  == "xyes" ]]; then
+                LIBC_HEADERS_PHASE=1
+                COMPILER_RT_PHASE=0
+                BUILTINS_PHASE=2
+            else
+                BUILD_LIBC_WITH_LLVM=0
+            fi
         fi
 #       clang should understand it is emulated-tls based on triplet
 #        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
@@ -780,13 +789,13 @@ build_compiler_rt_or_builtins() {
 clone_or_update_dependency llvm-project
 
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes" "yes"
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
 fi
 
 build_compiler_rt_or_builtins 0
 
 if [[ LIBC_PHASE -ne 0 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
 fi
 
 build_compiler_rt_or_builtins 1
