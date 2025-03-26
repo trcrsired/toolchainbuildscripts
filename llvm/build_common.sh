@@ -416,7 +416,7 @@ fi
 
 if [[ "${OS}" == "linux" ]]; then
     if [[ "${ABI}" == "android"* ]]; then
-cat << EOF >> "$currentpath/compiler-rt.cmake"
+cat << EOF >> "$currentpath/builtins.cmake"
 set(ANDROID On)
 EOF
     fi
