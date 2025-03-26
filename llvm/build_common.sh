@@ -118,7 +118,7 @@ COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
-BUILD_LIBC_WITH_LLVM=1
+BUILD_LIBC_WITH_LLVM="yes"
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -158,7 +158,7 @@ else
                 COMPILER_RT_PHASE=0
                 BUILTINS_PHASE=2
             else
-                BUILD_LIBC_WITH_LLVM=0
+                BUILD_LIBC_WITH_LLVM="no"
             fi
         fi
 #       clang should understand it is emulated-tls based on triplet
