@@ -652,6 +652,16 @@ build_project() {
                         new_name="${file//-${CPU}/}"
                         mv "$file" "$new_name"
                     done
+                    # Iterate through files matching the pattern libclang_rt.*-${ABI_NO_VERSION}.a
+                    for file in libclang_rt.*-"${ABI_NO_VERSION}".a; do
+                        # Check if the file exists
+                        if [ -e "$file" ]; then
+                            # Construct the new file name by removing "-${ABI_NO_VERSION}" from the original file name
+                            new_file="${file/-${ABI_NO_VERSION}/}"
+                            # Copy the file to the new file name (preserve the original file)
+                            cp "$file" "$new_file"
+                        fi
+                    done
                     if [[ "$project_name" == "compiler-rt" ]]; then
                         for file in *.so; do
                             filename="${file%.so}"
@@ -762,12 +772,11 @@ build_compiler_rt_or_builtins() {
     fi
 }
 
+clone_or_update_dependency llvm-project
+
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
     install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes" "yes"
 fi
-
-# Example usage of the functions
-clone_or_update_dependency llvm-project
 
 build_compiler_rt_or_builtins 0
 
