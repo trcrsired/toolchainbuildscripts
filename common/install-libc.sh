@@ -27,9 +27,16 @@ install_libc() {
         fi
     fi
 
+    local phase_file
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_file=".libc_headers_phase_done"
+    else
+        phase_file=".libc_phase_done"
+    fi
+
     mkdir -p "${currentpathlibc}"
     mkdir -p "${tripletpath}"
-    if [ ! -f "${currentpathlibc}/.libc_phase_done" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_file}" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
             local darwinversiondate
@@ -220,6 +227,6 @@ install_libc() {
                 fi
             fi
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_done"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_file}"
     fi
 }
