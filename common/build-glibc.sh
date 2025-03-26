@@ -43,6 +43,7 @@ build_glibc() {
     local multilibs=(default)
     local multilibsoptions=("")
     local multilibsdir=("lib")
+    local cpu=${host%%-*}
     local multilibshost=("$cpu-linux-gnu")
     local glibcfiles=(libm.a libm.so libc.so)
 
@@ -108,7 +109,7 @@ build_glibc() {
                 STRINGS=llvm-strings \
                 OBJCOPY=llvm-objcopy \
                 ADDR2LINE=llvm-addr2line \
-                CC="clang --target=$host $marchitem" CXX="clang --target=$host $marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
+                "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
                 $( [ -n "$build" ] && echo "--build=$build" ) \
                 --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host"
             else
