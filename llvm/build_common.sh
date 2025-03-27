@@ -5,6 +5,9 @@ echo "TRIPLET is not set. Please set the TRIPLET environment variable to the tar
 exit 1
 fi
 currentpath="$(realpath .)/.artifacts/llvm/${TRIPLET}"
+if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
+SKIP_DEPENDENCY_CHECK=yes
+fi
 mkdir -p "$currentpath"
 cd ../common
 source ./common.sh
@@ -562,6 +565,9 @@ fi
 
 fi
 
+if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
+exit 0
+fi
 
 # Define the function to build and install
 build_project() {
