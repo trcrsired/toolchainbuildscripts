@@ -41,6 +41,8 @@ main() {
         "x86_64-windows-gnu"
     )
 
+    echo "TRIPLETS total count: ${#TRIPLETS2[@]}"
+
     # Local variables for platform triplet detection
     local platform_triplet
     local platform_triplet_no_vendor
@@ -50,14 +52,28 @@ main() {
     echo "Detected: $platform_triplet, $platform_triplet_no_vendor"
 
     # Filter triplets based on the provided index range, if specified
-    if [[ -n "$start_index" && -n "$end_index" && $start_index -le $end_index ]]; then
-        TRIPLETS2=("${TRIPLETS2[@]:$start_index:$(($end_index - $start_index + 1))}")
+    # The range is left-closed and right-open: [start_index, end_index)
+    if [[ -z "$start_index" ]]; then
+        start_index=0  # Default to the first element
+    fi
+
+    if [[ -z "$end_index" ]]; then
+        end_index=${#TRIPLETS2[@]}  # Default to the length of the array
+    fi
+
+    if [[ $start_index -lt $end_index ]]; then
+        TRIPLETS2=("${TRIPLETS2[@]:$start_index:$(($end_index - $start_index))}")
+    else
+        # If range is invalid or empty, terminate the script
+        echo "Error: Invalid index range provided. Exiting."
+        exit 1
     fi
 
     # Flag to track if a match is found
     local found_match=0
     local new_array=()
 
+    # Always build the local platform_triplet unless explicitly skipped
     if [[ "$SKIP_PLATFORM_TRIPLET" != "yes" ]]; then
         echo "Building local platform_triplet: $platform_triplet"
         # Check if platform_triplet_no_vendor exists in TRIPLETS2
@@ -81,15 +97,16 @@ main() {
     fi
 
     # Print the updated array
-    echo "Updated TRIPLETS2 array:"
+    echo "Updated TRIPLETS2 array (count: ${#TRIPLETS2[@]}):"
     for triplet in "${TRIPLETS2[@]}"; do
         echo "$triplet"
     done
+
+    # Iterate through the triplets and trigger the build process
     for triplet in "${TRIPLETS2[@]}"; do
         TRIPLET=$triplet ./build_common.sh $restart_paramter
     done
 }
-
 
 main
 cd "$llvmcurrentrealpath"
