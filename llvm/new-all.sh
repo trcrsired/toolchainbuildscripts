@@ -2,6 +2,8 @@
 #!/bin/bash
 
 restart_paramter=$1
+start_index=$2
+end_index=$3
 
 if [[ $restart_paramter == "restart" ]]; then
 	echo "restarting"
@@ -47,25 +49,35 @@ main() {
     detect_platform_triplet platform_triplet platform_triplet_no_vendor
     echo "Detected: $platform_triplet, $platform_triplet_no_vendor"
 
+    # Filter triplets based on the provided index range, if specified
+    if [[ -n "$start_index" && -n "$end_index" && $start_index -le $end_index ]]; then
+        TRIPLETS2=("${TRIPLETS2[@]:$start_index:$(($end_index - $start_index + 1))}")
+    fi
+
     # Flag to track if a match is found
     local found_match=0
     local new_array=()
 
-    # Check if platform_triplet_no_vendor exists in TRIPLETS2
-    for triplet in "${TRIPLETS2[@]}"; do
-        if [[ "$triplet" == "$platform_triplet_no_vendor" ]]; then
-            found_match=1
-        else
-            new_array+=("$triplet")
-        fi
-    done
+    if [[ "$SKIP_PLATFORM_TRIPLET" != "yes" ]]; then
+        echo "Building local platform_triplet: $platform_triplet"
+        # Check if platform_triplet_no_vendor exists in TRIPLETS2
+        for triplet in "${TRIPLETS2[@]}"; do
+            if [[ "$triplet" == "$platform_triplet_no_vendor" ]]; then
+                found_match=1
+            else
+                new_array+=("$triplet")
+            fi
+        done
 
-    if [[ $found_match -eq 1 ]]; then
-        # If found, move platform_triplet_no_vendor to the front
-        TRIPLETS2=("$platform_triplet_no_vendor" "${new_array[@]}")
+        if [[ $found_match -eq 1 ]]; then
+            # If found, move platform_triplet_no_vendor to the front
+            TRIPLETS2=("$platform_triplet_no_vendor" "${new_array[@]}")
+        else
+            # If not found, add it to the front
+            TRIPLETS2=("$platform_triplet_no_vendor" "${TRIPLETS2[@]}")
+        fi
     else
-        # If not found, add it to the front
-        TRIPLETS2=("$platform_triplet_no_vendor" "${TRIPLETS2[@]}")
+        echo "Skipping local platform_triplet due to environment variable SKIP_PLATFORM_TRIPLET"
     fi
 
     # Print the updated array
