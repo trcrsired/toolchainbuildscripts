@@ -61,10 +61,20 @@ main() {
         end_index=${#TRIPLETS2[@]}  # Default to the length of the array
     fi
 
+    # Ensure end_index can handle the full array, even if it equals the length of TRIPLETS2
+    if [[ $end_index -gt ${#TRIPLETS2[@]} ]]; then
+        echo "Error: end_index exceeds array bounds. Exiting."
+        exit 1
+    fi
+
+    # Handle the range: [start_index, end_index)
     if [[ $start_index -lt $end_index ]]; then
         TRIPLETS2=("${TRIPLETS2[@]:$start_index:$(($end_index - $start_index))}")
+    elif [[ $start_index -eq $end_index ]]; then
+        # If start_index equals end_index, make the array explicitly empty
+        TRIPLETS2=()
     else
-        # If range is invalid or empty, terminate the script
+        # If start_index is greater than end_index, exit with an error
         echo "Error: Invalid index range provided. Exiting."
         exit 1
     fi
