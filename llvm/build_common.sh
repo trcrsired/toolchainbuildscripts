@@ -135,6 +135,7 @@ if [[ "$OS" == "darwin"* ]]; then
     LIBXML2_PHASE=0
     macosxs_SDK_VERSION=15.2
     USE_RUNTIMES_RPATH=1
+    RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then
         DARWINARCHITECTURES="arm64;x86_64"
     else
@@ -734,7 +735,18 @@ build_builtins() {
 }
 
 build_runtimes() {
-    if [[ RUNTIMES_PHASE -ne 0 ]]; then
+    local phase=$1
+    local to_build_runtimes=0
+    if [[ $phase -eq 0 ]]; then
+        if [[ RUNTIMES_PHASE -eq 1 ]]; then
+            to_build_runtimes=1
+        fi
+    elif [[ $phase -eq 1 ]]; then
+        if [[ RUNTIMES_PHASE -eq 2 ]]; then
+            to_build_runtimes=1
+        fi
+    fi
+    if [[ $to_build_runtimes -eq 1 ]]; then
         build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
     fi
 }
@@ -810,7 +822,7 @@ fi
 
 build_compiler_rt_or_builtins 1
 
-build_runtimes
+build_runtimes 0
 
 build_compiler_rt_or_builtins 2
 
@@ -821,6 +833,8 @@ build_libxml2
 build_cppwinrt
 
 build_llvm
+
+build_runtimes 1
 
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
