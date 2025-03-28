@@ -525,6 +525,7 @@ endif()
 # Set CMAKE_AR and CMAKE_RANLIB to use CMAKE_LIBTOOL with -static
 set(CMAKE_AR "${CMAKE_LIBTOOL};-static")
 set(CMAKE_RANLIB "${CMAKE_LIBTOOL};-static")
+set(CMAKE_OSX_DEPLOYMENT_TARGET  ${macosxs_SDK_VERSION})
 EOF
 
 
@@ -533,7 +534,7 @@ set(COMPILER_RT_HAS_G_FLAG On)
 set(DARWIN_osx_BUILTIN_ARCHS "\${CMAKE_OSX_ARCHITECTURES}")
 set(OSX_SYSROOT "\${CMAKE_SYSROOT}")
 set(DARWIN_macosx_CACHED_SYSROOT "\${CMAKE_SYSROOT}")
-set(DARWIN_macosx_OVERRIDE_SDK_VERSION ${macosxs_SDK_VERSION})
+set(DARWIN_macosx_OVERRIDE_SDK_VERSION \${CMAKE_OSX_DEPLOYMENT_TARGET})
 set(COMPILER_RT_BUILD_SANITIZERS On)
 EOF
 
@@ -546,7 +547,6 @@ EOF
 cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
-set(CMAKE_INSTALL_RPATH "@executable_path/../lib;@executable_path/../../runtimes_rpath/lib")
 EOF
 
 fi
