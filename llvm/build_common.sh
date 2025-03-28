@@ -657,10 +657,16 @@ build_project() {
                 echo "${project_name}: Ninja install/strip failed for $TRIPLET"
                 exit 1
             fi
-            if [[ "$project_name" == "runtimes" && "$OS" == "linux" && "$ABI" == "android"* ]]; then
-                cd "${install_prefix}/lib"
-                rm libc++.so
-                ln -s libc++.so.1 libc++.so
+            if [[ "$project_name" == "runtimes" ]]; then
+                if [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
+                    cd "${install_prefix}/lib"
+                    rm libc++.so
+                    ln -s libc++.so.1 libc++.so
+                elif [[ "$OS" == "darwin"* ]]; then
+                    cd "${install_prefix}/lib"
+                    llvm-readtapi libc++.dylib --o=libc++.1.tbd --filetype=tbd-v4
+                    ln -s libc++.1.tbd libc++.tbd
+                fi
             fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
         fi
