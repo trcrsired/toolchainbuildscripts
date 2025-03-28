@@ -667,6 +667,8 @@ build_project() {
                     cd "${install_prefix}/lib"
                     llvm-readtapi libc++.dylib --o=libc++.1.tbd --filetype=tbd-v4
                     ln -s libc++.1.tbd libc++.tbd
+                    llvm-readtapi libunwind.dylib --o=libunwind.1.tbd --filetype=tbd-v4
+                    ln -s libunwind.1.tbd libunwind.tbd
                 fi
             fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
