@@ -45,7 +45,7 @@ install_libc() {
             else
                 darwinversiondate=${DARWINVERSIONDATE}
             fi
-            wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
+            wget --no-verbose https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Darwin sysroot"
                 exit 1
@@ -58,7 +58,7 @@ install_libc() {
             fi
         elif [[ "$OS" == "freebsd"* ]]; then
             cd "${currentpathlibc}"
-            wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
+            wget --no-verbose https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
             if [ $? -ne 0 ]; then
                 echo "wget ${HOST} failure"
                 exit 1
@@ -175,7 +175,7 @@ install_libc() {
                 cd ${currentpathlibc}
                 ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
                 ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                wget https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
+                wget --no-verbose https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
                 if [ $? -ne 0 ]; then
                     echo "wget ${HOST} failure"
                     exit 1
