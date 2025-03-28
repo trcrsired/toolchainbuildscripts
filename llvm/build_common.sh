@@ -387,6 +387,7 @@ set(CXX_SUPPORTS_CUSTOM_LINKER On)
 set(ASM_SUPPORTS_CUSTOM_LINKER On)
 set(LLVM_ENABLE_PROJECTS clang;clang-tools-extra;lld;lldb)
 set(LLVM_BUILD_LLVM_DYLIB On)
+set(LLVM_LINK_LLVM_DYLIB On)
 set(LLVM_ENABLE_LIBCXX On)
 set(LLVM_ENABLE_ZLIB FORCE_ON)
 set(ZLIB_INCLUDE_DIR "\${CMAKE_FIND_ROOT_PATH}/include")
@@ -469,6 +470,7 @@ EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
 set(LLVM_BUILD_LLVM_DYLIB Off)
+set(LLVM_LINK_LLVM_DYLIB Off)
 set(LLVM_ENABLE_LIBCXX Off)
 EOF
 else
@@ -487,11 +489,6 @@ EOF
 
 cat << EOF >> "$currentpath/compiler-rt.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
-EOF
-
-cat << EOF >> $currentpath/runtimes.cmake
-set(BUILD_SHARED_LIBS On)
-set(LLVM_BUILD_LLVM_DYLIB Off)
 EOF
 
 cat << EOF >> $currentpath/runtimes.cmake
@@ -516,6 +513,12 @@ set(LIBUNWIND_HAS_WIN32_THREAD_API On)
 set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off)
 
 # Add any additional settings or compiler/linker options here
+EOF
+
+cat << EOF >> $currentpath/llvm.cmake
+set(BUILD_SHARED_LIBS On)
+set(LLVM_BUILD_LLVM_DYLIB Off)
+set(LLVM_LINK_LLVM_DYLIB Off)
 EOF
 
 fi
