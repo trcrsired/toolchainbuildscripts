@@ -133,7 +133,10 @@ if [[ "$OS" == "darwin"* ]]; then
     COMPILER_RT_PHASE=2
     ZLIB_PHASE=0
     LIBXML2_PHASE=0
-    macosxs_SDK_VERSION=11.0
+    macosxs_SDK_VERSION=15.2
+    if [[ -z "${BUILD_CURRENT_OSX_VERSION+x}" ]]; then
+        BUILD_CURRENT_OSX_VERSION=10.5
+    fi
     USE_RUNTIMES_RPATH=1
     RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then
@@ -546,7 +549,7 @@ EOF
 cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
-set(CMAKE_OSX_DEPLOYMENT_TARGET  ${macosxs_SDK_VERSION})
+set(CURRENT_OSX_VERSION  ${BUILD_CURRENT_OSX_VERSION})
 EOF
 
 fi
