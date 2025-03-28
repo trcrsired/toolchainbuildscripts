@@ -559,6 +559,7 @@ cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
 set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib")
+set(MACOSX_RPATH On)
 EOF
 
 fi
