@@ -558,7 +558,7 @@ EOF
 cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
-set(CURRENT_OSX_VERSION  ${BUILD_CURRENT_OSX_VERSION})
+set(CMAKE_INSTALL_NAME_DIR "@executable_path/../lib")
 EOF
 
 fi
