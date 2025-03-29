@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 restart_paramter=$1
