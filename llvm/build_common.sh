@@ -126,6 +126,7 @@ USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
 BUILD_LIBC_WITH_LLVM="yes"
+USE_LLVM_LINK_DYLIB=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -137,6 +138,7 @@ if [[ "$OS" == "darwin"* ]]; then
     if [[ -z "${BUILD_CURRENT_OSX_VERSION+x}" ]]; then
         BUILD_CURRENT_OSX_VERSION=10.5
     fi
+    USE_LLVM_LINK_DYLIB=1
     USE_RUNTIMES_RPATH=1
     RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then
@@ -425,6 +427,16 @@ set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.so")
 endif()
 set(HAVE_LIBXML2 On)
 EOF
+
+
+if [[ USE_LLVM_LINK_DYLIB -eq 1 ]]; then
+cat << EOF >> "$currentpath/llvm.cmake"
+set(LLVM_BUILD_LLVM_DYLIB On)
+set(LLVM_LINK_LLVM_DYLIB On)
+unset(BUILD_SHARED_LIBS)
+EOF
+fi
+
 
 if [[ "${ABI}" == "musl" ]]; then
 cat << EOF >> $currentpath/runtimes.cmake
