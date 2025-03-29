@@ -33,7 +33,7 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/mingw-w64.git"
             ;;
         "zlib")
-            GIT_URL="git@github.com:trcrsired/zlib.git"
+            GIT_URL="git@github.com:madler/zlib.git"
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/zlib.git"
             ;;
         "libxml2")

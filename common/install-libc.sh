@@ -6,6 +6,7 @@ install_libc() {
     local tripletpath="$3"
     local sysrootpathusr="$4"
     local usellvm="$5"
+    local buildheadersonly="$6"
     local CPU
     local VENDOR
     local OS
@@ -26,9 +27,16 @@ install_libc() {
         fi
     fi
 
+    local phase_file
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_file=".libc_headers_phase_done"
+    else
+        phase_file=".libc_phase_done"
+    fi
+
     mkdir -p "${currentpathlibc}"
     mkdir -p "${tripletpath}"
-    if [ ! -f "${currentpathlibc}/.libc_phase_done" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_file}" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
             local darwinversiondate
@@ -37,7 +45,7 @@ install_libc() {
             else
                 darwinversiondate=${DARWINVERSIONDATE}
             fi
-            wget https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
+            wget --no-verbose https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Darwin sysroot"
                 exit 1
@@ -50,7 +58,7 @@ install_libc() {
             fi
         elif [[ "$OS" == "freebsd"* ]]; then
             cd "${currentpathlibc}"
-            wget https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
+            wget --no-verbose https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
             if [ $? -ne 0 ]; then
                 echo "wget ${HOST} failure"
                 exit 1
@@ -81,8 +89,8 @@ install_libc() {
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
                 elif [[ ${CPU} == "arm" ]]; then
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64"
-                elif [[ ${CPU} == "i[3-6]86" ]]; then
-                    MINGWW64COMMON="--disable-lib32 --enable-lib64 --with-default-msvcrt=msvcrt"
+                elif [[ ${CPU} =~ i[3-6]86 ]]; then
+                    MINGWW64COMMON="--enable-lib32 --disable-lib64 --with-default-msvcrt=msvcrt"
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
@@ -155,14 +163,19 @@ install_libc() {
             fi
         elif [[ "$OS" == "linux" ]]; then
             if [[ "$ABI" == "android"* ]]; then
-                if [ -z ${ANDROIDNDKVERSION+x} ]; then
-                    ANDROIDNDKVERSION=r28
+                if [ -z "${ANDROIDNDKVERSION}" ]; then
+                    ANDROIDNDKVERSION=$(git ls-remote --tags git@github.com:android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
+                    echo "Detected ANDROIDNDKVERSION: ${ANDROIDNDKVERSION}"       
+                    # Default to r28 if no valid tag is found
+                    if [ -z "${ANDROIDNDKVERSION}" ]; then
+                        ANDROIDNDKVERSION="r28"
+                    fi
                 fi
                 mkdir -p ${currentpathlibc}
                 cd ${currentpathlibc}
                 ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
                 ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                wget https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
+                wget --no-verbose https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
                 if [ $? -ne 0 ]; then
                     echo "wget ${HOST} failure"
                     exit 1
@@ -195,7 +208,7 @@ install_libc() {
                         echo "Error: Failed to clone or update glibc"
                         exit 1
                     fi
-                    build_glibc $CPU "${currentpathlibc}" "${sysrootpathusr}"
+                    build_glibc $CPU "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build glibc"
                         exit 1
@@ -206,7 +219,7 @@ install_libc() {
                         echo "Error: Failed to clone or update musl"
                         exit 1
                     fi
-                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "$usellvm"
+                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build musl"
                         exit 1
@@ -214,6 +227,6 @@ install_libc() {
                 fi
             fi
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_done"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_file}"
     fi
 }

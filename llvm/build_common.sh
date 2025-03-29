@@ -5,6 +5,9 @@ echo "TRIPLET is not set. Please set the TRIPLET environment variable to the tar
 exit 1
 fi
 currentpath="$(realpath .)/.artifacts/llvm/${TRIPLET}"
+if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
+SKIP_DEPENDENCY_CHECK=yes
+fi
 mkdir -p "$currentpath"
 cd ../common
 source ./common.sh
@@ -46,9 +49,13 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
+if [ -z ${TOOLCHAINS_LLVMPATH+x} ]; then
+    TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
+fi
 
-TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
-TOOLCHAINS_LLVMTRIPLETPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
+if [ -z ${TOOLCHAINS_LLVMTRIPLETPATH+x} ]; then
+    TOOLCHAINS_LLVMTRIPLETPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
+fi
 
 if [ -z ${NO_TOOLCHAIN_DELETION+x} ]; then
 check_clang_location
@@ -105,6 +112,7 @@ if [ -z ${SYSTEMNAME+x} ]; then
     fi
 fi
 
+LIBC_HEADERS_PHASE=0
 LIBC_PHASE=1
 BUILTINS_PHASE=1
 RUNTIMES_PHASE=1
@@ -116,6 +124,9 @@ LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
+USE_LLVM_LIBS=1
+BUILD_LIBC_WITH_LLVM="yes"
+USE_LLVM_LINK_DYLIB=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -124,7 +135,12 @@ if [[ "$OS" == "darwin"* ]]; then
     ZLIB_PHASE=0
     LIBXML2_PHASE=0
     macosxs_SDK_VERSION=15.2
+    if [[ -z "${BUILD_CURRENT_OSX_VERSION+x}" ]]; then
+        BUILD_CURRENT_OSX_VERSION=10.5
+    fi
+    USE_LLVM_LINK_DYLIB=1
     USE_RUNTIMES_RPATH=1
+    RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then
         DARWINARCHITECTURES="arm64;x86_64"
     else
@@ -138,9 +154,26 @@ else
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
+            RUNTIMES_PHASE=0
+            USE_LLVM_LIBS=0
+            CPPWINRT_PHASE=0
         fi
-    elif [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
-        COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+    elif [[ "$OS" == "linux" ]]; then
+        if [[ "$ABI" == "android"* ]]; then
+            COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+        elif [[ "$ABI" == "musl" ]]; then
+            LIBC_HEADERS_PHASE=1
+            COMPILER_RT_PHASE=0
+            BUILTINS_PHASE=2
+        elif [[ "$ABI" == "gnu" ]]; then
+            if [[ "x$BUILD_GLIBC_WITH_LLVM"  == "xyes" ]]; then
+                LIBC_HEADERS_PHASE=1
+                COMPILER_RT_PHASE=0
+                BUILTINS_PHASE=2
+            else
+                BUILD_LIBC_WITH_LLVM="no"
+            fi
+        fi
 #       clang should understand it is emulated-tls based on triplet
 #        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
 #            USE_EMULATED_TLS=1
@@ -219,11 +252,13 @@ set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
+if [[ USE_LLVM_LIBS -ne 0 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -rtlib=compiler-rt")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libunwind")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
+fi
 
 if [[ $USE_EMULATED_TLS -eq 1 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
@@ -265,6 +300,7 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION On)
 set(COMPILER_RT_USE_LIBCXX On)
+set(COMPILER_RT_BUILD_BUILTINS On)
 EOF
 
 cat << EOF > "$currentpath/builtins.cmake"
@@ -286,7 +322,7 @@ cat << EOF > "$currentpath/libxml2.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(LIBXML2_WITH_ICONV Off)
 set(LIBXML2_WITH_PYTHON Off)
-set(BUILD_SHARED_LIBS On)
+set(BUILD_SHARED_LIBS Off)
 set(BUILD_STATIC_LIBS On)
 EOF
 
@@ -308,7 +344,7 @@ set(LIBCXX_CXX_ABI_INCLUDE_PATHS "${LLVMPROJECTPATH}/libcxxabi/include")
 set(LIBCXX_ENABLE_EXCEPTIONS On)
 set(LIBCXXABI_ENABLE_EXCEPTIONS On)
 set(LIBCXX_ENABLE_RTTI On)
-set(LIBCXXABI_ENABLE_RTTI $On)
+set(LIBCXXABI_ENABLE_RTTI On)
 set(LLVM_ENABLE_ASSERTIONS "Off")
 set(LLVM_INCLUDE_EXAMPLES "Off")
 set(LLVM_ENABLE_BACKTRACES "Off")
@@ -318,10 +354,10 @@ set(LIBCXX_ENABLE_SHARED "On")
 set(LIBCXXABI_ENABLE_SHARED "On")
 set(LIBUNWIND_ENABLE_SHARED "On")
 set(LIBUNWIND_ADDITIONAL_COMPILE_FLAGS "-fuse-ld=lld;-flto=thin;-rtlib=compiler-rt;-Wno-macro-redefined")
-set(LIBCXX_ADDITIONAL_COMPILE_FLAGS "\${LIBUNWIND_ADDITIONAL_COMPILE_FLAGS};-Wno-user-defined-literals")
-set(LIBCXXABI_ADDITIONAL_COMPILE_FLAGS "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS}")
-set(LIBCXX_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS} -nostdinc++ -L${CURRENTTRIPLEPATH_RUNTIMES}/lib")
-set(LIBCXXABI_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_LIBRARIES} -lc++")
+set(LIBCXX_ADDITIONAL_COMPILE_FLAGS "\${LIBUNWIND_ADDITIONAL_COMPILE_FLAGS};-nostdinc++;-Wno-user-defined-literals")
+set(LIBCXXABI_ADDITIONAL_COMPILE_FLAGS "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS};-lc++")
+set(LIBCXX_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS};-L${CURRENTTRIPLEPATH_RUNTIMES}/lib;-lc++")
+set(LIBCXXABI_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_LIBRARIES}")
 set(LIBUNWIND_ADDITIONAL_LIBRARIES "\${LIBCXX_ADDITIONAL_COMPILE_FLAGS}")
 set(LIBCXX_USE_COMPILER_RT "On")
 set(LIBCXXABI_USE_COMPILER_RT "On")
@@ -366,10 +402,12 @@ endif()
 
 if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.dll.a")
-elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
-set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlib.dll.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzs.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libzlibstatic.a")
+set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libzlibstatic.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libz.tbd")
@@ -378,10 +416,10 @@ else()
 set(ZLIB_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libz.so")
 endif()
 
-if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
-set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
-elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
+if(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
 set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.a")
+elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
+set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.dll.a")
 elseif(EXISTS "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
 set(LIBXML2_LIBRARY "\${CMAKE_FIND_ROOT_PATH}/lib/libxml2.tbd")
 else()
@@ -390,18 +428,75 @@ endif()
 set(HAVE_LIBXML2 On)
 EOF
 
-if [[ "${OS}" == "windows" ]]; then
+
+if [[ USE_LLVM_LINK_DYLIB -eq 1 ]]; then
+cat << EOF >> "$currentpath/llvm.cmake"
+set(LLVM_BUILD_LLVM_DYLIB On)
+set(LLVM_LINK_LLVM_DYLIB On)
+unset(BUILD_SHARED_LIBS)
+EOF
+fi
+
+
+if [[ "${ABI}" == "musl" ]]; then
+cat << EOF >> $currentpath/runtimes.cmake
+set(LIBCXX_HAS_MUSL_LIBC On)
+set(LIBCXXABI_HAS_MUSL_LIBC On)
+set(LIBUNWIND_HAS_MUSL_LIBC On)
+EOF
+fi
+
+if [[ "${OS}" == "linux" ]]; then
+    if [[ "${ABI}" == "android"* ]]; then
+cat << EOF >> "$currentpath/builtins.cmake"
+set(ANDROID On)
+EOF
+    fi
+elif [[ "${OS}" == "windows" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_CXX_LINKER_DEPFILE_SUPPORTED FALSE)
 set(CMAKE_ASM_LINKER_DEPFILE_SUPPORTED FALSE)
 EOF
 if [[ "${ABI}" == "msvc" ]]; then
+if [ -z ${WINDOWSMSVCSYSROOT+x} ]; then
+	WINDOWSMSVCSYSROOT="$HOME/toolchains/windows-msvc-sysroot"
+fi
+
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
+set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
+set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
+EOF
+cat << EOF >> "$currentpath/zlib.cmake"
+set(ZLIB_BUILD_SHARED OFF)
+EOF
+cat << EOF >> "$currentpath/libxml2.cmake"
+set(LIBXML2_WITH_TESTS OFF)
+set(LIBXML2_WITH_CATALOG OFF)
+set(LIBXML2_WITH_PROGRAMS Off)
+EOF
 cat << EOF >> "$currentpath/llvm.cmake"
 unset(BUILD_SHARED_LIBS)
+set(LLVM_ENABLE_LIBCXX Off)
 EOF
 else
-cat << EOF >> $currentpath/cppwinrt.cmake
+
+cat << EOF >> "$currentpath/libxml2.cmake"
+set(BUILD_SHARED_LIBS On)
+EOF
+
+cat << EOF >> "$currentpath/llvm.cmake"
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+
+cat << EOF >> "$currentpath/cppwinrt.cmake"
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+
+cat << EOF >> "$currentpath/compiler-rt.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
 
@@ -466,7 +561,7 @@ EOF
 cat << EOF >> $currentpath/llvm.cmake
 set(LLDB_INCLUDE_TESTS Off)
 set(LLDB_USE_SYSTEM_DEBUGSERVER On)
-set(CMAKE_INSTALL_RPATH "@executable_path/../lib;@executable_path/../../runtimes_rpath/lib")
+set(CMAKE_CURRENT_OSX_VERSION ${BUILD_CURRENT_OSX_VERSION})
 EOF
 
 fi
@@ -490,6 +585,9 @@ fi
 
 fi
 
+if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
+exit 0
+fi
 
 # Define the function to build and install
 build_project() {
@@ -499,6 +597,7 @@ build_project() {
     local build_prefix=$4
     local copy_to_sysroot_usr=$5
     local current_phase_file=".${project_name}_phase_done"
+    local delete_previous_phase_file=".${project_name}_phase_delete_previous"
     local configure_phase_file=".${project_name}_phase_configure"
     local build_phase_file=".${project_name}_phase_build"
     local install_phase_file=".${project_name}_phase_install"
@@ -521,6 +620,15 @@ build_project() {
     if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         mkdir -p "${build_prefix}"
         cd "${build_prefix}"
+
+        if [[ "$project_name" == "runtimes" ]]; then
+            if [ ! -f "${build_prefix}/${delete_previous_phase_file}" ]; then
+                if [ -d "${SYSROOTPATHUSR}/include/c++/v1" ]; then
+                    rm -rf "${SYSROOTPATHUSR}/include/c++/v1"
+                fi
+                echo "$(date --iso-8601=seconds)" > "${build_prefix}/${delete_previous_phase_file}"
+            fi
+        fi
 
         if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
             cd "${build_prefix}"
@@ -547,6 +655,7 @@ build_project() {
                     echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
                     exit 1
                 fi
+                touch "${toolchain_file}"
             fi
             ninja
             if [ $? -ne 0 ]; then
@@ -564,30 +673,50 @@ build_project() {
                 echo "${project_name}: Ninja install/strip failed for $TRIPLET"
                 exit 1
             fi
-            if [[ "$project_name" == "runtimes" && "$OS" == "linux" && "$ABI" == "android"* ]]; then
-                cd "${install_prefix}/lib"
-                rm libc++.so
-                ln -s libc++.so.1 libc++.so
+            if [[ "$project_name" == "runtimes" ]]; then
+                if [[ "$OS" == "linux" && "$ABI" == "android"* ]]; then
+                    cd "${install_prefix}/lib"
+                    rm libc++.so
+                    ln -s libc++.so.1 libc++.so
+                elif [[ "$OS" == "darwin"* ]]; then
+                    cd "${install_prefix}/lib"
+                    llvm-readtapi libc++.dylib --o=libc++.1.tbd --filetype=tbd-v4
+                    ln -s libc++.1.tbd libc++.tbd
+                    llvm-readtapi libunwind.dylib --o=libunwind.1.tbd --filetype=tbd-v4
+                    ln -s libunwind.1.tbd libunwind.tbd
+                fi
             fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
         fi
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
             if [[ ${COPY_COMPILER_RT_WITH_SPECIAL_NAME} -eq 1 ]]; then
-                if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
-                    cd "${install_prefix}/lib"
-                    mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
-                    cd "${TRIPLET_WITH_UNKNOWN}"
-                    for file in *-"${CPU}"*; do
-                        new_name="${file//-${CPU}/}"
-                        mv "$file" "$new_name"
-                    done
-                    if [[ "$project_name" == "compiler-rt" ]]; then
-                        for file in *.so; do
-                            filename="${file%.so}"
-                            ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                if [ -d "${install_prefix}/lib" ]; then
+                    if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
+                        cd "${install_prefix}/lib"
+                        mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
+                        cd "${TRIPLET_WITH_UNKNOWN}"
+                        for file in *-"${CPU}"*; do
+                            new_name="${file//-${CPU}/}"
+                            mv "$file" "$new_name"
                         done
+                        # Iterate through files matching the pattern libclang_rt.*-${ABI_NO_VERSION}.a
+                        for file in libclang_rt.*-"${ABI_NO_VERSION}".a; do
+                            # Check if the file exists
+                            if [ -e "$file" ]; then
+                                # Construct the new file name by removing "-${ABI_NO_VERSION}" from the original file name
+                                new_file="${file/-${ABI_NO_VERSION}/}"
+                                # Copy the file to the new file name (preserve the original file)
+                                cp "$file" "$new_file"
+                            fi
+                        done
+                        if [[ "$project_name" == "compiler-rt" ]]; then
+                            for file in *.so; do
+                                filename="${file%.so}"
+                                ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
+                            done
+                        fi
+                        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                     fi
-                    echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
                 fi
             fi
             if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
@@ -629,11 +758,24 @@ build_builtins() {
 }
 
 build_runtimes() {
-    build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    local phase=$1
+    local to_build_runtimes=0
+    if [[ $phase -eq 0 ]]; then
+        if [[ RUNTIMES_PHASE -eq 1 ]]; then
+            to_build_runtimes=1
+        fi
+    elif [[ $phase -eq 1 ]]; then
+        if [[ RUNTIMES_PHASE -eq 2 ]]; then
+            to_build_runtimes=1
+        fi
+    fi
+    if [[ $to_build_runtimes -eq 1 ]]; then
+        build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+    fi
 }
 
 build_llvm() {
-    if [[ LLVM_PHASE -eq 1 ]]; then
+    if [[ LLVM_PHASE -ne 0 ]]; then
         build_project "llvm" "$LLVMPROJECTPATH/llvm" "$currentpath/llvm.cmake" "${currentpath}/llvm"
     fi
 }
@@ -649,7 +791,7 @@ build_library() {
         toolchain_file="$2"
     fi
 
-    if [[ ${!phase_var} -eq 1 ]]; then
+    if [[ ${!phase_var} -ne 0 ]]; then
         clone_or_update_dependency $lib_name
         build_project "$lib_name" "$TOOLCHAINS_BUILD/$lib_name" "$toolchain_file" "${currentpath}/$lib_name" "yes"
     fi
@@ -689,18 +831,21 @@ build_compiler_rt_or_builtins() {
     fi
 }
 
-# Example usage of the functions
 clone_or_update_dependency llvm-project
+
+if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
+fi
 
 build_compiler_rt_or_builtins 0
 
-if [[ $LIBC_PHASE -eq 1 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "yes"
+if [[ LIBC_PHASE -ne 0 ]]; then
+    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
 fi
 
 build_compiler_rt_or_builtins 1
 
-build_runtimes
+build_runtimes 0
 
 build_compiler_rt_or_builtins 2
 
@@ -711,6 +856,8 @@ build_libxml2
 build_cppwinrt
 
 build_llvm
+
+build_runtimes 1
 
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"

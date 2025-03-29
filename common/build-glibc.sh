@@ -8,7 +8,7 @@ install_linux_kernel_headers() {
     local linuxarch=$cpu
     if [[ $linuxarch == "aarch64" ]]; then
         linuxarch="arm64"
-    elif [[ $linuxarch == "i[3-6]86" ]]; then
+    elif [[ $linuxarch =~ i[3-6]86 ]]; then
         linuxarch="x86"
     elif [[ $linuxarch != x86_64 ]]; then
         linuxarch="${linuxarch%%[0-9]*}"
@@ -33,13 +33,17 @@ install_linux_kernel_headers() {
 }
 
 build_glibc() {
-    local cpu=$1
+    local host=$1
     local currentpathlibc=$2
     local sysrootpathusr=$3
-    local buildmulitlib=$4
+    local usellvm=$4
+    local headersonly=$5
+    local buildmulitlib=$6
+    local build=${7:-}
     local multilibs=(default)
     local multilibsoptions=("")
     local multilibsdir=("lib")
+    local cpu=${host%%-*}
     local multilibshost=("$cpu-linux-gnu")
     local glibcfiles=(libm.a libm.so libc.so)
 
@@ -61,8 +65,15 @@ build_glibc() {
             multilibshost=("loongarch64-linux-gnu")
         fi
     fi
+    local phase_dir
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_dir="build-headers"
+    else
+        phase_dir="build"
+    fi
+
     mkdir -p "${sysrootpathusr}"
-    mkdir -p "${currentpathlibc}/build/glibc"
+    mkdir -p "${currentpathlibc}/${phase_dir}/glibc"
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then
         toolchains_path="$HOME/toolchains_build"
@@ -75,37 +86,90 @@ build_glibc() {
         local libdir=${multilibsdir[$i]}
         local host=${multilibshost[$i]}
 
-        mkdir -p "${currentpathlibc}/build/glibc/$item"
-        cd "${currentpathlibc}/build/glibc/$item"
+        mkdir -p "${currentpathlibc}/${phase_dir}/glibc/$item"
+        cd "${currentpathlibc}/${phase_dir}/glibc/$item"
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.configuresuccess" ]; then
-            (export -n LD_LIBRARY_PATH; CC="$host-gcc$marchitem" CXX="$host-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}" --build="$BUILD" --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                LIPO=llvm-lipo \
+                OTOOL=llvm-otool \
+                DSYMUTIL=dsymutil \
+                STRIP=llvm-strip \
+                AR=llvm-ar \
+                CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                TEST_CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+                AS=llvm-as \
+                RANLIB=llvm-ranlib \
+                CXXFILT=llvm-cxxfilt \
+                NM=llvm-nm \
+                LDNAME=ld.lld \
+                OBJDUMP=llvm-objdump \
+                READELF=llvm-readelf \
+                SIZE=llvm-size \
+                STRINGS=llvm-strings \
+                OBJCOPY=llvm-objcopy \
+                ADDR2LINE=llvm-addr2line \
+                "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
+                $( [ -n "$build" ] && echo "--build=$build" ) \
+                --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host"
+            else
+                (export -n LD_LIBRARY_PATH; CC="$host-gcc$marchitem" CXX="$host-g++$marchitem" "$toolchains_path/glibc/configure" --disable-nls --disable-werror --prefix="${currentpathlibc}/install/glibc/${item}"  \
+                $( [ -n "$build" ] && echo "--build=$build" ) \
+                --with-headers="${sysrootpathusr}/include" --without-selinux --host="$host" )
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) configure failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.configuresuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.buildsuccess" ]; then
-            (export -n LD_LIBRARY_PATH; make -j$(nproc))
+        if [[ "$headersonly" == "yes" ]]; then
+            if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess" ]; then
+                if [[ ${usellvm} == "yes" ]]; then
+                    LD=lld make install-headers -j$(nproc)
+                else
+                    (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+                fi
+                if [ $? -ne 0 ]; then
+                    echo "glibc install-headers failure"
+                    exit 1
+                fi
+                mkdir -p "$sysrootpathusr"
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "$sysrootpathusr/"
+                echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess"
+            fi
+            return
+        fi
+
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                make -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make -j$(nproc))
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) build failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.buildsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.installsuccess" ]; then
-            (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                make install -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+            fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) install failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.installsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.removehardcodedpathsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess" ]; then
             local canadianreplacedstring="${currentpathlibc}/install/glibc/${item}/lib/"
             for file in "${glibcfiles[@]}"; do
                 local filepath="$canadianreplacedstring/$file"
@@ -118,14 +182,14 @@ build_glibc() {
                     fi
                 fi
             done
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.removehardcodedpathsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess"
         fi
 
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.stripsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess" ]; then
             safe_llvm_strip "${currentpathlibc}/install/glibc/${item}"
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.stripsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess"
         fi
-        if [ ! -f "${currentpathlibc}/build/glibc/$item/.sysrootsuccess" ]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess" ]; then
             if [ $i -eq 0 ]; then
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
             else
@@ -141,7 +205,7 @@ build_glibc() {
                     exit 1
                 fi
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/glibc/$item/.sysrootsuccess"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess"
         fi
     done
 
@@ -153,101 +217,147 @@ build_musl() {
     local currentpathlibc=$2
     local sysrootpathusr=$3
     local usellvm=$4
-    local build=${5:-}
+    local headersonly=$5
+    local buildmulitlib=$6
+    local build=${7:-}
 
-    mkdir -p "${currentpathlibc}/build/musl/default"
-    cd "${currentpathlibc}/build/musl/default"
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then
         toolchains_path="$HOME/toolchains_build"
     else
         toolchains_path="$TOOLCHAINS_BUILD"
     fi
+
+    local phase_dir
+    if [ "$buildheadersonly" == "yes" ]; then
+        phase_dir="build-headers"
+    else
+        phase_dir="build"
+    fi
+    mkdir -p "${currentpathlibc}/${phase_dir}/musl/default"
+    cd "${currentpathlibc}/${phase_dir}/musl/default"
+
     mkdir -p "${sysrootpathusr}"
-    if [ ! -f "${currentpathlibc}/build/musl/default/.configuresuccess" ]; then
-        local configure_cmd=()
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess" ]; then
         if [[ ${usellvm} == "yes" ]]; then
-            configure_cmd=(
-                LIPO=llvm-lipo
-                OTOOL=llvm-otool
-                DSYMUTIL=dsymutil
-                STRIP=llvm-strip
-                AR=llvm-ar
-                CC="clang --target=$host"
-                CXX="clang++ --target=$host"
-                AS=llvm-as
-                RANLIB=llvm-ranlib
-                CXXFILT=llvm-cxxfilt
-                NM=llvm-nm
-                "$toolchains_path/musl/configure"
-                --disable-nls
-                --disable-werror
-                --prefix="$currentpathlibc/install/musl/default"
-                --with-headers="$sysrootpathusr/include"
-                --disable-shared
-                --enable-static
-                --without-selinux
-                --host="$host"
-            )
+            LIPO=llvm-lipo \
+            OTOOL=llvm-otool \
+            DSYMUTIL=dsymutil \
+            STRIP=llvm-strip \
+            AR=llvm-ar \
+            CC="clang --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+            CXX="clang++ --target=$host -fuse-ld=lld -fuse-lipo=llvm-lipo -rtlib=compiler-rt" \
+            AS=llvm-as \
+            RANLIB=llvm-ranlib \
+            CXXFILT=llvm-cxxfilt \
+            NM=llvm-nm \
+            LD=lld \
+            OBJDUMP=llvm-objdump \
+            READELF=llvm-readelf \
+            SIZE=llvm-size \
+            STRINGS=llvm-strings \
+            OBJCOPY=llvm-objcopy \
+            ADDR2LINE=llvm-addr2line \
+            "$toolchains_path/musl/configure" \
+            --disable-nls \
+            --disable-werror \
+            --prefix="$currentpathlibc/install/musl/default" \
+            --with-headers="$sysrootpathusr/include" \
+            --enable-shared \
+            --enable-static \
+            --without-selinux \
+            --host="$host" \
+            --exec-prefix="$currentpathlibc/install/musl/default" \
+            --syslibdir="$sysrootpathusr/lib" \
+            $( [ -n "$build" ] && echo "--build=$build" )
         else
-            configure_cmd=(
-                export -n LD_LIBRARY_PATH
-                CC="$host-gcc"
-                CXX="$host-g++"
-                "$toolchains_path/musl/configure"
-                --disable-nls
-                --disable-werror
-                --prefix="$currentpathlibc/install/musl/default"
-                --with-headers="$sysrootpathusr/include"
-                --disable-shared
-                --enable-static
-                --without-selinux
-                --host="$host"
-            )
+            CC="$host-gcc" \
+            CXX="$host-g++" \
+            "$toolchains_path/musl/configure" \
+            --disable-nls \
+            --disable-werror \
+            --prefix="$currentpathlibc/install/musl/default" \
+            --with-headers="$sysrootpathusr/include" \
+            --enable-shared \
+            --enable-static \
+            --without-selinux \
+            --host="$host" \
+            --exec-prefix="$currentpathlibc/install/musl/default" \
+            --syslibdir="$sysrootpathusr/lib" \
+            $( [ -n "$build" ] && echo "--build=$build" )
         fi
-        if [ -n "$build" ]; then
-            configure_cmd+=(--build="$build")
-        fi
-        "${configure_cmd[@]}"
+
         if [ $? -ne 0 ]; then
             echo "musl configure failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.configuresuccess"
+
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess"
+
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.buildsuccess" ]; then
-        (export -n LD_LIBRARY_PATH; make -j$(nproc))
+    if [[ "$headersonly" == "yes" ]]; then
+        if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess" ]; then
+            if [[ ${usellvm} == "yes" ]]; then
+                LD=lld make install-headers -j$(nproc)
+            else
+                (export -n LD_LIBRARY_PATH; make install-headers -j$(nproc))           
+            fi
+            if [ $? -ne 0 ]; then
+                echo "musl install-headers failure"
+                exit 1
+            fi
+            mkdir -p "$sysrootpathusr"
+            cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
+            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess"
+        fi
+        return
+    fi
+
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess" ]; then
+        if [[ ${usellvm} == "yes" ]]; then
+            LD=lld make -j$(nproc)
+        else
+            (export -n LD_LIBRARY_PATH; make -j$(nproc))           
+        fi
         if [ $? -ne 0 ]; then
-            echo "musl build failure"
+            echo "musl ${phase_dir} failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.buildsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.installsuccess" ]; then
-        (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess" ]; then
+        if [[ ${usellvm} == "yes" ]]; then
+            LD=lld make install -j$(nproc)
+        else
+            (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+        fi
         if [ $? -ne 0 ]; then
             echo "musl install failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.installsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.stripsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess" ]; then
         safe_llvm_strip "${currentpathlibc}/install/musl"
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.stripsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess"
     fi
 
-    if [ ! -f "${currentpathlibc}/build/musl/default/.sysrootsuccess" ]; then
+    if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess" ]; then
         mkdir -p "$sysrootpathusr"
         cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
+
+        for file in "$sysrootpathusr/lib"/ld-musl-*.so.1; do
+            if [ -e "$file" ]; then
+                ln -sf libc.so "$file"
+            fi
+        done
 
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
 #        mkdir -p "$sysrootpathusr/lib"
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib"/* "$sysrootpathusr/lib"/
-#        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/build/musl/default/.sysrootsuccess"
+        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess"
     fi
-
-    echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.muslinstallsuccess"
 }
