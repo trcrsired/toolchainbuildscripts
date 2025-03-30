@@ -193,17 +193,17 @@ if [ -n "$TRIPLE" ]; then
             exit 1
         fi
     fi
-
-    # Download and extract the Wine release
-    WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
-    echo $WINE_URL
-    echo "Downloading $TRIPLE Wine release to $SOFTWARESPATH/wine"
-    download_file "$WINE_URL" "$SOFTWARESPATH/wine/$TRIPLE.tar.xz"
-    echo "Extracting $TRIPLE Wine release to $SOFTWARESPATH/wine"
-    
-    echo tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
-    tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
-
+    if [[ "x$INSTALL_WINE" == "xyes" ]]; then
+        # Download and extract the Wine release
+        WINE_URL="https://github.com/trcrsired/wine-release/releases/download/$WINE_RELEASE_VERSION/$TRIPLE.tar.xz"
+        echo $WINE_URL
+        echo "Downloading $TRIPLE Wine release to $SOFTWARESPATH/wine"
+        download_file "$WINE_URL" "$SOFTWARESPATH/wine/$TRIPLE.tar.xz"
+        echo "Extracting $TRIPLE Wine release to $SOFTWARESPATH/wine"
+        
+        echo tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
+        tar -xf "$SOFTWARESPATH/wine/$TRIPLE.tar.xz" -C "$SOFTWARESPATH/wine"
+    fi
 fi
 
 fi
@@ -278,7 +278,9 @@ if [ "$SETLLVMENV" == "yes" ]; then
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE2" && echo "$LD_LIBRARY_PATH_LINE2"
             LD_LIBRARY_PATH_LINE3="export LD_LIBRARY_PATH=\$HOME/toolchains/llvm/$TRIPLE/runtimes/lib:\$LD_LIBRARY_PATH"
             ! line_exists_in_bashrc "$LD_LIBRARY_PATH_LINE3" && echo "$LD_LIBRARY_PATH_LINE3"
-            ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
+            if [[ "x$INSTALL_WINE" == "xyes" ]]; then
+                ! line_exists_in_bashrc "$WINE_PATH_LINE" && echo "$WINE_PATH_LINE"
+            fi
 
             WINE_PATH_LINE_WAVM="export WINEPATH=\"\$HOME/softwares/wavm/$ARCH-windows-gnu/bin;\$WINEPATH\""
             ! line_exists_in_bashrc "$WINE_PATH_LINE_WAVM" && echo "$WINE_PATH_LINE_WAVM"
