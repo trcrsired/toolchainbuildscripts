@@ -31,14 +31,19 @@ main() {
         "i686-linux-musl"
         "loongarch64-linux-gnu"
         "loongarch64-linux-musl"
-        "riscv64-linux-android35"
-        "riscv64-linux-gnu"
-        "riscv64-linux-musl"
         "x86_64-linux-android30"
         "x86_64-linux-gnu"
         "x86_64-linux-musl"
         "x86_64-windows-gnu"
     )
+
+    if [ "${ENABLE_RISCV_SUPPORT}" == "1" ]; then
+        TRIPLETS2+=(
+            "riscv64-linux-android35"
+            "riscv64-linux-gnu"
+            "riscv64-linux-musl"
+        )
+    fi
 
     echo "TRIPLETS total count: ${#TRIPLETS2[@]}"
 
