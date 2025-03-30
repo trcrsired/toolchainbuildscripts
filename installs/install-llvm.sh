@@ -66,7 +66,6 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "x86_64-linux-gnu"
         "x86_64-linux-android30"
         "loongarch64-linux-gnu"
-        "riscv64-linux-gnu"
         "wasm-sysroots"
     )
 else
@@ -87,7 +86,7 @@ download_file() {
     local dest=$2
 
     if command -v wget > /dev/null; then
-        wget -O "$dest" "$url"
+        wget -nv -O "$dest" "$url"
     elif command -v curl > /dev/null; then
         curl -L -o "$dest" "$url"
     else

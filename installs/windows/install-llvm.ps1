@@ -133,7 +133,6 @@ if ($NOINSTALLING -ne "yes") {
             "x86_64-linux-gnu",
             "x86_64-linux-android30",
             "loongarch64-linux-gnu",
-            "riscv64-linux-gnu",
             "wasm-sysroots"
         )
     } else {
