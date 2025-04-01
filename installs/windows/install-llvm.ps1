@@ -17,9 +17,13 @@ if ((-not (Test-Admin)) -and ($NOINSTALLING -ne "yes")) {
     exit 1
 }
 
+if (-not $env:HOME) {
+    $env:HOME = $env:USERPROFILE
+}
+
 # Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
 if (-not $env:TOOLCHAINSPATH) {
-    $env:TOOLCHAINSPATH = "$HOME\toolchains"
+    $env:TOOLCHAINSPATH = "$env:HOME\toolchains"
 }
 
 # Create necessary directories

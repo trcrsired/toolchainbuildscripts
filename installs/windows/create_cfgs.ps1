@@ -9,6 +9,10 @@ function Convert-PathToDoubleBackslashes {
     return $path
 }
 
+if (-not $env:HOME) {
+    $env:HOME = $env:USERPROFILE
+}
+
 # Check if TOOLCHAINSPATH environment variable is set, otherwise use $HOME/toolchains
 if (-not $env:TOOLCHAINSPATH) {
     $TOOLCHAINSPATH = "$env:HOME/toolchains"
