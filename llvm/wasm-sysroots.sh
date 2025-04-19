@@ -1,15 +1,15 @@
 #!/bin/bash
-currentpath=$(realpath .)/.llvmwasmartifacts
+currentpath=$(realpath .)/.artifacts/wasm-wasis
 if [ ! -d ${currentpath} ]; then
 	mkdir -p ${currentpath}
 	cd ${currentpath}
 fi
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$currentpath/toolchains_build
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$currentpath/toolchains
+	TOOLCHAINSPATH=$HOME/toolchains
 fi
 
 mkdir -p $TOOLCHAINSPATH
