@@ -18,7 +18,7 @@ get_git_urls() {
             ;;
         "linux")
             GIT_URL="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/kernel/linux.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/linux.git"
             ;;
         "glibc")
             GIT_URL="git://sourceware.org/git/glibc.git"
@@ -54,7 +54,7 @@ get_git_urls() {
             ;;
         "cppwinrt")
             GIT_URL="https://github.com/microsoft/cppwinrt.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/microsoft/cppwinrt.git"
+            GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
             ;;
         *)
             echo "Unknown dependency: $DEPENDENCY_NAME"
