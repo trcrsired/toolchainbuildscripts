@@ -192,7 +192,14 @@ install_libc() {
                 cd ${currentpathlibc}
                 ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
                 ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                wget --no-verbose https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
+                local base_url
+
+                if [ "$CLONE_IN_CHINA" = "yes" ]; then
+                    base_url="https://googledownloads.cn/android/repository"
+                else
+                    base_url="https://dl.google.com/android/repository"
+                fi
+                wget --no-verbose $base_url/${ANDROIDNDKVERSIONFULLNAME}.zip
                 if [ $? -ne 0 ]; then
                     echo "wget ${HOST} failure"
                     exit 1
