@@ -181,7 +181,7 @@ install_libc() {
         elif [[ "$OS" == "linux" ]]; then
             if [[ "$ABI" == "android"* ]]; then
                 if [ -z "${ANDROIDNDKVERSION}" ]; then
-                    ANDROIDNDKVERSION=$(git ls-remote --tags git@github.com:android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
+                    ANDROIDNDKVERSION=$(git ls-remote --tags https://github.com/android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
                     echo "Detected ANDROIDNDKVERSION: ${ANDROIDNDKVERSION}"       
                     # Default to r28 if no valid tag is found
                     if [ -z "${ANDROIDNDKVERSION}" ]; then
