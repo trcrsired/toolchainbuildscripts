@@ -12,6 +12,10 @@ mkdir -p "$currentpath"
 cd ../common
 source ./common.sh
 
+if [[ "x$CLONE_IN_CHINA" == "xyes" ]]; then
+echo "Clone in China enabled. We are going to use Chinese mirror first"
+fi
+
 cd "$currentpath"
 # Parse the target triplet
 
