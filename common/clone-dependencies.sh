@@ -44,6 +44,10 @@ get_git_urls() {
             GIT_URL="git://repo.or.cz/musl.git"
             GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
             ;;
+        "binutils-gdb")
+            GIT_URL="https://sourceware.org/git/binutils-gdb.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/binutils-gdb.git"
+            ;;
         "gcc")
             GIT_URL="git://gcc.gnu.org/git/gcc.git"
             GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/gcc.git"
