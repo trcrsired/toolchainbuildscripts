@@ -170,7 +170,7 @@ local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_t
 
 if [[ "x$project_name" == "xgcc" ]]; then
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
-elif [[ "x$project_name" == "xbinutils-gdb"]]; then
+elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
 
