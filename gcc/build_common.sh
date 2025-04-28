@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if [ -z ${HOSTTRIPLET+x} ]; then
-echo "HOSTTRIPLET is not set. Please set the HOSTTRIPLET environment variable to the target triplet."
+if [ -z ${HOST_TRIPLET+x} ]; then
+echo "HOST_TRIPLET is not set. Please set the HOST_TRIPLET environment variable to the target triplet."
 exit 1
 fi
 
-if [ -z ${TARGETTRIPLET+x} ]; then
-echo "TARGETTRIPLET is not set. Please set the TARGETTRIPLET environment variable to the target triplet."
+if [ -z ${TARGET_TRIPLET+x} ]; then
+echo "TARGETTRIPLET is not set. Please set the TARGET_TRIPLET environment variable to the target triplet."
 exit 1
 fi
 

@@ -42,7 +42,7 @@ get_git_urls() {
             ;;
         "musl")
             GIT_URL="git://repo.or.cz/musl.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/musl.git"
+            GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
             ;;
         "gcc")
             GIT_URL="git://gcc.gnu.org/git/gcc.git"
