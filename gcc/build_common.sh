@@ -21,18 +21,19 @@ source ./common.sh
 cd "$currentpath"
 
 parse_triplet $HOST_TRIPLET HOST_CPU HOST_VENDOR HOST_OS HOST_ABI
+if [ $? -ne 0 ]; then
+echo "Failed to parse the host triplet: $HOST_TRIPLET"
+exit 1
+fi
 
 if [[ "$HOST_OS" == mingw* ]]; then
 HOST_TRIPLET=$HOST_CPU-windows-gnu
 unset HOST_VENDOR
 HOST_OS=windows
 HOST_ABI=gnu
+HOST_GCC_TRIPLET=$HOST_CPU-w64-mingw32
 fi
 
-if [ $? -ne 0 ]; then
-echo "Failed to parse the host triplet: $HOST_TRIPLET"
-exit 1
-fi
 HOST_ABI_NO_VERSION="${HOST_ABI//[0-9]/}"
 HOST_ABI_VERSION=${HOST_ABI//[!0-9]/}
 
@@ -44,18 +45,19 @@ echo "HOST_ABI: $HOST_ABI"
 echo "HOST_ABI_NO_VERSION: $HOST_ABI_NO_VERSION"
 
 parse_triplet $TARGET_TRIPLET TARGET_CPU TARGET_VENDOR TARGET_OS TARGET_ABI
+if [ $? -ne 0 ]; then
+echo "Failed to parse the host triplet: $TARGET_TRIPLET"
+exit 1
+fi
 
 if [[ "$TARGET_OS" == mingw* ]]; then
 TARGET_TRIPLET=$TARGET_CPU-windows-gnu
 unset TARGET_VENDOR
 TARGET_OS=windows
 TARGET_ABI=gnu
+TARGET_GCC_TRIPLET=$TARGET_CPU-w64-mingw32
 fi
 
-if [ $? -ne 0 ]; then
-echo "Failed to parse the host triplet: $TARGET_TRIPLET"
-exit 1
-fi
 TARGET_ABI_NO_VERSION="${TARGET_ABI//[0-9]/}"
 TARGET_ABI_VERSION=${TARGET_ABI//[!0-9]/}
 
