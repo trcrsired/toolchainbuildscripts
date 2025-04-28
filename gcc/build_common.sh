@@ -210,4 +210,10 @@ build_binutils_gdb() {
     build_project_gnu "binutils-gdb" $1 $2
 }
 
+build_gcc() {
+    build_project_gnu "gcc" $1 $2
+}
+
 build_binutils_gdb $HOST_TRIPLET $TARGET_TRIPLET
+
+build_gcc $HOST_TRIPLET $TARGET_TRIPLET
