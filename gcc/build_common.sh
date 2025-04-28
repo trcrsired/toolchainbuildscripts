@@ -10,7 +10,7 @@ echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment varia
 exit 1
 fi
 
-currentpath="$(realpath .)/.artifacts/llvm/${HOSTTRIPLET}/${TARGETTRIPLET}"
+currentpath="$(realpath .)/.artifacts/gcc/${HOST_TRIPLET}/${TARGET_TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
@@ -90,15 +90,15 @@ echo "TARGET_GCC_TRIPLET: $TARGET_GCC_TRIPLET"
 
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$HOME/toolchains_build
+	TOOLCHAINS_BUILD="$HOME/toolchains_build"
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$HOME/toolchains
+	TOOLCHAINSPATH="$HOME/toolchains"
 fi
 
 if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
-	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
+	TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
 fi
 
 mkdir -p "${TOOLCHAINSPATH_GNU}"
@@ -148,3 +148,35 @@ echo "BUILD_OS: $BUILD_OS"
 echo "BUILD_ABI: $BUILD_ABI"
 echo "BUILD_GCC_TRIPLET: $BUILD_GCC_TRIPLET"
 
+GCC_TWO_PHASE=0
+
+clone_or_update_dependency binutils-gdb
+
+build_binutils_gdb() {
+
+local host_triplet=$1
+local target_triplet=$2
+local prefix="$TOOLCHAINSPATH_GNU/$1/$2"
+mkdir -p "$prefix"
+cd "$prefix"
+"$TOOLCHAINS_BUILD"/binutils-gdb/configure --disable-nls --disable-werror --build=$BUILD_TRIPLET --host=$1 --target=$1 --prefix="$prefix"
+if [ $? -ne 0 ]; then
+    echo "binutils-gdb: configure failed {build:$BUILD_TRIPLET, host:$1, target:$2}"
+    exit 1
+fi
+make -j$(nproc)
+if [ $? -ne 0 ]; then
+    echo "binutils-gdb: make failed {build:$BUILD_TRIPLET, host:$1, target:$2}"
+    exit 1
+fi
+make install -j$(nproc)
+if [ $? -ne 0 ]; then
+    echo "binutils-gdb: make install failed {build:$BUILD_TRIPLET, host:$1, target:$2}"
+    exit 1
+fi
+
+safe_llvm_strip "$prefix"
+
+}
+
+build_binutils_gdb $HOST_TRIPLET $TARGET_TRIPLET
