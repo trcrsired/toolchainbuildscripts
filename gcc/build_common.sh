@@ -6,7 +6,7 @@ exit 1
 fi
 
 if [ -z ${TARGET_TRIPLET+x} ]; then
-echo "TARGETTRIPLET is not set. Please set the TARGET_TRIPLET environment variable to the target triplet."
+echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment variable to the target triplet."
 exit 1
 fi
 
@@ -19,11 +19,10 @@ cd ../common
 source ./common.sh
 
 cd "$currentpath"
-# Parse the target triplet
 
 parse_triplet $HOST_TRIPLET HOST_CPU HOST_VENDOR HOST_OS HOST_ABI
 
-if [[ "$OS" == mingw* ]]; then
+if [[ "$HOST_OS" == mingw* ]]; then
 HOST_TRIPLET=$CPU-windows-gnu
 unset HOST_VENDOR
 HOST_OS=windows
@@ -46,7 +45,7 @@ echo "HOST_ABI_NO_VERSION: $HOST_ABI_NO_VERSION"
 
 parse_triplet $TARGET_TRIPLET TARGET_CPU TARGET_VENDOR TARGET_OS TARGET_ABI
 
-if [[ "$OS" == mingw* ]]; then
+if [[ "$TARGET_OS" == mingw* ]]; then
 TARGET_TRIPLET=$CPU-windows-gnu
 unset TARGET_VENDOR
 TARGET_OS=windows
