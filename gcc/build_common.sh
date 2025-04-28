@@ -121,6 +121,18 @@ echo "Failed to parse the host triplet: $BUILD_TRIPLET"
 exit 1
 fi
 
+if [[ "$BUILD_OS" == linux && "$BUILD_ABI" == gnu ]]; then
+
+if ! command -v $BUILD_CPU-$BUILD_OS-$BUILD_ABI-gcc >/dev/null 2>&1; then
+    echo "failed to find $BUILD_CPU-$BUILD_OS-$BUILD_ABI-gcc"
+    exit 1
+fi
+
+BUILD_TRIPLET=$BUILD_CPU-$BUILD_OS-$BUILD_ABI
+BUILD_VENDOR=
+BUILD_GCC_TRIPLET=$BUILD_TRIPLET
+fi
+
 if [[ "$BUILD_OS" == windows && "$BUILD_ABI" == gnu ]]; then
 BUILD_GCC_TRIPLET=$BUILD_CPU-w64-mingw32
 fi
