@@ -159,6 +159,7 @@ local host_triplet=$2
 local target_triplet=$3
 local prefix="$TOOLCHAINSPATH_GNU/$2/$3"
 local build_prefix="$currentpath/$2/$3"
+local build_prefix_project="$build_prefix/$project_name"
 local configure_phase_file=".${project_name}_phase_configure"
 local build_phase_file=".${project_name}_phase_build"
 local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
@@ -174,55 +175,55 @@ elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
 
-if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
+if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
-    mkdir -p "$build_prefix"
+    mkdir -p "$build_prefix_project"
 
-    if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
-        cd "$build_prefix"
+    if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
+        cd "$build_prefix_project"
         "$TOOLCHAINS_BUILD"/$project_name/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${configure_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${configure_phase_file}"
     fi
 
     if [[ "x$project_name" == "xgcc" ]]; then
-        if [ ! -f "${build_prefix}/${build_all_gcc_phase_file}" ]; then
+        if [ ! -f "${build_prefix_project}/${build_all_gcc_phase_file}" ]; then
             make all-gcc -j$(nproc)
             if [ $? -ne 0 ]; then
                 echo "$project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
             fi
-            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix}/gcc/include/limits.h"
-            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${build_all_gcc_phase_file}"
+            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
         fi
     fi
-    if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
+    if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
         make -j$(nproc)
         if [ $? -ne 0 ]; then
             echo "$project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${build_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_phase_file}"
     fi
 
-    if [ ! -f "${build_prefix}/${install_phase_file}" ]; then
+    if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
         make install -j$(nproc)
         if [ $? -ne 0 ]; then
             echo "$project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
     fi
 
-    if [ ! -f "${build_prefix}/${strip_phase_file}" ]; then
+    if [ ! -f "${build_prefix_project}/${strip_phase_file}" ]; then
         safe_llvm_strip "$prefix"
-        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${strip_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${strip_phase_file}"
     fi
 
-    echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
+    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
 fi
 
 }
