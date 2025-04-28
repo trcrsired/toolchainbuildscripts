@@ -89,3 +89,50 @@ echo "TARGET_ABI: $TARGET_ABI"
 echo "TARGET_GCC_TRIPLET: $TARGET_GCC_TRIPLET"
 
 
+if [ -z ${TOOLCHAINS_BUILD+x} ]; then
+	TOOLCHAINS_BUILD=$HOME/toolchains_build
+fi
+
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+	TOOLCHAINSPATH=$HOME/toolchains
+fi
+
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+	TOOLCHAINSPATH_GNU=$TOOLCHAINSPATH/gnu
+fi
+
+mkdir -p "${TOOLCHAINSPATH_GNU}"
+
+if [ -z ${BUILD_TRIPLET+x} ]; then
+
+if ! command -v gcc >/dev/null 2>&1; then
+    echo "failed to find gcc"
+    exit 1
+fi
+
+BUILD_TRIPLET="$(gcc -dumpmachine)"
+BUILD_GCC_TRIPLET="$BUILD_TRIPLET"
+
+fi
+
+parse_triplet $BUILD_TRIPLET BUILD_CPU BUILD_VENDOR BUILD_OS BUILD_ABI
+if [ $? -ne 0 ]; then
+echo "Failed to parse the host triplet: $BUILD_TRIPLET"
+exit 1
+fi
+
+if [[ "$BUILD_OS" == windows && "$BUILD_ABI" == gnu ]]; then
+BUILD_GCC_TRIPLET=$BUILD_CPU-w64-mingw32
+fi
+
+if [ -z ${BUILD_GCC_TRIPLET+x} ]; then
+BUILD_GCC_TRIPLET=$BUILD_TRIPLET
+fi
+
+echo "BUILD_TRIPLET: $BUILD_TRIPLET"
+echo "BUILD_CPU: $BUILD_CPU"
+echo "BUILD_VENDOR: $BUILD_VENDOR"
+echo "BUILD_OS: $BUILD_OS"
+echo "BUILD_ABI: $BUILD_ABI"
+echo "BUILD_GCC_TRIPLET: $BUILD_GCC_TRIPLET"
+
