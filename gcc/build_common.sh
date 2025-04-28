@@ -151,6 +151,7 @@ echo "BUILD_GCC_TRIPLET: $BUILD_GCC_TRIPLET"
 GCC_TWO_PHASE=0
 
 clone_or_update_dependency binutils-gdb
+clone_or_update_dependency gcc
 
 build_project_gnu() {
 local project_name=$1
@@ -164,13 +165,21 @@ local install_phase_file=".${project_name}_phase_install"
 local strip_phase_file=".${project_name}_phase_strip"
 local current_phase_file=".${project_name}_phase_done"
 
+local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
+
+if [[ "x$project_name" == "xgcc" ]]; then
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
+elif [[ "x$project_name" == "xbinutils-gdb"]]; then
+configures="$configures --disable-tui --without-debuginfod"
+fi
+
 if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
 
     mkdir -p "$build_prefix"
 
     if [ ! -f "${build_prefix}/${configure_phase_file}" ]; then
         cd "$build_prefix"
-        "$TOOLCHAINS_BUILD"/$project_name/configure --disable-nls --disable-werror --build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet --prefix="$prefix"
+        "$TOOLCHAINS_BUILD"/$project_name/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
