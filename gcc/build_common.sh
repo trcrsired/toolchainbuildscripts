@@ -170,7 +170,7 @@ local current_phase_file=".${project_name}_phase_done"
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
 if [[ "x$project_name" == "xgcc" ]]; then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
