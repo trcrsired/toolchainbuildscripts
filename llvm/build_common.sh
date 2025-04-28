@@ -12,6 +12,10 @@ mkdir -p "$currentpath"
 cd ../common
 source ./common.sh
 
+if [[ "x$CLONE_IN_CHINA" == "xyes" ]]; then
+echo "Clone in China enabled. We are going to use Chinese mirror first"
+fi
+
 cd "$currentpath"
 # Parse the target triplet
 
@@ -138,7 +142,6 @@ if [[ "$OS" == "darwin"* ]]; then
     if [[ -z "${BUILD_CURRENT_OSX_VERSION+x}" ]]; then
         BUILD_CURRENT_OSX_VERSION=10.5
     fi
-    USE_LLVM_LINK_DYLIB=1
     USE_RUNTIMES_RPATH=1
     RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then

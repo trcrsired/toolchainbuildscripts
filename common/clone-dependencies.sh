@@ -13,8 +13,8 @@ get_git_urls() {
 
     case $DEPENDENCY_NAME in
         "llvm-project")
-            GIT_URL="git@github.com:llvm/llvm-project.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://github.com.cnpmjs.org/llvm/llvm-project.git"
+            GIT_URL="https://github.com/llvm/llvm-project"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/llvm-project.git"
             ;;
         "linux")
             GIT_URL="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
@@ -25,8 +25,8 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/glibc.git"
             ;;
         "newlib-cygwin")
-            GIT_URL="git@github.com:mirror/newlib-cygwin.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://github.com.cnpmjs.org/mirror/newlib-cygwin.git"
+            GIT_URL="https://github.com/mirror/newlib-cygwin.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/newlib-cygwin.git"
             ;;
         "mingw-w64")
             GIT_URL="https://git.code.sf.net/p/mingw-w64/mingw-w64"
@@ -34,11 +34,11 @@ get_git_urls() {
             ;;
         "zlib")
             GIT_URL="git@github.com:madler/zlib.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/zlib.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/zlib.git"
             ;;
         "libxml2")
             GIT_URL="https://gitlab.gnome.org/GNOME/libxml2.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/libxml2.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/libxml2.git"
             ;;
         "musl")
             GIT_URL="git://repo.or.cz/musl.git"
@@ -46,15 +46,15 @@ get_git_urls() {
             ;;
         "gcc")
             GIT_URL="git://gcc.gnu.org/git/gcc.git"
-            GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/gcc.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/gcc.git"
             ;;
         "windows-msvc-sysroot")
-            GIT_URL="git@github.com:trcrsired/windows-msvc-sysroot.git"
-            GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
+            GIT_URL="https://github.com/trcrsired/windows-msvc-sysroot.git"
+            GIT_CHINA_DOWNSTREAM_URL="https://github.com/trcrsired/windows-msvc-sysroot.git"
             ;;
         "cppwinrt")
             GIT_URL="https://github.com/microsoft/cppwinrt.git"
-            GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
+            GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/qabeowjbtkwb/cppwinrt.git"
             ;;
         *)
             echo "Unknown dependency: $DEPENDENCY_NAME"

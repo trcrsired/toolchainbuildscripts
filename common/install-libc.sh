@@ -39,13 +39,23 @@ install_libc() {
     if [ ! -f "${currentpathlibc}/${phase_file}" ]; then
         if [[ "$OS" == "darwin"* ]]; then
             cd "${currentpathlibc}"
+            local repo_url
+            local base_url
+
+            if [ "$CLONE_IN_CHINA" = "yes" ]; then
+                repo_url="https://gitee.com/qabeowjbtkwb/apple-darwin-sysroot.git"
+                base_url="https://gitee.com/qabeowjbtkwb/apple-darwin-sysroot/releases/download"
+            else
+                repo_url="https://github.com/trcrsired/apple-darwin-sysroot.git"
+                base_url="https://github.com/trcrsired/apple-darwin-sysroot/releases/download"
+            fi
             local darwinversiondate
             if [ -z ${DARWINVERSIONDATE+x} ]; then
-                darwinversiondate=$(git ls-remote --tags git@github.com:trcrsired/apple-darwin-sysroot.git | tail -n 1 | sed 's/.*\///')
+                darwinversiondate=$(git ls-remote --tags $repo_url | tail -n 1 | sed 's/.*\///')
             else
                 darwinversiondate=${DARWINVERSIONDATE}
             fi
-            wget --no-verbose https://github.com/trcrsired/apple-darwin-sysroot/releases/download/${darwinversiondate}/${TRIPLET}.tar.xz
+            wget --no-verbose ${base_url}/${darwinversiondate}/${TRIPLET}.tar.xz
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Darwin sysroot"
                 exit 1
@@ -58,7 +68,14 @@ install_libc() {
             fi
         elif [[ "$OS" == "freebsd"* ]]; then
             cd "${currentpathlibc}"
-            wget --no-verbose https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download/1/${CPU}-freebsd-libc.tar.xz
+            local base_url
+
+            if [ "$CLONE_IN_CHINA" = "yes" ]; then
+                base_url="https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download"
+            else
+                base_url="https://gitee.com/qabeowjbtkwb/x86_64-freebsd-libc-bin/releases/download"
+            fi
+            wget --no-verbose $base_url/1/${CPU}-freebsd-libc.tar.xz
             if [ $? -ne 0 ]; then
                 echo "wget ${HOST} failure"
                 exit 1
@@ -164,7 +181,7 @@ install_libc() {
         elif [[ "$OS" == "linux" ]]; then
             if [[ "$ABI" == "android"* ]]; then
                 if [ -z "${ANDROIDNDKVERSION}" ]; then
-                    ANDROIDNDKVERSION=$(git ls-remote --tags git@github.com:android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
+                    ANDROIDNDKVERSION=$(git ls-remote --tags https://github.com/android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
                     echo "Detected ANDROIDNDKVERSION: ${ANDROIDNDKVERSION}"       
                     # Default to r28 if no valid tag is found
                     if [ -z "${ANDROIDNDKVERSION}" ]; then
@@ -175,7 +192,14 @@ install_libc() {
                 cd ${currentpathlibc}
                 ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
                 ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                wget --no-verbose https://dl.google.com/android/repository/${ANDROIDNDKVERSIONFULLNAME}.zip
+                local base_url
+
+                if [ "$CLONE_IN_CHINA" = "yes" ]; then
+                    base_url="https://googledownloads.cn/android/repository"
+                else
+                    base_url="https://dl.google.com/android/repository"
+                fi
+                wget --no-verbose $base_url/${ANDROIDNDKVERSIONFULLNAME}.zip
                 if [ $? -ne 0 ]; then
                     echo "wget ${HOST} failure"
                     exit 1
