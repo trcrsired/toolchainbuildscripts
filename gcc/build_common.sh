@@ -23,7 +23,7 @@ cd "$currentpath"
 parse_triplet $HOST_TRIPLET HOST_CPU HOST_VENDOR HOST_OS HOST_ABI
 
 if [[ "$HOST_OS" == mingw* ]]; then
-HOST_TRIPLET=$CPU-windows-gnu
+HOST_TRIPLET=$HOST_CPU-windows-gnu
 unset HOST_VENDOR
 HOST_OS=windows
 HOST_ABI=gnu
@@ -46,7 +46,7 @@ echo "HOST_ABI_NO_VERSION: $HOST_ABI_NO_VERSION"
 parse_triplet $TARGET_TRIPLET TARGET_CPU TARGET_VENDOR TARGET_OS TARGET_ABI
 
 if [[ "$TARGET_OS" == mingw* ]]; then
-TARGET_TRIPLET=$CPU-windows-gnu
+TARGET_TRIPLET=$TARGET_CPU-windows-gnu
 unset TARGET_VENDOR
 TARGET_OS=windows
 TARGET_ABI=gnu
