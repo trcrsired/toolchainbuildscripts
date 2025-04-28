@@ -161,6 +161,7 @@ local prefix="$TOOLCHAINSPATH_GNU/$2/$3"
 local build_prefix="$currentpath/$2/$3"
 local configure_phase_file=".${project_name}_phase_configure"
 local build_phase_file=".${project_name}_phase_build"
+local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
 local install_phase_file=".${project_name}_phase_install"
 local strip_phase_file=".${project_name}_phase_strip"
 local current_phase_file=".${project_name}_phase_done"
@@ -187,6 +188,17 @@ if [ ! -f "${build_prefix}/${current_phase_file}" ]; then
         echo "$(date --iso-8601=seconds)" > "${build_prefix}/${configure_phase_file}"
     fi
 
+    if [[ "x$project_name" == "xgcc" ]]; then
+        if [ ! -f "${build_prefix}/${build_all_gcc_phase_file}" ]; then
+            make all-gcc -j$(nproc)
+            if [ $? -ne 0 ]; then
+                echo "$project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix}/gcc/include/limits.h"
+            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${build_all_gcc_phase_file}"
+        fi
+    fi
     if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
         make -j$(nproc)
         if [ $? -ne 0 ]; then
