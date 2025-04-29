@@ -21,7 +21,7 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/linux.git"
             ;;
         "glibc")
-            GIT_URL="git://sourceware.org/git/glibc.git"
+            GIT_URL="https://sourceware.org/git/glibc.git"
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/glibc.git"
             ;;
         "newlib-cygwin")
@@ -33,7 +33,7 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/mingw-w64.git"
             ;;
         "zlib")
-            GIT_URL="git@github.com:madler/zlib.git"
+            GIT_URL="https://github.com/madler/zlib.git"
             GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/zlib.git"
             ;;
         "libxml2")
@@ -41,7 +41,7 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/libxml2.git"
             ;;
         "musl")
-            GIT_URL="git://repo.or.cz/musl.git"
+            GIT_URL="https://git.musl-libc.org/git/musl"
             GIT_CHINA_DOWNSTREAM_URL="$GIT_URL"
             ;;
         "binutils-gdb")
@@ -49,7 +49,7 @@ get_git_urls() {
             GIT_CHINA_DOWNSTREAM_URL="https://mirrors.tuna.tsinghua.edu.cn/git/binutils-gdb.git"
             ;;
         "gcc")
-            GIT_URL="git://gcc.gnu.org/git/gcc.git"
+            GIT_URL="https://gcc.gnu.org/git/gcc.git"
             GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/mirrors/gcc.git"
             ;;
         "windows-msvc-sysroot")
