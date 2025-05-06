@@ -123,7 +123,18 @@ main() {
     done
 
     # Iterate through the triplets and trigger the build process
-    for triplet illvmartifacts
+    for triplet in "${TRIPLETS2[@]}"; do
+        TRIPLET=$triplet ./build_common.sh $restart_paramter
+    done
+}
+
+main
+cd "$llvmcurrentrealpath"
+./wasm-sysroots.sh "$1"
+
+if [[ $NO_BUILD_WAVM != "yes" ]]; then
+cd "$llvmcurrentrealpath/../wavm"
+./all.sh "$@"
 fi
 
 if [[ $NO_BUILD_WINE != "yes" ]]; then
