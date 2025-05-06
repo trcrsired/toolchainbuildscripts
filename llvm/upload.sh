@@ -36,7 +36,7 @@ WAVM_REPO="${GITHUB_BUILD_WAVM_REPO:-trcrsired/wavm-releases}"
 LLVM_TAG="llvm${CLANG_VERSION}-${DATE}"
 
 if ! gh release view "$LLVM_TAG" --repo "$LLVM_REPO" >/dev/null 2>&1; then
-    gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "LLVM ${CLANG_VERSION} Toolchains Release" --notes "Automatically uploaded LLVM toolchains at $TIMESTAMP"
+    gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes "Automatically uploaded LLVM toolchains at $TIMESTAMP"
 fi
 
 for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
@@ -50,7 +50,7 @@ done
 WAVM_TAG="$DATE"
 
 if ! gh release view "$WAVM_TAG" --repo "$WAVM_REPO" >/dev/null 2>&1; then
-    gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "WAVM Release $DATE" --notes "Automatically uploaded WAVM binaries at $TIMESTAMP"
+    gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes "Automatically uploaded WAVM binaries at $TIMESTAMP"
 fi
 
 for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
