@@ -13,6 +13,12 @@ if [[ $restart_paramter == "restart" ]]; then
 	echo "restart done"
 fi
 
+if [[ "$UPLOAD_LLVM" == "yes" ]]; then
+    echo "UPLOAD_LLVM is set to yes, We will upload built LLVM toolchains to GitHub"
+else
+    echo "UPLOAD_LLVM is not set to yes, skipping upload"
+fi
+
 llvmcurrentrealpath="$(realpath .)"
 cd ../common
 source ./common.sh
@@ -117,18 +123,7 @@ main() {
     done
 
     # Iterate through the triplets and trigger the build process
-    for triplet in "${TRIPLETS2[@]}"; do
-        TRIPLET=$triplet ./build_common.sh $restart_paramter
-    done
-}
-
-main
-cd "$llvmcurrentrealpath"
-./wasm-sysroots.sh "$1"
-
-if [[ $NO_BUILD_WAVM != "yes" ]]; then
-cd "$llvmcurrentrealpath/../wavm"
-./all.sh "$@"
+    for triplet illvmartifacts
 fi
 
 if [[ $NO_BUILD_WINE != "yes" ]]; then
