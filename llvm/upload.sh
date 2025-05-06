@@ -32,18 +32,28 @@ CLANG_VERSION=$(clang --version | awk 'NR==1 {print $3}' | sed 's/\([0-9]\+\).*/
 LLVM_REPO="${GITHUB_BUILD_LLVM_REPO:-trcrsired/llvm-releases}"
 WAVM_REPO="${GITHUB_BUILD_WAVM_REPO:-trcrsired/wavm-releases}"
 
+# Check if sha512sum exists
+if ! command -v sha512sum >/dev/null 2>&1; then
+    echo "Warning: sha512sum is not installed. SHA-512 hashes will not be generated."
+    SKIP_HASH=true
+else
+    SKIP_HASH=false
+fi
+
 # --- Upload LLVM release ---
 LLVM_TAG="llvm${CLANG_VERSION}-${DATE}"
 LLVM_NOTES="Automatically uploaded LLVM toolchains at $TIMESTAMP"
 
-# Calculate and append SHA-512 hash for each file
-for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
-    if [ -f "$file" ]; then
-        FILENAME=$(basename "$file")  # Extract only the filename
-        SHA512=$(sha512sum "$file" | awk '{print $1}')
-        LLVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
-    fi
-done
+# Append file info & SHA-512 hash **only if sha512sum exists**
+if [ "$SKIP_HASH" = false ]; then
+    for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
+        if [ -f "$file" ]; then
+            FILENAME=$(basename "$file")
+            SHA512=$(sha512sum "$file" | awk '{print $1}')
+            LLVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
+        fi
+    done
+fi
 
 if ! gh release view "$LLVM_TAG" --repo "$LLVM_REPO" >/dev/null 2>&1; then
     gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes "$LLVM_NOTES"
@@ -60,14 +70,16 @@ done
 WAVM_TAG="$DATE"
 WAVM_NOTES="Automatically uploaded WAVM binaries at $TIMESTAMP"
 
-# Calculate and append SHA-512 hash for each file
-for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
-    if [ -f "$file" ]; then
-        FILENAME=$(basename "$file")  # Extract only the filename
-        SHA512=$(sha512sum "$file" | awk '{print $1}')
-        WAVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
-    fi
-done
+# Append file info & SHA-512 hash **only if sha512sum exists**
+if [ "$SKIP_HASH" = false ]; then
+    for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
+        if [ -f "$file" ]; then
+            FILENAME=$(basename "$file")
+            SHA512=$(sha512sum "$file" | awk '{print $1}')
+            WAVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
+        fi
+    done
+fi
 
 if ! gh release view "$WAVM_TAG" --repo "$WAVM_REPO" >/dev/null 2>&1; then
     gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes "$WAVM_NOTES"
