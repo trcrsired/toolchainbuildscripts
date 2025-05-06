@@ -135,3 +135,8 @@ if [[ $NO_BUILD_WINE != "yes" ]]; then
 cd "$llvmcurrentrealpath/../wine"
 ./all-min.sh "$@"
 fi
+
+if [[ $UPLOAD_LLVM != "yes" ]]; then
+cd "$llvmcurrentrealpath"
+./upload.sh
+fi
