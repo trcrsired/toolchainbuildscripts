@@ -34,9 +34,19 @@ WAVM_REPO="${GITHUB_BUILD_WAVM_REPO:-trcrsired/wavm-releases}"
 
 # --- Upload LLVM release ---
 LLVM_TAG="llvm${CLANG_VERSION}-${DATE}"
+LLVM_NOTES="Automatically uploaded LLVM toolchains at $TIMESTAMP"
+
+# Calculate and append SHA-512 hash for each file
+for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
+    if [ -f "$file" ]; then
+        FILENAME=$(basename "$file")  # Extract only the filename
+        SHA512=$(sha512sum "$file" | awk '{print $1}')
+        LLVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
+    fi
+done
 
 if ! gh release view "$LLVM_TAG" --repo "$LLVM_REPO" >/dev/null 2>&1; then
-    gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes "Automatically uploaded LLVM toolchains at $TIMESTAMP"
+    gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes "$LLVM_NOTES"
 fi
 
 for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
@@ -48,9 +58,19 @@ done
 
 # --- Upload WAVM release ---
 WAVM_TAG="$DATE"
+WAVM_NOTES="Automatically uploaded WAVM binaries at $TIMESTAMP"
+
+# Calculate and append SHA-512 hash for each file
+for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
+    if [ -f "$file" ]; then
+        FILENAME=$(basename "$file")  # Extract only the filename
+        SHA512=$(sha512sum "$file" | awk '{print $1}')
+        WAVM_NOTES+="\nFile: $FILENAME\nSHA-512: $SHA512"
+    fi
+done
 
 if ! gh release view "$WAVM_TAG" --repo "$WAVM_REPO" >/dev/null 2>&1; then
-    gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes "Automatically uploaded WAVM binaries at $TIMESTAMP"
+    gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes "$WAVM_NOTES"
 fi
 
 for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
