@@ -32,9 +32,6 @@ CLANG_VERSION=$(clang --version | awk 'NR==1 {print $3}' | sed 's/\([0-9]\+\).*/
 LLVM_REPO="${GITHUB_BUILD_LLVM_REPO:-trcrsired/llvm-releases}"
 WAVM_REPO="${GITHUB_BUILD_WAVM_REPO:-trcrsired/wavm-releases}"
 
-# Authenticate GitHub CLI (optional, ensure login)
-gh auth login
-
 # --- Upload LLVM release ---
 LLVM_TAG="llvm${CLANG_VERSION}-${DATE}"
 
