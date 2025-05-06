@@ -6,7 +6,7 @@ end_index=$3
 
 if [[ $restart_paramter == "restart" ]]; then
 	echo "restarting"
-	rm -rf "$llvmcurrentrealpath/.llvmartifacts"
+	rm -rf "$llvmcurrentrealpath/.artifacts"
 	rm -rf "$llvmcurrentrealpath/.llvmwasmartifacts"
 	rm -rf "$llvmcurrentrealpath/../wavm/.wavmartifacts"
 	rm -rf "$llvmcurrentrealpath/../wine/.wineartifacts"
