@@ -14,6 +14,18 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.%9NZ")
 DATE=$(echo "$TIMESTAMP" | cut -c 1-10 | tr -d "-")
 
 # Get the major Clang version
+if ! command -v clang >/dev/null 2>&1; then
+    echo "Error: clang is not installed. Please install clang before running this script."
+    exit 1
+fi
+
+# Verify if clang's path contains TOOLCHAINS_LLVMPATH
+CLANG_PATH=$(command -v clang)
+if [[ "$CLANG_PATH" != *"$TOOLCHAINS_LLVMPATH"* ]]; then
+    echo "Error: clang is installed at '$CLANG_PATH', but expected under '$TOOLCHAINS_LLVMPATH'."
+    exit 1
+fi
+
 CLANG_VERSION=$(clang --version | awk 'NR==1 {print $3}' | sed 's/\([0-9]\+\).*/\1/')
 
 # Define GitHub repositories with environment variable overrides
