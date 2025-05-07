@@ -142,7 +142,7 @@ cd "$llvmcurrentrealpath/../wine"
 ./all-min.sh "$@"
 fi
 
-if [[ $UPLOAD_LLVM != "yes" ]]; then
+if [[ "$UPLOAD_LLVM" == "yes" ]]; then
 cd "$llvmcurrentrealpath"
 ./upload.sh
 fi
