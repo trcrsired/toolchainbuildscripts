@@ -292,7 +292,7 @@ if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${T
 # crossback
 install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no"
 build_binutils_gdb_and_gcc $HOST_TRIPLET $TARGET_TRIPLET
-else
+#else
 # ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET}
 fi
 
