@@ -166,12 +166,14 @@ local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
 local install_phase_file=".${project_name}_phase_install"
 local strip_phase_file=".${project_name}_phase_strip"
 local current_phase_file=".${project_name}_phase_done"
-
+local configure_project_name="$project_name"
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
 if [[ "x$project_name" == "xgcc_phase1" ]]; then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomics --disable-libsanitizer"
+configure_project_name="gcc"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
 elif [[ "x$project_name" == "xgcc" ]]; then
+configure_project_name="gcc"
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
@@ -183,7 +185,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        "$TOOLCHAINS_BUILD"/$project_name/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        "$TOOLCHAINS_BUILD"/${configure_project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
@@ -278,6 +280,8 @@ build_cross_toolchain() {
         build_binutils_gdb  $host_triplet $target_triplet
         build_gcc_phase1 $host_triplet $target_triplet
         build_gcc $host_triplet $target_triplet
+    elif [[ $target_os == mingw* ]]; then
+
     else
         install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
