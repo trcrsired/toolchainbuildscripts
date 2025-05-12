@@ -169,7 +169,9 @@ local current_phase_file=".${project_name}_phase_done"
 
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
-if [[ "x$project_name" == "xgcc" ]]; then
+if [[ "x$project_name" == "xgcc_phase1" ]]; then
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomics --disable-libsanitizer"
+elif [[ "x$project_name" == "xgcc" ]]; then
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
@@ -189,7 +191,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${configure_phase_file}"
     fi
 
-    if [[ "x$project_name" == "xgcc" ]]; then
+    if [[ "x$project_name" == "xgcc" || "x$project_name" == "xgcc_phase1" ]]; then
         if [ ! -f "${build_prefix_project}/${build_all_gcc_phase_file}" ]; then
             make all-gcc -j$(nproc)
             if [ $? -ne 0 ]; then
@@ -200,22 +202,41 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
         fi
     fi
-    if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
-        make -j$(nproc)
+    if [[ "x$project_name" == "xgcc_phase1" ]]; then
+        make all-target-libgcc -j$(nproc)
         if [ $? -ne 0 ]; then
-            echo "$project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            echo "$project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_phase_file}"
-    fi
+        make install-gcc -j$(nproc)
+        if [ $? -ne 0 ]; then
+            echo "$project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            exit 1
+        fi
+        make install-target-libgcc -j$(nproc)
+        if [ $? -ne 0 ]; then
+            echo "$project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            exit 1
+        fi
 
-    if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
-        make install -j$(nproc)
-        if [ $? -ne 0 ]; then
-            echo "$project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+    else
+        if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
+            make -j$(nproc)
+            if [ $? -ne 0 ]; then
+                echo "$project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_phase_file}"
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
+
+        if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
+            make install -j$(nproc)
+            if [ $? -ne 0 ]; then
+                echo "$project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
+        fi
     fi
 
     if [ ! -f "${build_prefix_project}/${strip_phase_file}" ]; then
@@ -236,6 +257,10 @@ build_gcc() {
     build_project_gnu "gcc" $1 $2
 }
 
+build_gcc_phase1() {
+    build_project_gnu "gcc_phase1" $1 $2
+}
+
 build_binutils_gdb_and_gcc() {
     build_project_gnu "binutils-gdb" $1 $2
     build_project_gnu "gcc" $1 $2
@@ -250,6 +275,9 @@ build_cross_toolchain() {
     local target_abi
     parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
     if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
+        build_binutils_gdb  $host_triplet $target_triplet
+        build_gcc_phase1 $host_triplet $target_triplet
+        build_gcc $host_triplet $target_triplet
     else
         install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
