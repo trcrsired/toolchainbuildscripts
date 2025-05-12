@@ -286,12 +286,12 @@ build_cross_toolchain() {
 
 if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # native compiler
-build_binutils_gdb_and_gcc $HOST_TRIPLET $HOST_TRIPLET
+build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $HOST_GCC_TRIPLET
 else
 if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # crossback
 install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no"
-build_binutils_gdb_and_gcc $HOST_TRIPLET $TARGET_TRIPLET
+build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
 #else
 # ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET}
 fi
