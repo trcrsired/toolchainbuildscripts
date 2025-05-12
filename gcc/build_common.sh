@@ -236,6 +236,21 @@ build_gcc() {
     build_project_gnu "gcc" $1 $2
 }
 
-build_binutils_gdb $HOST_TRIPLET $TARGET_TRIPLET
+build_binutils_gdb_and_gcc() {
+    build_project_gnu "binutils-gdb" $1 $2
+    build_project_gnu "gcc" $1 $2
+}
 
-build_gcc $HOST_TRIPLET $TARGET_TRIPLET
+if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
+# native compiler
+build_binutils_gdb_and_gcc $HOST_TRIPLET $HOST_TRIPLET
+else
+if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
+# crossback
+install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no"
+build_binutils_gdb_and_gcc $HOST_TRIPLET $TARGET_TRIPLET
+else
+# ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET}
+fi
+
+fi
