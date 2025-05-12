@@ -279,7 +279,7 @@ build_cross_toolchain() {
         build_gcc_phase1 $host_triplet $target_triplet
         build_gcc $host_triplet $target_triplet
     else
-        install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
+        install_libc $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
     fi
 }
