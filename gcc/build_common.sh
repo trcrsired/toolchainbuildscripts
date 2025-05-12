@@ -241,6 +241,21 @@ build_binutils_gdb_and_gcc() {
     build_project_gnu "gcc" $1 $2
 }
 
+build_cross_toolchain() {
+    local host_triplet=$1
+    local target_triplet=$2
+    local target_cpu
+    local target_vendor
+    local target_os
+    local target_abi
+    parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
+    if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
+    else
+        install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
+        build_binutils_gdb_and_gcc $host_triplet $target_triplet
+    fi
+}
+
 if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # native compiler
 build_binutils_gdb_and_gcc $HOST_TRIPLET $HOST_TRIPLET
