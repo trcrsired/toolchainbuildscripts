@@ -200,6 +200,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
     if [[ "x$project_name" == "xgcc" ]]; then
         if [ ! -f "${build_prefix_project}/${build_all_gcc_phase_file}" ]; then
+            cd "$build_prefix_project"
             make all-gcc -j$(nproc)
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
@@ -210,6 +211,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
     fi
     if [[ "x$project_name" == "xgcc" && $cookie -eq 2 ]]; then
+        cd "$build_prefix_project"
         make all-target-libgcc -j$(nproc)
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
@@ -226,13 +228,16 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             exit 1
         fi
         install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no"
+        cd "$build_prefix_project"
         build_project_gnu_cookie $1 $2 $3 0
 
     else
         if [[ "x$project_name" == "xgcc" && $cookie -eq 3 ]]; then
             install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no"
+            cd "$build_prefix_project"
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
+            cd "$build_prefix_project"
             make -j$(nproc)
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
@@ -242,6 +247,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
 
         if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
+            cd "$build_prefix_project"
             make install -j$(nproc)
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
