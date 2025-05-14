@@ -160,7 +160,6 @@ local target_triplet=$3
 local cookie=$4
 local prefix="$TOOLCHAINSPATH_GNU/$2/$3"
 local build_prefix="$currentpath/$2/$3"
-local build_prefix_project="$build_prefix/$project_name"
 local configure_phase_file=".${project_name}_phase_configure"
 local build_phase_file=".${project_name}_phase_build"
 local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
@@ -182,6 +181,8 @@ fi
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
+
+local build_prefix_project="$build_prefix/$configure_project_name"
 
 if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
@@ -284,6 +285,16 @@ build_binutils_gdb_and_gcc() {
     build_project_gnu "gcc" $1 $2
 }
 
+build_binutils_gdb_and_gcc_2_phases() {
+    build_project_gnu "binutils-gdb" $1 $2
+    build_project_gnu_cookie "gcc" $1 $2 2
+}
+
+build_binutils_gdb_and_gcc_libc() {
+    build_project_gnu "binutils-gdb" $1 $2
+    build_project_gnu_cookie "gcc" $1 $2 3
+}
+
 build_cross_toolchain() {
     local host_triplet=$1
     local target_triplet=$2
@@ -293,11 +304,9 @@ build_cross_toolchain() {
     local target_abi
     parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
     if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
-        build_binutils_gdb  $host_triplet $target_triplet
-        build_gcc_phase1 $host_triplet $target_triplet
-        build_gcc $host_triplet $target_triplet
+        build_binutils_gdb_and_gcc_2_phases $host_triplet $target_triplet
     elif [[ $target_os == mingw* ]]; then
-        
+        build_binutils_gdb_and_gcc_libc $host_triplet $target_triplet
     else
         install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
