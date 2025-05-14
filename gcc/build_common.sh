@@ -276,10 +276,6 @@ build_gcc() {
     build_project_gnu "gcc" $1 $2
 }
 
-build_gcc_phase1() {
-    build_project_gnu "gcc_phase1" $1 $2
-}
-
 build_binutils_gdb_and_gcc() {
     build_project_gnu "binutils-gdb" $1 $2
     build_project_gnu "gcc" $1 $2
