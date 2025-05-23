@@ -55,16 +55,21 @@ install_libc() {
             else
                 darwinversiondate=${DARWINVERSIONDATE}
             fi
-            wget --no-verbose ${base_url}/${darwinversiondate}/${TRIPLET}.tar.xz
+            local triplet_variant=${TRIPLET}
+            [[ $triplet_variant == arm64e-* ]] && triplet_variant="aarch64-${triplet_variant#arm64e-}"
+            wget --no-verbose ${base_url}/${darwinversiondate}/${triplet_variant}.tar.xz
             if [ $? -ne 0 ]; then
                 echo "Failed to download the Darwin sysroot"
                 exit 1
             fi
-            chmod 755 ${TRIPLET}.tar.xz
-            tar -xf "${TRIPLET}.tar.xz" -C "${tripletpath}"
+            chmod 755 ${triplet_variant}.tar.xz
+            tar -xf "${triplet_variant}.tar.xz" -C "${tripletpath}"
             if [ $? -ne 0 ]; then
                 echo "Failed to extract the Darwin sysroot"
                 exit 1
+            fi
+            if [[ $TRIPLET != "$triplet_variant" ]]; then
+                mv "${tripletpath}/$triplet_variant" "${tripletpath}/$TRIPLET"
             fi
         elif [[ "$OS" == "freebsd"* ]]; then
             cd "${currentpathlibc}"
