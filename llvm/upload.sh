@@ -33,12 +33,14 @@ LLVM_REPO="${GITHUB_BUILD_LLVM_REPO:-trcrsired/llvm-releases}"
 WAVM_REPO="${GITHUB_BUILD_WAVM_REPO:-trcrsired/wavm-releases}"
 
 # Check if sha512sum exists
-if ! command -v sha512sum >/dev/null 2>&1; then
-    echo "Warning: sha512sum is not installed. SHA-512 hashes will not be generated."
-    SKIP_HASH=true
-else
-    SKIP_HASH=false
-fi
+# if ! command -v sha512sum >/dev/null 2>&1; then
+#    echo "Warning: sha512sum is not installed. SHA-512 hashes will not be generated."
+#    SKIP_HASH=true
+#else
+#    SKIP_HASH=false
+#fi
+
+SKIP_HASH=true
 
 # --- Upload LLVM release ---
 LLVM_TAG="llvm${CLANG_VERSION}-${DATE}"
