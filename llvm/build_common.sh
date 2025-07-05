@@ -92,6 +92,24 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
+# Determine the number of CPU threads to use for the Ninja build
+
+# Get the total number of logical CPU cores on the system
+TOTAL_CORES=$(nproc)
+
+# If NINJA_MAX_JOBS is explicitly set, use that value
+if [[ -n "$NINJA_MAX_JOBS" ]]; then
+    JOBS="$NINJA_MAX_JOBS"
+    echo "📌 Using NINJA_MAX_JOBS=$JOBS"
+# If REDUCE_BUILDING_POWER_FOR_TEMPERATURE is set, reduce thread count by half
+elif [[ -n "$REDUCE_BUILDING_POWER_FOR_TEMPERATURE" ]]; then
+    JOBS=$((TOTAL_CORES / 2))
+    echo "🌞 REDUCE_BUILDING_POWER_FOR_TEMPERATURE detected — using $JOBS threads (half of $TOTAL_CORES)"
+# Otherwise, use all available cores
+else
+    echo "⚡ No throttling — using all $TOTAL_CORES threads"
+fi
+
 LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
 
 mkdir -p "${currentpath}"
@@ -658,7 +676,11 @@ build_project() {
                 fi
                 touch "${toolchain_file}"
             fi
-            ninja
+            if [[ -n "$JOBS" ]]; then
+                ninja -j "$JOBS"
+            else
+                ninja
+            fi
             if [ $? -ne 0 ]; then
                 echo "${project_name}: Ninja build failed for $TRIPLET"
                 exit 1
