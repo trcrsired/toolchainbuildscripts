@@ -108,8 +108,8 @@ elif [[ -n "$REDUCE_BUILDING_POWER_FOR_TEMPERATURE" ]]; then
     # Clamp JOBS to range [1, 4]
     if [[ "$JOBS" -lt 1 ]]; then
         JOBS=1
-    elif [[ "$JOBS" -gt 4 ]]; then
-        JOBS=4
+#    elif [[ "$JOBS" -gt 4 ]]; then
+#        JOBS=4
     fi
 
     echo "🌞 REDUCE_BUILDING_POWER_FOR_TEMPERATURE detected — using $JOBS threads (half of $TOTAL_CORES)"
