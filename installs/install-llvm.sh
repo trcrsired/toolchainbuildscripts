@@ -86,7 +86,7 @@ download_file() {
     local dest=$2
 
     if command -v wget > /dev/null; then
-        wget -O "$dest" "$url"
+        wget -nv -O "$dest" "$url"
     elif command -v curl > /dev/null; then
         curl -L -o "$dest" "$url"
     else
