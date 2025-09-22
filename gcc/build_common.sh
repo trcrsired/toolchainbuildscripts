@@ -227,13 +227,13 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no"
+        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
         cd "$build_prefix_project"
         build_project_gnu_cookie $1 $2 $3 0
 
     else
         if [[ "x$project_name" == "xgcc" && $cookie -eq 3 ]]; then
-            install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no"
+            install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
             cd "$build_prefix_project"
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
@@ -310,7 +310,7 @@ build_cross_toolchain() {
     elif [[ $target_os == mingw* ]]; then
         build_binutils_gdb_and_gcc_libc $host_triplet $target_triplet
     else
-        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes"
+        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
     fi
 }
@@ -327,7 +327,7 @@ if ! command -v $HOST_GCC_TRIPLET-gcc >/dev/null 2>&1; then
 fi
 if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # crossback
-install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no"
+install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "yes"
 build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
 #else
 

@@ -7,6 +7,7 @@ install_libc() {
     local sysrootpathusr="$4"
     local usellvm="$5"
     local buildheadersonly="$6"
+    local multilibs="${7:-no}"
     local CPU
     local VENDOR
     local OS
@@ -106,7 +107,11 @@ install_libc() {
                 local MINGWTRIPLET="${CPU}-w64-mingw32"
                 local MINGWW64COMMON
                 if [[ ${CPU} == "x86_64" ]]; then
-                    MINGWW64COMMON="--disable-lib32 --enable-lib64"
+                    if [[ "$multilibs" == "yes" ]]; then
+                        MINGWW64COMMON="--enable-lib32 --enable-lib64"
+                    else
+                        MINGWW64COMMON="--disable-lib32 --enable-lib64"
+                    fi
                 elif [[ ${CPU} == "aarch64" ]]; then
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
                 elif [[ ${CPU} == "arm" ]]; then
