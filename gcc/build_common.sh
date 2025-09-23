@@ -150,8 +150,13 @@ echo "BUILD_GCC_TRIPLET: $BUILD_GCC_TRIPLET"
 
 GCC_TWO_PHASE=0
 
-clone_or_update_dependency binutils-gdb
-clone_or_update_dependency gcc
+# Check if NO_CLONE_OR_UPDATE is set to "yes"
+if [ "$NO_CLONE_OR_UPDATE" != "yes" ]; then
+    clone_or_update_dependency binutils-gdb
+    clone_or_update_dependency gcc
+else
+    echo "NO_CLONE_OR_UPDATE is set to 'yes'; skipping dependency clone/update."
+fi
 
 build_project_gnu_cookie() {
 local project_name=$1
