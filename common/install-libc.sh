@@ -140,11 +140,10 @@ install_libc() {
                     cd "${currentpathlibc}/mingw-w64-headers"
 
                     if [ ! -f Makefile ]; then
-                        local CONFIGURE_CMD="$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}"
                         if [[ "$usellvm" == "yes" ]]; then
-                            eval "${MINGWW64COMMONENV} ${CONFIGURE_CMD}"
+                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
                         else
-                            ${CONFIGURE_CMD}
+                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
                         fi
                         if [ $? -ne 0 ]; then
                             echo "Error: mingw-w64-headers($TRIPLET) configure failed"
@@ -171,11 +170,10 @@ install_libc() {
                 cd "${currentpathlibc}/mingw-w64-crt"
 
                 if [ ! -f Makefile ]; then
-                    local CONFIGURE_CMD="$TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}"
                     if [[ "$usellvm" == "yes" ]]; then
-                        eval "${MINGWW64COMMONENV} ${CONFIGURE_CMD}"
+                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
                     else
-                        ${CONFIGURE_CMD}
+                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
                     fi
                     if [ $? -ne 0 ]; then
                         echo "Error: configure mingw-w64-crt($TRIPLET) failed"
