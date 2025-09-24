@@ -18,6 +18,32 @@ mkdir -p "$currentpath"
 cd ../common
 source ./common.sh
 
+# Determine the number of CPU threads to use for the Ninja build
+
+# Get the total number of logical CPU cores on the system
+TOTAL_CORES=$(nproc)
+
+# If NINJA_MAX_JOBS is explicitly set, use that value
+if [[ -n "$NINJA_MAX_JOBS" ]]; then
+    JOBS="$NINJA_MAX_JOBS"
+    echo "📌 Using NINJA_MAX_JOBS=$JOBS"
+# If REDUCE_BUILDING_POWER_FOR_TEMPERATURE is set, reduce thread count by half
+elif [[ -n "$REDUCE_BUILDING_POWER_FOR_TEMPERATURE" ]]; then
+    JOBS=$((TOTAL_CORES / 2))
+    
+    # Clamp JOBS to range [1, 4]
+    if [[ "$JOBS" -lt 1 ]]; then
+        JOBS=1
+#    elif [[ "$JOBS" -gt 4 ]]; then
+#        JOBS=4
+    fi
+
+    echo "🌞 REDUCE_BUILDING_POWER_FOR_TEMPERATURE detected — using $JOBS threads (half of $TOTAL_CORES)"
+# Otherwise, use all available cores
+else
+    echo "⚡ No throttling — using all $TOTAL_CORES threads"
+fi
+
 cd "$currentpath"
 
 parse_triplet $HOST_TRIPLET HOST_CPU HOST_VENDOR HOST_OS HOST_ABI
@@ -209,7 +235,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
     if [[ "x$project_name" == "xgcc" ]]; then
         if [ ! -f "${build_prefix_project}/${build_all_gcc_phase_file}" ]; then
             cd "$build_prefix_project"
-            make all-gcc -j$(nproc)
+            make all-gcc -j${JOBS}
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -220,17 +246,17 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
     fi
     if [[ "x$project_name" == "xgcc" && $cookie -eq 2 ]]; then
         cd "$build_prefix_project"
-        make all-target-libgcc -j$(nproc)
+        make all-target-libgcc -j${JOBS}
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-gcc -j$(nproc)
+        make install-gcc -j${JOBS}
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-target-libgcc -j$(nproc)
+        make install-target-libgcc -j${JOBS}
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
@@ -244,7 +270,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             cd "$build_prefix_project"
             if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
                 cd "$build_prefix_project"
-                make install-gcc -j$(nproc)
+                make install-gcc -j${JOBS}
                 if [ $? -ne 0 ]; then
                     echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                     exit 1
@@ -255,7 +281,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
             cd "$build_prefix_project"
-            make -j$(nproc)
+            make -j${JOBS}
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -265,7 +291,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
         if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
             cd "$build_prefix_project"
-            make install -j$(nproc)
+            make install -j${JOBS}
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
