@@ -386,6 +386,8 @@ if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} != ${TA
 build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
 packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
 fi
+fi
+
 # canadian
 if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # crossback
