@@ -358,23 +358,48 @@ build_cross_toolchain() {
     fi
 }
 
+packaging_toolchain() {
+    local host_triplet=$1
+    local target_triplet=$2
+    local prefix_parent="${TOOLCHAINSPATH_GNU}/${host_triplet}"
+    local prefix="${prefix_parent}/${target_triplet}"
+    local build_prefix="$currentpath/${host_triplet}/${target_triplet}"
+    if [ ! -f "$build_prefix/.packagesuccess" ]; then
+        rm -f "${prefix}.tar.xz"
+        cd "$prefix_parent"
+        XZ_OPT=-e9T0 tar cJf ${target_triplet}.tar.xz ${target_triplet}
+        chmod 755 ${target_triplet}.tar.xz
+        echo "$(date --iso-8601=seconds)" > "$build_prefix/.packagesuccess"
+    fi
+}
+
 if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # native compiler
 build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $HOST_GCC_TRIPLET
 else
-if ! command -v $TARGET_GCC_TRIPLET-gcc >/dev/null 2>&1; then
-    build_cross_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
+# cross
+if [[ ${BUILD_GCC_TRIPLET} != ${TARGET_GCC_TRIPLET} ]]; then
+build_cross_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
+packaging_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
 fi
-if ! command -v $HOST_GCC_TRIPLET-gcc >/dev/null 2>&1; then
-    build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} != ${TARGET_GCC_TRIPLET} ]]; then
+build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
 fi
+# canadian
 if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # crossback
-install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "yes"
-build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
+install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no"
 #else
 
-# ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET}
+if [[ ${HOST_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} ]]; then
+# canadian native
+install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
+else
+# canadian cross
+install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
+fi
+build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
 fi
 
-fi
+packaging_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
