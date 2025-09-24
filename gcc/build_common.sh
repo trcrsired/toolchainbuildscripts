@@ -10,7 +10,8 @@ echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment varia
 exit 1
 fi
 
-currentpath="$(realpath .)/.artifacts/gcc/${HOST_TRIPLET}/${TARGET_TRIPLET}"
+currentpathnohosttriplet="$(realpath .)/.artifacts/gcc"
+currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
@@ -192,7 +193,7 @@ local host_triplet=$2
 local target_triplet=$3
 local cookie=$4
 local prefix="$TOOLCHAINSPATH_GNU/$2/$3"
-local build_prefix="$currentpath/$2/$3"
+local build_prefix="$currentpathnohosttriplet/$2/$3"
 local configure_phase_file=".${project_name}_phase_configure"
 local build_phase_file=".${project_name}_phase_build"
 local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
