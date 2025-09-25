@@ -215,7 +215,7 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
 fi
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
-configures="$configures --disable-tui --without-debuginfod --disable-gdb --disable-gdbserver"
+configures="$configures --disable-tui --without-debuginfod"
 fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
@@ -226,7 +226,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        "$TOOLCHAINS_BUILD"/${configure_project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
