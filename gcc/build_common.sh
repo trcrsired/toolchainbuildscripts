@@ -215,7 +215,7 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
 fi
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
-configures="$configures --disable-tui --without-debuginfod"
+configures="$configures --disable-tui --without-debuginfod --disable-gdb --disable-gdbserver"
 fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
