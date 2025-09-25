@@ -236,7 +236,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
     if [[ "x$project_name" == "xgcc" ]]; then
         if [ ! -f "${build_prefix_project}/${build_all_gcc_phase_file}" ]; then
             cd "$build_prefix_project"
-            make all-gcc -j${JOBS}
+            make all-gcc -j "${JOBS}"
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -247,17 +247,17 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
     fi
     if [[ "x$project_name" == "xgcc" && $cookie -eq 2 ]]; then
         cd "$build_prefix_project"
-        make all-target-libgcc -j${JOBS}
+        make all-target-libgcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-gcc -j${JOBS}
+        make install-gcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-target-libgcc -j${JOBS}
+        make install-target-libgcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
@@ -271,7 +271,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             cd "$build_prefix_project"
             if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
                 cd "$build_prefix_project"
-                make install-gcc -j${JOBS}
+                make install-gcc -j "${JOBS}"
                 if [ $? -ne 0 ]; then
                     echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                     exit 1
@@ -282,7 +282,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
             cd "$build_prefix_project"
-            make -j${JOBS}
+            make -j "${JOBS}"
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -292,7 +292,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
         if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
             cd "$build_prefix_project"
-            make install -j${JOBS}
+            make install -j "${JOBS}"
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
