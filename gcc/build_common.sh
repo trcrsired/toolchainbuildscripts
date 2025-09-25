@@ -23,6 +23,7 @@ source ./common.sh
 
 # Get the total number of logical CPU cores on the system
 TOTAL_CORES=$(nproc)
+JOBS=${TOTAL_CORES}
 
 # If NINJA_MAX_JOBS is explicitly set, use that value
 if [[ -n "$NINJA_MAX_JOBS" ]]; then
