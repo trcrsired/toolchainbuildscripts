@@ -26,7 +26,7 @@ git pull --quiet
 
 # --- Timestamp and tag ---
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.%9NZ")
-DATE=$(echo "$TIMESTAMP" | cut -c 1-10 | tr -d "-")
+DATE=$(echo "$TIMESTAMP" | cut -c 1-10)
 WINDOWSMSVCSYSROOT_TAG="$DATE"
 
 # --- Pack windows-msvc-sysroot ---
