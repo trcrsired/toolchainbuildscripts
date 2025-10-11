@@ -8,10 +8,10 @@ TOOLCHAINS_LLVMPATH="${TOOLCHAINS_LLVMPATH:-$TOOLCHAINSPATH/llvm}"
 SOFTWARES_WAVMPATH="${SOFTWARES_WAVMPATH:-$HOME/softwares/wavm}"
 
 # Get the current timestamp in nanosecond-precision ISO 8601 format
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.%9NZ")
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Extract YYYYMMDD from the same timestamp
-DATE=$(echo "$TIMESTAMP" | cut -c 1-10 | tr -d "-")
+DATE=$(echo "$TIMESTAMP" | cut -d'T' -f1 | tr -d "-")
 
 # Get the major Clang version
 if ! command -v clang >/dev/null 2>&1; then
