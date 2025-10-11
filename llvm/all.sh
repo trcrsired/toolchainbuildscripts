@@ -4,6 +4,14 @@ restart_paramter=$1
 start_index=$2
 end_index=$3
 
+if [[ "$UPLOAD_LLVM" == "yes" ]]; then
+    echo "UPLOAD_LLVM is set to yes, We will upload built LLVM toolchains to GitHub"
+else
+    echo "UPLOAD_LLVM is not set to yes, skipping upload"
+fi
+
+llvmcurrentrealpath="$(realpath .)"
+
 if [[ $restart_paramter == "restart" ]]; then
 	echo "restarting"
 	rm -rf "$llvmcurrentrealpath/.artifacts"
@@ -13,17 +21,11 @@ if [[ $restart_paramter == "restart" ]]; then
 	echo "restart done"
 fi
 
-if [[ "$UPLOAD_LLVM" == "yes" ]]; then
-    echo "UPLOAD_LLVM is set to yes, We will upload built LLVM toolchains to GitHub"
-else
-    echo "UPLOAD_LLVM is not set to yes, skipping upload"
-fi
-
-llvmcurrentrealpath="$(realpath .)"
 cd ../common
 source ./common.sh
 
 cd "$llvmcurrentrealpath"
+
 
 main() {
     # Define an array with TRIPLET values, each on a new line
