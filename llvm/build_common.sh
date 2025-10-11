@@ -68,6 +68,8 @@ NO_TOOLCHAIN_DELETION=yes
 fi
 fi
 
+echo "NO_TOOLCHAIN_DELETION:${NO_TOOLCHAIN_DELETION}"
+
 SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
 if [[ $OS == "darwin"* ]]; then
@@ -638,7 +640,7 @@ build_project() {
         fi
     fi
     local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
-    if [[ "$project_name" == "runtimes" || "$projects" == "llvm" ]]; then
+    if [[ "$project_name" == "runtimes" || "$project_name" == "llvm" ]]; then
         if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
             install_prefix="${install_prefix}_tmp"
             need_move_tmp=yes
