@@ -25,7 +25,7 @@ cd "$WINDOWSMSVCSYSROOT"
 git pull --quiet
 
 # --- Timestamp and tag ---
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.%9NZ")
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DATE=$(echo "$TIMESTAMP" | cut -d'T' -f1)
 WINDOWSMSVCSYSROOT_TAG="$DATE"
 
