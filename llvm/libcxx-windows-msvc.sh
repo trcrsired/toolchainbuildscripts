@@ -30,7 +30,7 @@ if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
     rm -rf "${WINDOWSSYSROOT}/include/c++/v1"
-    rm -rf "${WINDOWSSYSROOT}/share"
+    rm -rf "${WINDOWSSYSROOT}/share/libc++"
 	echo "restart done"
 fi
 
@@ -162,8 +162,8 @@ echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstal
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
-echo sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
-sed -i "s|../share/|../../share/${hosttriple}/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+echo sed -i "s|../share/|../../share/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
+sed -i "s|../share/|../../share/|g" "${buildprefix}/installs/${hosttriple}/lib/libc++.modules.json"
 if [ $? -ne 0 ]; then
 echo "runtimes fix rename failure"
 exit 1
@@ -176,7 +176,7 @@ cp -r --preserve=links ${buildprefix}/installs/$hosttriple/include $WINDOWSSYSRO
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/lib/* $WINDOWSSYSROOT/lib/$hosttriple/
 cp -r --preserve=links ${buildprefix}/installs/$hosttriple/bin/* $WINDOWSSYSROOT/bin/$hosttriple/
 mkdir -p $WINDOWSSYSROOT/share/$hosttriple
-cp -r --preserve=links ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/$hosttriple/
+cp -r --preserve=links ${buildprefix}/installs/$hosttriple/share/* $WINDOWSSYSROOT/share/
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesupdated" ]; then
@@ -184,8 +184,8 @@ cd $WINDOWSSYSROOT
 git add $WINDOWSSYSROOT/include/c++/v1/*
 git add $WINDOWSSYSROOT/lib/$hosttriple/*
 git add $WINDOWSSYSROOT/bin/$hosttriple/*
-mkdir -p "$WINDOWSSYSROOT/share/$hosttriple"
-git add $WINDOWSSYSROOT/share/$hosttriple/*
+mkdir -p "$WINDOWSSYSROOT/share"
+git add $WINDOWSSYSROOT/share*
 echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
 
