@@ -31,7 +31,13 @@ WINDOWSMSVCSYSROOT_TAG="$DATE"
 
 # --- Pack windows-msvc-sysroot ---
 cd "$TOOLCHAINSPATH"
-XZ_OPT=-e9T0 tar --exclude='windows-msvc-sysroot/.*' -cJf windows-msvc-sysroot.tar.xz windows-msvc-sysroot
+
+if [ "$NO_PACKAGING" = "yes" ]; then
+  echo "🛑 Skipping packaging because NO_PACKAGING=yes"
+else
+  echo "📦 Generating compressed tarball..."
+  XZ_OPT=-e9T0 tar --exclude='windows-msvc-sysroot/.*' -cJf windows-msvc-sysroot.tar.xz windows-msvc-sysroot
+fi
 
 # --- Build release notes ---
 WINDOWSMSVCSYSROOT_NOTES=$(mktemp)
