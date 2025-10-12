@@ -12,7 +12,6 @@ fi
 artifactspath="$(realpath .)/.artifacts"
 if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
     TOOLCHAINS_BUILD_SHARED_STORAGE="${HOME}/.toolchains_build_shared_storage"
-    mkdir -p "${TOOLCHAINS_BUILD_SHARED_STORAGE}"
 fi
 currentpathnohosttriplet="${artifactspath}/gcc"
 currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"

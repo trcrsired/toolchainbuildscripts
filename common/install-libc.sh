@@ -241,9 +241,6 @@ install_libc() {
                     ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
                     NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
                 fi
-                # Create and enter the target directory
-                mkdir -p "${currentpathlibc}"
-                cd "${currentpathlibc}"
 
                 # Define filenames and paths
                 NDK_ZIP="${ANDROIDNDKVERSIONFULLNAME}.zip"
@@ -251,26 +248,32 @@ install_libc() {
                 NDK_SHARED_ZIP="${sharedstorage}/${NDK_ZIP}"
                 NDK_SHARED_DONE="${sharedstorage}/${NDK_DONE_FILE}"
 
-                # Check if the shared storage contains a completed download
+                # Ensure sharedstorage exists
+                mkdir -p "${sharedstorage}"
+
+                # Download to sharedstorage if not already completed
                 if [ -f "${NDK_SHARED_DONE}" ] && [ -f "${NDK_SHARED_ZIP}" ]; then
-                    echo "Found completed NDK zip in shared storage, copying..."
-                    cp "${NDK_SHARED_ZIP}" .
+                    echo "NDK zip already downloaded in shared storage."
                 else
-                    echo "NDK zip not found or incomplete in shared storage, downloading..."
+                    echo "Downloading NDK zip to shared storage..."
+                    cd "${sharedstorage}"
                     wget --tries=2 --show-progress "${NDKURL}"
                     if [ $? -ne 0 ]; then
                         echo "wget ${NDKURL} failure"
                         exit 1
                     fi
+                    echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
                 fi
 
-                # Set permissions and unzip in current directory
-                chmod 755 "${NDK_ZIP}"
-                unzip -q "${NDK_ZIP}"
+                # Prepare target extraction directory
+                mkdir -p "${currentpathlibc}"
+                cd "${currentpathlibc}"
+
+                # Unzip directly from sharedstorage into currentpathlibc
+                unzip -q "${NDK_SHARED_ZIP}"
                 if [ $? -ne 0 ]; then
-                    echo "unzip ${NDK_ZIP} failure"
+                    echo "unzip ${NDK_SHARED_ZIP} failure"
                     exit 1
-                fi
 
                 # Record download completion timestamp
                 echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
