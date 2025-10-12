@@ -83,7 +83,7 @@ install_libc() {
             fi
             wget --no-verbose $base_url/1/${CPU}-freebsd-libc.tar.xz
             if [ $? -ne 0 ]; then
-                echo "wget ${HOST} failure"
+                echo "wget ${TRIPLET} failure"
                 exit 1
             fi
 
@@ -242,6 +242,20 @@ install_libc() {
                 fi
 
                 wget --tries=2 --show-progress "$NDKURL"
+                if [ $? -ne 0 ]; then
+                    echo "wget ${NDKURL} failure"
+                    exit 1
+                fi
+                chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
+                unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
+                if [ $? -ne 0 ]; then
+                    echo "unzip ${ANDROIDNDKVERSIONFULLNAME}.zip failure"
+                    exit 1
+                fi
+                mkdir -p "${sysrootpathusr}"
+                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${sysrootpathusr}/lib
+                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${sysrootpathusr}/
+                cp -r --preserve=links ${sysrootpathusr}/include/${CPU}-linux-android/asm ${sysrootpathusr}/include/
             else
                 clone_or_update_dependency linux
                 if [ $? -ne 0 ]; then
