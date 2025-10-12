@@ -226,7 +226,8 @@ install_libc() {
                     fi
                 fi
 
-                ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
+                ANDROIDNDKVERSIONSHORTNAME="android-ndk-${ANDROIDNDKVERSION}"
+                ANDROIDNDKVERSIONFULLNAME="${ANDROIDNDKVERSIONSHORTNAME}-linux"
 #                China Mirror no longer works
 #                if [ "$CLONE_IN_CHINA" = "yes" ]; then
 #                    base_url="https://googledownloads.cn/android/repository"
