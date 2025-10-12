@@ -274,6 +274,7 @@ install_libc() {
                 if [ $? -ne 0 ]; then
                     echo "unzip ${NDK_SHARED_ZIP} failure"
                     exit 1
+                fi
 
                 # Record download completion timestamp
                 echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
