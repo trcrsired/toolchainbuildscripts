@@ -47,7 +47,7 @@ main() {
 
 #    if [ "${ENABLE_RISCV_SUPPORT}" == "1" ]; then
         TRIPLETS2+=(
-#            "riscv64-linux-android35"
+            "riscv64-linux-android35"
             "riscv64-linux-gnu"
             "riscv64-linux-musl"
         )
