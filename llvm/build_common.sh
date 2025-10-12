@@ -4,7 +4,14 @@ if [ -z ${TRIPLET+x} ]; then
 echo "TRIPLET is not set. Please set the TRIPLET environment variable to the target triplet."
 exit 1
 fi
-currentpath="$(realpath .)/.artifacts/llvm/${TRIPLET}"
+
+artifactspath="$(realpath .)/.artifacts"
+if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
+    TOOLCHAINS_BUILD_SHARED_STORAGE="${HOME}/.toolchains_build_shared_storage"
+    mkdir -p "${TOOLCHAINS_BUILD_SHARED_STORAGE}"
+fi
+
+currentpath="${artifactspath}/llvm/${TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
@@ -872,13 +879,13 @@ build_compiler_rt_or_builtins() {
 clone_or_update_dependency llvm-project
 
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
 fi
 
 build_compiler_rt_or_builtins 0
 
 if [[ LIBC_PHASE -ne 0 ]]; then
-    install_libc $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
 fi
 
 build_compiler_rt_or_builtins 1

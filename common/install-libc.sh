@@ -1,13 +1,14 @@
 #!/bin/bash
 
 install_libc() {
-    local TRIPLET="$1"
-    local currentpathlibc="$2"
-    local tripletpath="$3"
-    local sysrootpathusr="$4"
-    local usellvm="$5"
-    local buildheadersonly="$6"
-    local multilibs="${7:-no}"
+    local sharedstorage="$1"
+    local TRIPLET="$2"
+    local currentpathlibc="$3"
+    local tripletpath="$4"
+    local sysrootpathusr="$5"
+    local usellvm="$6"
+    local buildheadersonly="$7"
+    local multilibs="${8:-no}"
     local CPU
     local VENDOR
     local OS
@@ -240,19 +241,39 @@ install_libc() {
                     ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
                     NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
                 fi
-                mkdir -p ${currentpathlibc}
-                cd ${currentpathlibc}
-                wget --tries=2 --show-progress "$NDKURL"
+                # Create and enter the target directory
+                mkdir -p "${currentpathlibc}"
+                cd "${currentpathlibc}"
+
+                # Define filenames and paths
+                NDK_ZIP="${ANDROIDNDKVERSIONFULLNAME}.zip"
+                NDK_DONE_FILE=".ndk_downloaded_at"
+                NDK_SHARED_ZIP="${sharedstorage}/${NDK_ZIP}"
+                NDK_SHARED_DONE="${sharedstorage}/${NDK_DONE_FILE}"
+
+                # Check if the shared storage contains a completed download
+                if [ -f "${NDK_SHARED_DONE}" ] && [ -f "${NDK_SHARED_ZIP}" ]; then
+                    echo "Found completed NDK zip in shared storage, copying..."
+                    cp "${NDK_SHARED_ZIP}" .
+                else
+                    echo "NDK zip not found or incomplete in shared storage, downloading..."
+                    wget --tries=2 --show-progress "${NDKURL}"
+                    if [ $? -ne 0 ]; then
+                        echo "wget ${NDKURL} failure"
+                        exit 1
+                    fi
+                fi
+
+                # Set permissions and unzip in current directory
+                chmod 755 "${NDK_ZIP}"
+                unzip -q "${NDK_ZIP}"
                 if [ $? -ne 0 ]; then
-                    echo "wget ${NDKURL} failure"
+                    echo "unzip ${NDK_ZIP} failure"
                     exit 1
                 fi
-                chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
-                unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
-                if [ $? -ne 0 ]; then
-                    echo "unzip ${ANDROIDNDKVERSIONFULLNAME}.zip failure"
-                    exit 1
-                fi
+
+                # Record download completion timestamp
+                echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
                 mkdir -p "${sysrootpathusr}"
                 cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${sysrootpathusr}/lib
                 cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${sysrootpathusr}/

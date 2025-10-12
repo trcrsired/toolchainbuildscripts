@@ -9,8 +9,12 @@ if [ -z ${TARGET_TRIPLET+x} ]; then
 echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment variable to the target triplet."
 exit 1
 fi
-
-currentpathnohosttriplet="$(realpath .)/.artifacts/gcc"
+artifactspath="$(realpath .)/.artifacts"
+if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
+    TOOLCHAINS_BUILD_SHARED_STORAGE="${HOME}/.toolchains_build_shared_storage"
+    mkdir -p "${TOOLCHAINS_BUILD_SHARED_STORAGE}"
+fi
+currentpathnohosttriplet="${artifactspath}/gcc"
 currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
@@ -278,7 +282,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
         cd "$build_prefix_project"
         build_project_gnu_cookie $1 $2 $3 0
 
@@ -294,7 +298,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
                 fi
                 echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
-            install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "no" "no" "yes"
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
             cd "$build_prefix_project"
@@ -370,7 +374,7 @@ build_cross_toolchain() {
     elif [[ $target_os == mingw* ]]; then
         build_binutils_gdb_and_gcc_libc $host_triplet $target_triplet
     else
-        install_libc $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}/${target_triplet}" "yes" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
     fi
 }
@@ -408,14 +412,14 @@ fi
 # canadian
 if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} && ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
     # crossback
-    install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no"
 else
     if [[ ${HOST_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} ]]; then
         # canadian native
-        install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
     else
         # canadian cross
-        install_libc $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $BUILD_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$HOST_GCC_TRIPLET/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
     fi
     build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
 fi
