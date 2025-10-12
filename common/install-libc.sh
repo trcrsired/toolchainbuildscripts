@@ -226,22 +226,22 @@ install_libc() {
                     fi
                 fi
 
-                ANDROIDNDKVERSIONSHORTNAME="android-ndk-${ANDROIDNDKVERSION}"
-                ANDROIDNDKVERSIONFULLNAME="${ANDROIDNDKVERSIONSHORTNAME}-linux"
+                local ANDROIDNDKVERSIONSHORTNAME="android-ndk-${ANDROIDNDKVERSION}"
+                local ANDROIDNDKVERSIONFULLNAME="${ANDROIDNDKVERSIONSHORTNAME}-linux"
 #                China Mirror no longer works
 #                if [ "$CLONE_IN_CHINA" = "yes" ]; then
 #                    base_url="https://googledownloads.cn/android/repository"
 #                else
-                    base_url="https://dl.google.com/android/repository"
+                    local base_url="https://dl.google.com/android/repository"
 #                fi
 
-                NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
+                local NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
 
                 # Define filenames and paths
-                NDK_ZIP="${ANDROIDNDKVERSIONFULLNAME}.zip"
-                NDK_DONE_FILE=".ndk_downloaded_at"
-                NDK_SHARED_ZIP="${sharedstorage}/${NDK_ZIP}"
-                NDK_SHARED_DONE="${sharedstorage}/${NDK_DONE_FILE}"
+                local NDK_ZIP="${ANDROIDNDKVERSIONFULLNAME}.zip"
+                local NDK_DONE_FILE=".ndk_downloaded_at"
+                local NDK_SHARED_ZIP="${sharedstorage}/${NDK_ZIP}"
+                local NDK_SHARED_DONE="${sharedstorage}/${NDK_DONE_FILE}"
 
                 # Ensure sharedstorage exists
                 mkdir -p "${sharedstorage}"
