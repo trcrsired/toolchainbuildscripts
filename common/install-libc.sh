@@ -240,7 +240,7 @@ install_libc() {
                     NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
                 fi
 
-                curl -# -L -O "${NDKURL}"
+                wget --tries=2 --show-progress "$NDKURL"
             else
                 clone_or_update_dependency linux
                 if [ $? -ne 0 ]; then
