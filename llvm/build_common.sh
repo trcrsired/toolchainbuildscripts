@@ -94,10 +94,21 @@ if [[ $1 == "restart" ]]; then
 	echo "restart done"
 fi
 
-# Determine the number of CPU threads to use for the Ninja build
+# Detect total logical CPU cores with fallback and verbose output
+if command -v nproc >/dev/null 2>&1; then
+    echo "Using nproc to detect core count..."
+    TOTAL_CORES=$(nproc)
+    echo "Detected TOTAL_CORES = ${TOTAL_CORES}"
+elif command -v sysctl >/dev/null 2>&1; then
+    echo "nproc not found, using sysctl instead..."
+    TOTAL_CORES=$(sysctl -n hw.logicalcpu)
+    echo "Detected TOTAL_CORES = ${TOTAL_CORES}"
+fi
 
-# Get the total number of logical CPU cores on the system
-TOTAL_CORES=$(nproc)
+if [ -z "$TOTAL_CORES" ]; then
+    echo "Neither nproc nor sysctl succeeded, defaulting to 6 cores..."
+    TOTAL_CORES=6
+fi
 
 # If NINJA_MAX_JOBS is explicitly set, use that value
 if [[ -n "$NINJA_MAX_JOBS" ]]; then

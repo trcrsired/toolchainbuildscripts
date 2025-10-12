@@ -213,39 +213,34 @@ install_libc() {
         elif [[ "$OS" == "linux" ]]; then
             if [[ "$ABI" == "android"* ]]; then
                 if [ -z "${ANDROIDNDKVERSION}" ]; then
-                    ANDROIDNDKVERSION=$(git ls-remote --tags https://github.com/android/ndk.git 2>/dev/null | grep -v '\^{}' | awk -F'/' '{print $3}' | sort -V | tail -n1)
+                    ANDROIDNDKVERSION=$(git ls-remote --tags https://github.com/android/ndk.git 2>/dev/null \
+                        | grep -v '\^{}' \
+                        | awk -F'/' '{print $3}' \
+                        | grep -E '^r[0-9]+$' \
+                        | sort -V \
+                        | tail -n1)
                     echo "Detected ANDROIDNDKVERSION: ${ANDROIDNDKVERSION}"       
-                    # Default to r28 if no valid tag is found
                     if [ -z "${ANDROIDNDKVERSION}" ]; then
-                        ANDROIDNDKVERSION="r28"
+                        ANDROIDNDKVERSION="r29"
                     fi
                 fi
-                mkdir -p ${currentpathlibc}
-                cd ${currentpathlibc}
-                ANDROIDNDKVERSIONSHORTNAME=android-ndk-${ANDROIDNDKVERSION}
-                ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                local base_url
 
+                ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
                 if [ "$CLONE_IN_CHINA" = "yes" ]; then
                     base_url="https://googledownloads.cn/android/repository"
                 else
                     base_url="https://dl.google.com/android/repository"
                 fi
-                wget --no-verbose $base_url/${ANDROIDNDKVERSIONFULLNAME}.zip
-                if [ $? -ne 0 ]; then
-                    echo "wget ${HOST} failure"
-                    exit 1
+
+                NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
+                if ! curl -s --head "$NDKURL" | grep -q "200 OK"; then
+                    echo "NDK zip not found for tag ${ANDROIDNDKVERSION}, falling back to r29"
+                    ANDROIDNDKVERSION="r29"
+                    ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
+                    NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
                 fi
-                chmod 755 ${ANDROIDNDKVERSIONFULLNAME}.zip
-                unzip ${ANDROIDNDKVERSIONFULLNAME}.zip
-                if [ $? -ne 0 ]; then
-                    echo "unzip ${HOST} failure"
-                    exit 1
-                fi
-                mkdir -p "${sysrootpathusr}"
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${sysrootpathusr}/lib
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${sysrootpathusr}/
-                cp -r --preserve=links ${sysrootpathusr}/include/${CPU}-linux-android/asm ${sysrootpathusr}/include/
+
+                curl -# -L -O "${NDKURL}"
             else
                 clone_or_update_dependency linux
                 if [ $? -ne 0 ]; then
