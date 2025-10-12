@@ -235,12 +235,6 @@ install_libc() {
 #                fi
 
                 NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
-                if ! curl -s --head "$NDKURL" | grep -q "200 OK"; then
-                    echo "NDK zip not found for tag ${ANDROIDNDKVERSION}, falling back to r29"
-                    ANDROIDNDKVERSION="r29"
-                    ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
-                    NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
-                fi
 
                 # Define filenames and paths
                 NDK_ZIP="${ANDROIDNDKVERSIONFULLNAME}.zip"
