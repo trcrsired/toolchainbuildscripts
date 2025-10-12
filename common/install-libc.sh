@@ -240,7 +240,8 @@ install_libc() {
                     ANDROIDNDKVERSIONFULLNAME=android-ndk-${ANDROIDNDKVERSION}-linux
                     NDKURL="${base_url}/${ANDROIDNDKVERSIONFULLNAME}.zip"
                 fi
-
+                mkdir -p ${currentpathlibc}
+                cd ${currentpathlibc}
                 wget --tries=2 --show-progress "$NDKURL"
                 if [ $? -ne 0 ]; then
                     echo "wget ${NDKURL} failure"
