@@ -6,9 +6,6 @@ exit 1
 fi
 
 artifactspath="$(realpath .)/.artifacts"
-if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
-    TOOLCHAINS_BUILD_SHARED_STORAGE="${HOME}/.toolchains_build_shared_storage"
-fi
 
 currentpath="${artifactspath}/llvm/${TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
@@ -52,11 +49,15 @@ echo "ABI_NO_VERSION: $ABI_NO_VERSION"
 
 
 if [ -z ${TOOLCHAINS_BUILD+x} ]; then
-	TOOLCHAINS_BUILD=$HOME/toolchains_build
+	TOOLCHAINS_BUILD="$HOME/toolchains_build"
+fi
+
+if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
+    TOOLCHAINS_BUILD_SHARED_STORAGE="${TOOLCHAINS_BUILD}/.shared_storage"
 fi
 
 if [ -z ${TOOLCHAINSPATH+x} ]; then
-	TOOLCHAINSPATH=$HOME/toolchains
+	TOOLCHAINSPATH="$HOME/toolchains"
 fi
 
 if [ -z ${TOOLCHAINS_LLVMPATH+x} ]; then

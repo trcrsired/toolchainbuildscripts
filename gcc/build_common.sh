@@ -139,6 +139,10 @@ if [ -z ${TOOLCHAINS_BUILD+x} ]; then
 	TOOLCHAINS_BUILD="$HOME/toolchains_build"
 fi
 
+if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
+    TOOLCHAINS_BUILD_SHARED_STORAGE="${TOOLCHAINS_BUILD}/.shared_storage"
+fi
+
 if [ -z ${TOOLCHAINSPATH+x} ]; then
 	TOOLCHAINSPATH="$HOME/toolchains"
 fi
