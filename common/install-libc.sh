@@ -194,18 +194,18 @@ install_libc() {
                     exit 1
                 fi
                 # Create lib/32 symlink if lib32 exists and multilibs is enabled for x86_64
-                if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
-                    if [ -d "${sysrootpathusr}/lib32" ]; then
-                        mkdir -p "${sysrootpathusr}/lib"
-                        if [ ! -e "${sysrootpathusr}/lib/32" ]; then
-                            ln -sfn ../lib32 "${sysrootpathusr}/lib/32"
-                            echo "Created symlink: ${sysrootpathusr}/lib/32 → ../lib32"
-                        else
-                            echo "Symlink already exists: ${sysrootpathusr}/lib/32"
-                        fi
-                    else
-                        echo "lib32 directory not found under ${sysrootpathusr}, skipping symlink"
-                    fi
+#                if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
+#                    if [ -d "${sysrootpathusr}/lib32" ]; then
+#                        mkdir -p "${sysrootpathusr}/lib"
+#                        if [ ! -e "${sysrootpathusr}/lib/32" ]; then
+#                            ln -sfn ../lib32 "${sysrootpathusr}/lib/32"
+#                            echo "Created symlink: ${sysrootpathusr}/lib/32 → ../lib32"
+#                        else
+#                            echo "Symlink already exists: ${sysrootpathusr}/lib/32"
+#                        fi
+#                    else
+#                        echo "lib32 directory not found under ${sysrootpathusr}, skipping symlink"
+#                    fi
                 fi
             else
                 echo "Unknown Windows ABI: $ABI"

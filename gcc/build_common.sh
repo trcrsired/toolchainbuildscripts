@@ -10,9 +10,6 @@ echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment varia
 exit 1
 fi
 artifactspath="$(realpath .)/.artifacts"
-if [ -z ${TOOLCHAINS_BUILD_SHARED_STORAGE+x} ]; then
-    TOOLCHAINS_BUILD_SHARED_STORAGE="${HOME}/.toolchains_build_shared_storage"
-fi
 currentpathnohosttriplet="${artifactspath}/gcc"
 currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
