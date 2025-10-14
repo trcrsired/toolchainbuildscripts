@@ -206,7 +206,7 @@ install_libc() {
 #                    else
 #                        echo "lib32 directory not found under ${sysrootpathusr}, skipping symlink"
 #                    fi
-                fi
+#                fi
             else
                 echo "Unknown Windows ABI: $ABI"
                 exit 1
