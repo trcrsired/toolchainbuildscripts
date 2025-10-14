@@ -226,12 +226,12 @@ local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_t
 
 if [[ "x$project_name" == "xgcc" ]]; then
 if [[ $cookie -eq 1 || $cookie -eq 2 ]];then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
 if [[ $cookie -eq 2 ]]; then
 configure_project_name="${configure_project_name}_phase1"
 fi
 else
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --enable-multilib"
 fi
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
