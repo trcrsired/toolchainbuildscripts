@@ -384,12 +384,13 @@ packaging_toolchain() {
     local target_triplet=$2
     local prefix_parent="${TOOLCHAINSPATH_GNU}/${host_triplet}"
     local prefix="${prefix_parent}/${target_triplet}"
-    local build_prefix="$currentpath/${host_triplet}/${target_triplet}"
+    local build_prefix="${currentpathnohosttriplet}/${host_triplet}/${target_triplet}"
     if [ ! -f "$build_prefix/.packagesuccess" ]; then
         rm -f "${prefix}.tar.xz"
         cd "$prefix_parent"
         XZ_OPT=-e9T0 tar cJf ${target_triplet}__${host_triplet}.tar.xz ${target_triplet}
         chmod 755 ${target_triplet}__${host_triplet}.tar.xz
+        mkdir -p "${build_prefix}"
         echo "$(date --iso-8601=seconds)" > "$build_prefix/.packagesuccess"
     fi
 }
