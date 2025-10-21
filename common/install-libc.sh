@@ -9,6 +9,7 @@ install_libc() {
     local usellvm="$6"
     local buildheadersonly="$7"
     local multilibs="${8:-no}"
+    local installpathsysroottripletsubdir="${9:-no}"
     local CPU
     local VENDOR
     local OS
@@ -35,7 +36,10 @@ install_libc() {
     else
         phase_file=".libc_phase_done"
     fi
-
+    local installdirpath="${sysrootpathusr}"
+    if [ "$installpathsysroottripletsubdir" == "yes" ]; then
+        installdirpath="${installdirpath}/${TRIPLET}"
+    fi
     mkdir -p "${currentpathlibc}"
     mkdir -p "${tripletpath}"
     if [ ! -f "${currentpathlibc}/${phase_file}" ]; then
@@ -94,10 +98,10 @@ install_libc() {
                 echo "tar extraction failure"
                 exit 1
             fi
-            mkdir -p "${sysrootpathusr}"
-            cp -r --preserve=links "${currentpathlibc}/sysroot_decompress"/${CPU}-freebsd-libc/* "${sysrootpathusr}/"
+            mkdir -p "${installdirpath}"
+            cp -r --preserve=links "${currentpathlibc}/sysroot_decompress"/${CPU}-freebsd-libc/* "${installdirpath}/"
             if [ $? -ne 0 ]; then
-                echo "Failed to move files to ${sysrootpathusr}"
+                echo "Failed to move files to ${installdirpath}"
                 exit 1
             fi
         elif [[ "$OS" == "windows" ]]; then
@@ -273,17 +277,17 @@ install_libc() {
 
                 # Record download completion timestamp
                 echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
-                mkdir -p "${sysrootpathusr}"
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${sysrootpathusr}/lib
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${sysrootpathusr}/
-                cp -r --preserve=links ${sysrootpathusr}/include/${CPU}-linux-android/asm ${sysrootpathusr}/include/
+                mkdir -p "${installdirpath}"
+                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${installdirpath}/lib
+                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${installdirpath}/
+                cp -r --preserve=links ${installdirpath}/include/${CPU}-linux-android/asm ${installdirpath}/include/
             else
                 clone_or_update_dependency linux
                 if [ $? -ne 0 ]; then
                     echo "Error: Failed to clone or update linux"
                     exit 1
                 fi
-                install_linux_kernel_headers $CPU "${currentpathlibc}" "${sysrootpathusr}"
+                install_linux_kernel_headers $CPU "${currentpathlibc}" "${installdirpath}"
                 if [ $? -ne 0 ]; then
                     echo "Error: Failed to install Linux kernel headers"
                     exit 1
@@ -295,7 +299,7 @@ install_libc() {
                         echo "Error: Failed to clone or update glibc"
                         exit 1
                     fi
-                    build_glibc $CPU "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
+                    build_glibc $CPU "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build glibc"
                         exit 1
@@ -306,7 +310,7 @@ install_libc() {
                         echo "Error: Failed to clone or update musl"
                         exit 1
                     fi
-                    build_musl $TRIPLET "${currentpathlibc}" "${sysrootpathusr}" "${usellvm}" "${buildheadersonly}" "no"
+                    build_musl $TRIPLET "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build musl"
                         exit 1
