@@ -146,9 +146,9 @@ install_libc() {
 
                     if [ ! -f Makefile ]; then
                         if [[ "$usellvm" == "yes" ]]; then
-                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${installdirpath}"
+                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${tripletpath}"
                         else
-                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${installdirpath}"
+                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${tripletpath}"
                         fi
                         if [ $? -ne 0 ]; then
                             echo "Error: mingw-w64-headers($TRIPLET) configure failed"
@@ -167,7 +167,11 @@ install_libc() {
                         echo "Error: make mingw-w64-headers($TRIPLET) install-strip failed"
                         exit 1
                     fi
-
+                    cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
+                    if [ $? -ne 0 ]; then
+                        echo "Error: copy mingw-w64-headers($TRIPLET) failed"
+                        exit 1
+                    fi
                     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_header"
                 fi
 
@@ -176,9 +180,9 @@ install_libc() {
 
                 if [ ! -f Makefile ]; then
                     if [[ "$usellvm" == "yes" ]]; then
-                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${sysrootpathusr}"
+                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${tripletpath}"
                     else
-                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${sysrootpathusr}"
+                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${tripletpath}"
                     fi
                     if [ $? -ne 0 ]; then
                         echo "Error: configure mingw-w64-crt($TRIPLET) failed"
@@ -197,6 +201,7 @@ install_libc() {
                     echo "Error: make install-strip mingw-w64-crt($TRIPLET) failed"
                     exit 1
                 fi
+
                 if [[ "$installpathsysroottripletsubdir" == "yes" ]]; then
                     # Create lib/32 symlink if lib32 exists and multilibs is enabled for x86_64
                     if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
@@ -212,7 +217,13 @@ install_libc() {
                             echo "lib32 directory not found under ${installdirpath}, skipping symlink"
                         fi
                     fi
-                    fi
+                fi
+
+                cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
+                if [ $? -ne 0 ]; then
+                    echo "Error: copy mingw-w64-crt($TRIPLET) failed"
+                    exit 1
+                fi
             else
                 echo "Unknown Windows ABI: $ABI"
                 exit 1
