@@ -227,15 +227,22 @@ local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_t
 
 if [[ "x$project_name" == "xgcc" ]]; then
 if [[ $cookie -eq 1 || $cookie -eq 2 ]];then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
 if [[ $cookie -eq 2 ]]; then
 configure_project_name="${configure_project_name}_phase1"
 fi
 else
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-multilib"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-multilib"
 fi
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
+fi
+if [[ "$target_triplet" == "x86_64-elf" ]]; then
+# Do not enable it unless it is for special target. Multilibs are just historical mistakes by GCC. They never worked.
+# They should just use llvm style --target --sysroot instead
+# We only enable it for no-red-zone
+# See: https://wiki.osdev.org/Libgcc_without_red_zone
+configures="$configures --enable-multilib"
 fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
@@ -303,7 +310,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
                 fi
                 echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
-            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "yes" "yes"
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "no" "yes"
         fi
         if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
             cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
@@ -383,7 +390,7 @@ build_cross_toolchain() {
     elif [[ $target_os == mingw* ]]; then
         build_binutils_gdb_and_gcc_libc $host_triplet $target_triplet
     else
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "yes" "yes" "yes" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "yes" "yes" "no" "yes"
         build_binutils_gdb_and_gcc $host_triplet $target_triplet
     fi
 }
@@ -426,7 +433,7 @@ else
         build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
         packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
         build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes" "no"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "no"
     else
 # canadian cross
         build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
@@ -434,7 +441,7 @@ else
         build_cross_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
         packaging_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
         build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "yes"
     fi
 fi
 
