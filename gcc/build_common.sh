@@ -426,7 +426,7 @@ else
         build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
         packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
         build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
     else
 # canadian cross
         build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
@@ -434,7 +434,7 @@ else
         build_cross_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
         packaging_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
         build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "yes"
     fi
 fi
 
