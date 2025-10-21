@@ -37,7 +37,7 @@ install_libc() {
         phase_file=".libc_phase_done"
     fi
     local installdirpath="${sysrootpathusr}"
-    if [ "$installpathsysroottripletsubdir" == "yes" ]; then
+    if [[ "$installpathsysroottripletsubdir" == "yes" ]]; then
         installdirpath="${installdirpath}/${TRIPLET}"
     fi
     mkdir -p "${currentpathlibc}"
@@ -126,7 +126,7 @@ install_libc() {
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
-                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --prefix=${sysrootpathusr} --disable-nls --disable-werror"
+                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror"
                 local MINGWW64COMMONENV="
                 CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
@@ -146,9 +146,9 @@ install_libc() {
 
                     if [ ! -f Makefile ]; then
                         if [[ "$usellvm" == "yes" ]]; then
-                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
+                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${installdirpath}"
                         else
-                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
+                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} "--prefix=${installdirpath}"
                         fi
                         if [ $? -ne 0 ]; then
                             echo "Error: mingw-w64-headers($TRIPLET) configure failed"
@@ -176,9 +176,9 @@ install_libc() {
 
                 if [ ! -f Makefile ]; then
                     if [[ "$usellvm" == "yes" ]]; then
-                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
+                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${sysrootpathusr}"
                     else
-                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
+                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} "--prefix=${sysrootpathusr}"
                     fi
                     if [ $? -ne 0 ]; then
                         echo "Error: configure mingw-w64-crt($TRIPLET) failed"
@@ -197,20 +197,22 @@ install_libc() {
                     echo "Error: make install-strip mingw-w64-crt($TRIPLET) failed"
                     exit 1
                 fi
-                # Create lib/32 symlink if lib32 exists and multilibs is enabled for x86_64
-#                if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
-#                    if [ -d "${sysrootpathusr}/lib32" ]; then
-#                        mkdir -p "${sysrootpathusr}/lib"
-#                        if [ ! -e "${sysrootpathusr}/lib/32" ]; then
-#                            ln -sfn ../lib32 "${sysrootpathusr}/lib/32"
-#                            echo "Created symlink: ${sysrootpathusr}/lib/32 → ../lib32"
-#                        else
-#                            echo "Symlink already exists: ${sysrootpathusr}/lib/32"
-#                        fi
-#                    else
-#                        echo "lib32 directory not found under ${sysrootpathusr}, skipping symlink"
-#                    fi
-#                fi
+                if [[ "$installpathsysroottripletsubdir" == "yes" ]]; then
+                    # Create lib/32 symlink if lib32 exists and multilibs is enabled for x86_64
+                    if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
+                        if [ -d "${installdirpath}/lib32" ]; then
+                            mkdir -p "${installdirpath}/lib"
+                            if [ ! -e "${installdirpath}/lib/32" ]; then
+                                ln -sfn ../lib32 "${installdirpath}/lib/32"
+                                echo "Created symlink: ${installdirpath}/lib/32 → ../lib32"
+                            else
+                                echo "Symlink already exists: ${installdirpath}/lib/32"
+                            fi
+                        else
+                            echo "lib32 directory not found under ${installdirpath}, skipping symlink"
+                        fi
+                    fi
+                    fi
             else
                 echo "Unknown Windows ABI: $ABI"
                 exit 1
