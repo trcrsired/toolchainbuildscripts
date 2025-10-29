@@ -126,7 +126,7 @@ install_libc() {
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
-                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=\"${tripletpath}\""
+                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=${tripletpath}"
                 local MINGWW64COMMONENV="
                 CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
