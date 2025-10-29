@@ -225,25 +225,29 @@ local current_phase_file=".${project_name}_phase_done"
 local configure_project_name="$project_name"
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
+local multilibsettings="yes"
 if [[ "x$project_name" == "xgcc" ]]; then
 if [[ $cookie -eq 1 || $cookie -eq 2 ]];then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-multilib --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
 if [[ $cookie -eq 2 ]]; then
 configure_project_name="${configure_project_name}_phase1"
 fi
 else
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-multilib"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
 fi
+
+if [[ "$target_triplet" == *-linux-gnu ]]; then
+# We disable mulitlib for *-linux-gnu since it is a total mess
+configures="$configures --disable-multilib"
+multilibsettings="no"
+else
+configures="$configures --enable-multilib"
+fi
+
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
-if [[ "$target_triplet" == "x86_64-elf" ]]; then
-# Do not enable it unless it is for special target. Multilibs are just historical mistakes by GCC. They never worked.
-# They should just use llvm style --target --sysroot instead
-# We only enable it for no-red-zone
-# See: https://wiki.osdev.org/Libgcc_without_red_zone
-configures="$configures --enable-multilib"
-fi
+
 
 local build_prefix_project="$build_prefix/$configure_project_name"
 
@@ -253,7 +257,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
@@ -284,17 +288,17 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-gcc -j "${JOBS}"
+        make install-strip-gcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        make install-target-libgcc -j "${JOBS}"
+        make install-strip-target-libgcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "yes" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "${multilibsettings}" "yes"
         cd "$build_prefix_project"
         build_project_gnu_cookie $1 $2 $3 0
 
@@ -303,14 +307,14 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             cd "$build_prefix_project"
             if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
                 cd "$build_prefix_project"
-                make install-gcc -j "${JOBS}"
+                make install-strip-gcc -j "${JOBS}"
                 if [ $? -ne 0 ]; then
                     echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                     exit 1
                 fi
                 echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
-            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "no" "yes"
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "${multilibsettings}" "yes"
         fi
         if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
             cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
@@ -328,7 +332,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
         if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
             cd "$build_prefix_project"
-            make install -j "${JOBS}"
+            make install-strip -j "${JOBS}"
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -337,10 +341,10 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
     fi
 
-    if [ ! -f "${build_prefix_project}/${strip_phase_file}" ]; then
-        safe_llvm_strip "$prefix"
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${strip_phase_file}"
-    fi
+#    if [ ! -f "${build_prefix_project}/${strip_phase_file}" ]; then
+#        safe_llvm_strip "$prefix"
+#        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${strip_phase_file}"
+#    fi
 
     echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
 fi
