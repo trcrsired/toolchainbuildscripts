@@ -9,7 +9,7 @@ install_libc() {
     local usellvm="$6"
     local buildheadersonly="$7"
     local multilibs="${8:-no}"
-    local installpathsysroottripletsubdir="${9:-no}"
+    local isgcccrossing="${9:-no}"
     local CPU
     local VENDOR
     local OS
@@ -37,9 +37,6 @@ install_libc() {
         phase_file=".libc_phase_done"
     fi
     local installdirpath="${sysrootpathusr}"
-    if [[ "$installpathsysroottripletsubdir" == "yes" ]]; then
-        installdirpath="${installdirpath}/${TRIPLET}"
-    fi
     mkdir -p "${currentpathlibc}"
     mkdir -p "${tripletpath}"
     if [ ! -f "${currentpathlibc}/${phase_file}" ]; then
@@ -202,7 +199,7 @@ install_libc() {
                     exit 1
                 fi
 
-                if [[ "$installpathsysroottripletsubdir" == "yes" ]]; then
+                if [[ "$isgcccrossing" == "yes" ]]; then
                     # Create lib/32 symlink if lib32 exists and multilibs is enabled for x86_64
                     if [[ "$CPU" == "x86_64" && "$multilibs" == "yes" ]]; then
                         if [ -d "${installdirpath}/lib32" ]; then

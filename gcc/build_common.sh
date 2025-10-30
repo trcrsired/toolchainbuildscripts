@@ -211,7 +211,7 @@ build_project_gnu_cookie() {
 local project_name=$1
 local host_triplet=$2
 local target_triplet=$3
-local cookie=$4
+local cookie=${4:-0}
 local prefix="$TOOLCHAINSPATH_GNU/$2/$3"
 local build_prefix="$currentpathnohosttriplet/$2/$3"
 local configure_phase_file=".${project_name}_phase_configure"
@@ -226,10 +226,57 @@ local configure_project_name="$project_name"
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
 local multilibsettings="yes"
+
+local is_native_or_canadian_native="no"
+local is_native_cross="no"
+local is_canadian_cross="no"
+local libc_install_prefix="${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}"
+if [[ "$host_triplet" == "$target_triplet" ]]; then
+    is_native_or_canadian_native="yes"
+else
+    libc_install_prefix="${libc_install_prefix}/${target_triplet}"
+    if [[ "$BUILD_TRIPLET" == "$host_triplet" ]] then
+        is_native_cross="yes"
+    else
+        is_canadian_cross="yes"
+    fi
+fi
+
+local is_freestanding_build="no"
+local is_two_phase_build="no"
+local is_freestanding_or_two_phase_build="no"
+local is_between_build="no"
+local build_prefix_project="$build_prefix/$configure_project_name"
+
 if [[ "x$project_name" == "xgcc" ]]; then
-if [[ $cookie -eq 1 || $cookie -eq 2 ]];then
+
+local target_cpu
+local target_vendor
+local target_os
+local target_abi
+parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
+
+
+if [[ $cookie -eq 0 ]];then
+
+if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
+if [[ "x${is_native_cross}" == "xyes" ]]; then
+    is_two_phase_build="yes"
+fi
+is_freestanding_or_two_phase_build="$is_two_phase_build"
+elif [[ $target_os == mingw* ]]; then
+if [[ "x${is_native_cross}" == "xyes" ]]; then
+    is_between_build="yes"
+fi
+else
+install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+fi
+
+fi
+
+if [[ $is_freestanding_or_two_phase_build == "yes" ]];then
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libbacktrace --disable-libatomic --disable-libsanitizer"
-if [[ $cookie -eq 2 ]]; then
+if [[ $is_two_phase_build == "yes" ]]; then
 configure_project_name="${configure_project_name}_phase1"
 fi
 else
@@ -248,8 +295,11 @@ elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
 
+local is_to_build_install_libc="no"
 
-local build_prefix_project="$build_prefix/$configure_project_name"
+if [[ "x$project_name" == "xgcc" && "${is_freestanding_build}" != "yes" ]]; then
+is_to_build_install_libc="yes"
+fi
 
 if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
@@ -276,7 +326,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
         fi
     fi
-    if [[ "x$project_name" == "xgcc" && $cookie -eq 2 ]]; then
+    if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "xyes" ]]; then
         cd "$build_prefix_project"
 #        freestanding should not deal with this?
 #        if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
@@ -298,27 +348,33 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "${multilibsettings}" "yes"
+        if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+        fi
         cd "$build_prefix_project"
-        build_project_gnu_cookie $1 $2 $3 0
+        build_project_gnu_cookie $1 $2 $3 1
 
     else
-        if [[ "x$project_name" == "xgcc" && $cookie -eq 3 ]]; then
-            cd "$build_prefix_project"
-            if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
+        if [[ "x$project_name" == "xgcc" ]]; then
+            if [[ "x$is_between_build" == "xyes" ]]; then
                 cd "$build_prefix_project"
-                make install-strip-gcc -j "${JOBS}"
-                if [ $? -ne 0 ]; then
-                    echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-                    exit 1
+                if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
+                    cd "$build_prefix_project"
+                    make install-strip-gcc -j "${JOBS}"
+                    if [ $? -ne 0 ]; then
+                        echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                        exit 1
+                    fi
+                    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
                 fi
-                echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
+                if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
+                    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+                fi
             fi
-            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "no" "no" "${multilibsettings}" "yes"
-        fi
-        if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
-            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
-            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
+            if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
+                cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
+                echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
+            fi
         fi
         if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
             cd "$build_prefix_project"
@@ -339,12 +395,11 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
             fi
             echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
         fi
-    fi
 
-#    if [ ! -f "${build_prefix_project}/${strip_phase_file}" ]; then
-#        safe_llvm_strip "$prefix"
-#        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${strip_phase_file}"
-#    fi
+        if [[ "x$is_to_build_install_libc" == "xyes" && "x$is_native_cross" != "xyes" ]]; then
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+        fi
+    fi
 
     echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
 fi
@@ -373,12 +428,12 @@ build_binutils_gdb_and_gcc() {
 
 build_binutils_gdb_and_gcc_2_phases() {
     build_project_gnu "binutils-gdb" $1 $2
-    build_project_gnu_cookie "gcc" $1 $2 2
+    build_project_gnu_cookie "gcc" $1 $2
 }
 
 build_binutils_gdb_and_gcc_libc() {
     build_project_gnu "binutils-gdb" $1 $2
-    build_project_gnu_cookie "gcc" $1 $2 3
+    build_project_gnu_cookie "gcc" $1 $2
 }
 
 build_cross_toolchain() {
@@ -399,6 +454,8 @@ build_cross_toolchain() {
     fi
 }
 
+
+
 packaging_toolchain() {
     local host_triplet=$1
     local target_triplet=$2
@@ -408,45 +465,37 @@ packaging_toolchain() {
     if [ ! -f "$build_prefix/.packagesuccess" ]; then
         rm -f "${prefix}.tar.xz"
         cd "$prefix_parent"
-        XZ_OPT=-e9T0 tar cJf ${target_triplet}__${host_triplet}.tar.xz ${target_triplet}
-        chmod 755 ${target_triplet}__${host_triplet}.tar.xz
+        XZ_OPT=-e9T0 tar cJf ${target_triplet}.${host_triplet}.tar.xz ${target_triplet}
+        chmod 755 ${target_triplet}.${host_triplet}.tar.xz
         mkdir -p "${build_prefix}"
         echo "$(date --iso-8601=seconds)" > "$build_prefix/.packagesuccess"
     fi
 }
 
+build_toolchain() {
+    build_project_gnu_cookie "binutils-gdb" $1 $2
+    build_project_gnu_cookie "gcc" $1 $2
+    packaging_toolchain $1 $2
+}
+
+
 if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} ]]; then
 # native
-    if [[ ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
-# native native
-        build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "no"
-    else
-# native cross
-        build_cross_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-    fi
+    build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
 else
 # canadian
 
     if [[ ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # crossback
-        build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "yes"
+        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
     elif [[ ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
 # canadian native
-        build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
-        packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
-        build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "no"
+        build_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
     else
 # canadian cross
-        build_cross_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
-        packaging_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
-        build_cross_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        packaging_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        build_binutils_gdb_and_gcc $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TARGET_GCC_TRIPLET "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/${HOST_GCC_TRIPLET}/${TARGET_GCC_TRIPLET}" "no" "no" "no" "yes"
+        build_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+        build_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
+        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
     fi
 fi
-
-packaging_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
