@@ -406,56 +406,6 @@ fi
 
 }
 
-build_project_gnu() {
-    local project_name=$1
-    local host_triplet=$2
-    local target_triplet=$3
-    build_project_gnu_cookie $1 $2 $3 0
-}
-
-build_binutils_gdb() {
-    build_project_gnu "binutils-gdb" $1 $2
-}
-
-build_gcc() {
-    build_project_gnu "gcc" $1 $2
-}
-
-build_binutils_gdb_and_gcc() {
-    build_project_gnu "binutils-gdb" $1 $2
-    build_project_gnu "gcc" $1 $2
-}
-
-build_binutils_gdb_and_gcc_2_phases() {
-    build_project_gnu "binutils-gdb" $1 $2
-    build_project_gnu_cookie "gcc" $1 $2
-}
-
-build_binutils_gdb_and_gcc_libc() {
-    build_project_gnu "binutils-gdb" $1 $2
-    build_project_gnu_cookie "gcc" $1 $2
-}
-
-build_cross_toolchain() {
-    local host_triplet=$1
-    local target_triplet=$2
-    local target_cpu
-    local target_vendor
-    local target_os
-    local target_abi
-    parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
-    if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
-        build_binutils_gdb_and_gcc_2_phases $host_triplet $target_triplet
-    elif [[ $target_os == mingw* ]]; then
-        build_binutils_gdb_and_gcc_libc $host_triplet $target_triplet
-    else
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${currentpath}/libc" "${currentpath}/install/libc" "${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}" "yes" "yes" "no" "yes"
-        build_binutils_gdb_and_gcc $host_triplet $target_triplet
-    fi
-}
-
-
-
 packaging_toolchain() {
     local host_triplet=$1
     local target_triplet=$2
@@ -479,23 +429,13 @@ build_toolchain() {
 }
 
 
-if [[ ${BUILD_GCC_TRIPLET} == ${HOST_GCC_TRIPLET} ]]; then
-# native
-    build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-else
+if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} ]]; then
 # canadian
-
-    if [[ ${BUILD_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
-# crossback
-        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-    elif [[ ${HOST_GCC_TRIPLET} == ${TARGET_GCC_TRIPLET} ]]; then
-# canadian native
-        build_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
-        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
-    else
-# canadian cross
-        build_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+    build_toolchain $BUILD_GCC_TRIPLET $HOST_GCC_TRIPLET
+    if [[ ${BUILD_GCC_TRIPLET} != ${TARGET_GCC_TRIPLET} && ${HOST_GCC_TRIPLET} != ${TARGET_GCC_TRIPLET} ]]; then
+# canadian cross (non crossback)
         build_toolchain $BUILD_GCC_TRIPLET $TARGET_GCC_TRIPLET
-        build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
     fi
 fi
+
+build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
