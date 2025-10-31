@@ -246,7 +246,6 @@ local is_freestanding_build="no"
 local is_two_phase_build="no"
 local is_freestanding_or_two_phase_build="no"
 local is_between_build="no"
-local build_prefix_project="$build_prefix/$configure_project_name"
 
 if [[ "x$project_name" == "xgcc" ]]; then
 
@@ -300,6 +299,8 @@ local is_to_build_install_libc="no"
 if [[ "x$project_name" == "xgcc" && "${is_freestanding_build}" != "yes" ]]; then
 is_to_build_install_libc="yes"
 fi
+
+local build_prefix_project="$build_prefix/$configure_project_name"
 
 if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
