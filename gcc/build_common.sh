@@ -381,14 +381,12 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
 fi
 
-if [[ "x$target_os" == "xmsdosdjgpp" ]]; then
-configures="$configures --disable-threads"
-fi
-
 if [[ "$target_triplet" == *-linux-gnu ]]; then
 # We disable mulitlib for *-linux-gnu since it is a total mess
 configures="$configures --disable-multilib"
 multilibsettings="no"
+elif [[ "x$target_os" == "xmsdosdjgpp" ]]; then
+configures="$configures --disable-threads --disable-libquadmath"
 else
 configures="$configures --enable-multilib"
 fi
