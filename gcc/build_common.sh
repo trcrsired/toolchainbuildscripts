@@ -410,14 +410,10 @@ else
 
     if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
         cd "$build_prefix_project"
-        make install -j "${JOBS}"
+        make install
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: parallel make install failed, retrying without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            make install
-            if [ $? -ne 0 ]; then
-                echo "$configure_project_name: make install failed even without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-                exit 1
-            fi
+            echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            exit 1
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
     fi
@@ -425,20 +421,12 @@ else
     if [ ! -f "${build_prefix_project}/${install_strip_phase_file}" ]; then
         cd "$build_prefix_project"
         if [[ "x$project_name" == "xbinutils-gdb" ]]; then
-            STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip -j "${JOBS}"
+            STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
         else
-            make install-strip -j "${JOBS}"
+            make install-strip
         fi
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: parallel make install-strip failed, retrying without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            if [[ "x$project_name" == "xbinutils-gdb" ]]; then
-                STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
-            else
-                make install-strip
-            fi
-            if [ $? -ne 0 ]; then
-                echo "$configure_project_name: make install-strip failed even without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            fi
+            echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_strip_phase_file}"
     fi
