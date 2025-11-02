@@ -350,7 +350,7 @@ else
         fi
         if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
             cd "$build_prefix_project"
-            make install-strip-gcc -j "${JOBS}"
+            make install-strip-gcc
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -358,7 +358,7 @@ else
             echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
         fi
         if [ ! -f "${build_prefix_project}/${install_target_libgcc_phase_file}" ]; then
-            make install-strip-target-libgcc -j "${JOBS}"
+            make install-strip-target-libgcc
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
@@ -379,7 +379,7 @@ else
                 cd "$build_prefix_project"
                 if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
                     cd "$build_prefix_project"
-                    make install-strip-gcc -j "${JOBS}"
+                    make install-strip-gcc
                     if [ $? -ne 0 ]; then
                         echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                         exit 1
