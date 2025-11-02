@@ -2,15 +2,16 @@
 
 install_libc() {
     local sharedstorage="$1"
-    local TRIPLET="$2"
-    local currentpathlibc="$3"
-    local tripletpath="$4"
-    local sysrootpathusr="$5"
-    local usellvm="$6"
-    local buildheadersonly="$7"
-    local multilibs="${8:-no}"
-    local isgcccrossing="${9:-no}"
-    local install_full_libc="${10:-no}"
+    local host_triplet="$2"
+    local TRIPLET="$3"
+    local currentpathlibc="$4"
+    local tripletpath="$5"
+    local sysrootpathusr="$6"
+    local usellvm="$7"
+    local buildheadersonly="$8"
+    local multilibs="${9:-no}"
+    local isgcccrossing="${10:-no}"
+    local install_full_libc="${11:-no}"
     local CPU
     local VENDOR
     local OS
@@ -328,6 +329,71 @@ install_libc() {
                     fi
                 fi
             fi
+        elif [[ "$OS" == "msdosdjgpp" ]]; then
+            local DJCRX="${DJCRX:-djcrx205}"
+            local shared_djgpp_zip="${sharedstorage}/djgpp/${DJCRX}.zip"
+            local local_djgpp_zip="${currentpathlibc}/downloads/${DJCRX}.zip"
+            local local_djgpp_root="${currentpathlibc}/${DJCRX}"
+
+            mkdir -p "${currentpathlibc}/downloads"
+            mkdir -p "${local_djgpp_root}"
+            mkdir -p "${sysrootpathusr}"
+            mkdir -p "$(dirname "$shared_djgpp_zip")"
+
+            # Step 1: Try to copy from sharedstorage if available
+            if [ -f "$shared_djgpp_zip" ]; then
+                echo "Using cached ${DJCRX}.zip from sharedstorage"
+                cp "$shared_djgpp_zip" "$local_djgpp_zip"
+            else
+                echo "Downloading ${DJCRX}.zip from Delorie"
+                wget -O "$local_djgpp_zip" "http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to download ${DJCRX}.zip"
+                    exit 1
+                fi
+                cp "$local_djgpp_zip" "$shared_djgpp_zip"
+            fi
+
+            chmod 755 "$local_djgpp_zip" || true
+
+            unzip "$local_djgpp_zip" -d "${local_djgpp_root}"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to unzip ${DJCRX}.zip"
+                exit 1
+            fi
+
+            mkdir -p "${sysrootpathusr}/bin"
+
+            # Determine compiler for stubify/stubedit
+            local stub_compiler=""
+            if [ -z "$host_triplet" ]; then
+                if [[ "$usellvm" == "yes" ]]; then
+                    stub_compiler="clang -fuse-ld=lld"
+                else
+                    stub_compiler="gcc"
+                fi
+            else
+                if [[ "$usellvm" == "yes" ]]; then
+                    stub_compiler="clang --target=${host_triplet} -fuse-ld=lld"
+                else
+                    stub_compiler="${host_triplet}-gcc"
+                fi
+            fi
+
+            $stub_compiler -o "${sysrootpathusr}/bin/stubify" "${local_djgpp_root}/src/stub/stubify.c" -s -O3 -flto
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to compile stubify"
+                exit 1
+            fi
+
+            $stub_compiler -o "${sysrootpathusr}/bin/stubedit" "${local_djgpp_root}/src/stub/stubedit.c" -s -O3 -flto
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to compile stubedit"
+                exit 1
+            fi
+
+            cp -a "${local_djgpp_root}"/include "${sysrootpathusr}/"
+            cp -a "${local_djgpp_root}"/lib "${sysrootpathusr}/"
         fi
         echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_file}"
     fi

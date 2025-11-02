@@ -879,13 +879,13 @@ build_compiler_rt_or_builtins() {
 clone_or_update_dependency llvm-project
 
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
 fi
 
 build_compiler_rt_or_builtins 0
 
 if [[ LIBC_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
 fi
 
 build_compiler_rt_or_builtins 1
