@@ -234,7 +234,7 @@ duplicating_runtimes()
         while IFS= read -r sofile; do
             local fname="$(basename "$sofile")"
             gcc_so_whitelist["$fname"]=1
-        done < <(find "$libdir" -maxdepth 1 -type f)
+        done < <(find "$libdir" -maxdepth 1)
     done
 
     # Step 2: Copy matching runtime files from sysroot_prefix/lib*
@@ -247,7 +247,7 @@ duplicating_runtimes()
             [ -d "${libdir}/bfd-plugins" ] && continue
         fi
 
-        mapfile -t all_so_files < <(find "${libdir}" -maxdepth 1 -type f)
+        mapfile -t all_so_files < <(find "${libdir}" -maxdepth 1)
 
         local runtime_files=()
         for f in "${all_so_files[@]}"; do
