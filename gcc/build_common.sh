@@ -314,7 +314,7 @@ else
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        STRIP=llvm-strip ac_cv_path_STRIP_FOR_TARGET=llvm-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        STRIP=${host_triplet}-strip ac_cv_path_STRIP_FOR_TARGET=${target_triplet}-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
