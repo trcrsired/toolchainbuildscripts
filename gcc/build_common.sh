@@ -226,18 +226,20 @@ duplicating_runtimes()
     }
 
     # Step 1: Build whitelist from .libs under GCC build
-    declare -A gcc_so_whitelist=()
+    local -A gcc_so_whitelist=()
     local gcc_build_root="${build_prefix_project}/${target_triplet}"
     mapfile -t gcc_libs < <(find "$gcc_build_root" -type d -name .libs)
 
     for libdir in "${gcc_libs[@]}"; do
         while IFS= read -r sofile; do
             fname="$(basename "$sofile")"
-            # Only include .so / .so.* / .dylib / .dylib.* files, exclude *.py
-            if [[ "$fname" == *.py ]]; then
-                continue
-            fi
-            if [[ "$fname" == *.so || "$fname" == *.so.* || "$fname" == *.dylib || "$fname" == *.dylib.* ]]; then
+            # Exclude Python files
+            [[ "$fname" == *.py ]] && continue
+
+            # Accept only clean .so / .so.N / .so.N.M / .dylib / .dylib.N / .dylib.N.M
+            if [[ "$fname" =~ \.so\.[0-9]+(\.[0-9]+)*$ || "$fname" =~ \.dylib\.[0-9]+(\.[0-9]+)*$ ]]; then
+                gcc_so_whitelist["$fname"]=1
+            elif [[ "$fname" == *.so || "$fname" == *.dylib ]]; then
                 gcc_so_whitelist["$fname"]=1
             fi
         done < <(find "$libdir" -maxdepth 1 -type f)
@@ -549,7 +551,7 @@ if [[ "x${project_name}" == "xgcc" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
         fi
         if [[ "x${is_duplicating_runtime}" == "xyes" ]]; then
-            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${libc_install_prefix}" "${build_prefix}/install/libc"
+            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${target_triplet}" "${build_prefix}/install/libc"
         fi
     fi
 fi
