@@ -203,7 +203,7 @@ build_glibc() {
                 fi
             fi
 
-            if [[ "x${to_copy_include_lib}" == "xyes" ]];
+            if [[ "x${to_copy_include_lib}" == "xyes" ]]; then
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
                 if [ $? -ne 0 ]; then
                     echo "cp failed:" cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
