@@ -361,6 +361,9 @@ elif [[ $target_os == mingw* ]]; then
 if [[ "x${is_native_cross}" == "xyes" ]]; then
     is_between_build="yes"
 fi
+elif [[ $target_os == "elf" ]]; then
+    is_freestanding_build="yes"
+    is_freestanding_or_two_phase_build="${is_freestanding_build}"
 else
 install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
 fi
