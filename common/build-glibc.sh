@@ -192,12 +192,12 @@ build_glibc() {
         fi
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess" ]; then
             local to_copy_include_lib="yes"
-            if [[ "x${install_full_libc}" == "xyes"]]; then
+            if [[ "x${install_full_libc}" == "xyes" ]]; then
                 mkdir -p "${sysrootpathusr}/libc"
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/libc/$item"
             fi
             if [ $i -eq 0 ]; then
-                if [[ "x${install_full_libc}" != "xyes"]]; then
+                if [[ "x${install_full_libc}" != "xyes" ]]; then
                     cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
                     to_copy_include_lib="no"
                 fi
