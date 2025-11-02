@@ -346,7 +346,9 @@ install_libc() {
                 cp "$shared_djgpp_zip" "$local_djgpp_zip"
             else
                 echo "Downloading ${DJCRX}.zip from Delorie"
-                wget -O "$local_djgpp_zip" "http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip"
+#Use my fix up of djcrx since it has no struct timespec which breaks libstdc++ build
+#                wget -O "$local_djgpp_zip" "http://www.delorie.com/pub/djgpp/current/v2/${DJCRX}.zip"
+                wget -O "$local_djgpp_zip" "https://github.com/trcrsired/djcrx/releases/download/20251102/${DJCRX}.zip"
                 if [ $? -ne 0 ]; then
                     echo "Error: Failed to download ${DJCRX}.zip"
                     exit 1
