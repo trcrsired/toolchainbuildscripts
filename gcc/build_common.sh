@@ -551,7 +551,7 @@ if [[ "x${project_name}" == "xgcc" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
         fi
         if [[ "x${is_duplicating_runtime}" == "xyes" ]]; then
-            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${target_triplet}" "${build_prefix}/install/libc"
+            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${target_triplet}" "${libc_install_prefix}"
         fi
     fi
 fi
