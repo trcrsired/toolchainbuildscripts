@@ -40,6 +40,7 @@ build_glibc() {
     local headersonly=$5
     local buildmulitlib=$6
     local build=${7:-}
+    local install_full_libc=${8:-no}
     local multilibs=(default)
     local multilibsoptions=("")
     local multilibsdir=("lib")
@@ -190,9 +191,19 @@ build_glibc() {
             echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess"
         fi
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess" ]; then
+            local to_copy_include_lib="yes"
+            if [[ "x${install_full_libc}" == "xyes"]]; then
+                mkdir -p "${sysrootpathusr}/libc"
+                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/libc/$item"
+            fi
             if [ $i -eq 0 ]; then
-                cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
-            else
+                if [[ "x${install_full_libc}" != "xyes"]]; then
+                    cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "${sysrootpathusr}/"
+                    to_copy_include_lib="no"
+                fi
+            fi
+
+            if [[ "x${to_copy_include_lib}" == "xyes" ]];
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
                 if [ $? -ne 0 ]; then
                     echo "cp failed:" cp -r --preserve=links "${currentpathlibc}/install/glibc/$item/include" "${sysrootpathusr}/"
@@ -220,6 +231,7 @@ build_musl() {
     local headersonly=$5
     local buildmulitlib=$6
     local build=${7:-}
+    local install_full_libc=${8:-no}
 
     local toolchains_path
     if [ -z ${TOOLCHAINS_BUILD+x} ]; then

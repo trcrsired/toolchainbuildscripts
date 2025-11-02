@@ -10,6 +10,7 @@ install_libc() {
     local buildheadersonly="$7"
     local multilibs="${8:-no}"
     local isgcccrossing="${9:-no}"
+    local install_full_libc="${10:-no}"
     local CPU
     local VENDOR
     local OS
@@ -309,7 +310,7 @@ install_libc() {
                         echo "Error: Failed to clone or update glibc"
                         exit 1
                     fi
-                    build_glibc $CPU "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no"
+                    build_glibc $CPU "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no" "" "${install_full_libc}"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build glibc"
                         exit 1
@@ -320,7 +321,7 @@ install_libc() {
                         echo "Error: Failed to clone or update musl"
                         exit 1
                     fi
-                    build_musl $TRIPLET "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no"
+                    build_musl $TRIPLET "${currentpathlibc}" "${installdirpath}" "${usellvm}" "${buildheadersonly}" "no" "" "${install_full_libc}"
                     if [ $? -ne 0 ]; then
                         echo "Error: Failed to build musl"
                         exit 1
