@@ -211,8 +211,8 @@ duplicating_runtimes()
 {
     local project_name="$1"
     local build_prefix_project="$2"
-    local sysroot_prefix="$3"
-    local libc_install_prefix="$4"
+    local target_triplet="$3"
+    local sysroot_prefix="$4"
     local duplicating_runtimes_phase_file=".${project_name}_duplicating_runtimes_phase"
 
     # Skip if phase already completed
@@ -225,29 +225,25 @@ duplicating_runtimes()
         exit 1
     }
 
-    # Copy from libc_install_prefix
-    for libdir in "${libc_install_prefix}"/lib*; do
-        [ -d "${libdir}" ] || continue
-        [ "$(basename "${libdir}")" = "libexec" ] && continue
+    # Step 1: Build whitelist from .libs under GCC build
+    declare -A gcc_so_whitelist=()
+    local gcc_build_root="${build_prefix_project}/${target_triplet}"
+    mapfile -t gcc_libs < <(find "$gcc_build_root" -type d -name .libs)
 
-        local runtime_files=()
-        mapfile -t runtime_files < <(find "${libdir}" -maxdepth 1 -type f \
-            \( -name '*.so' -o -name '*.so.*' -o -name '*.dylib' -o -name '*.dylib.*' \))
-
-        if [ "${#runtime_files[@]}" -gt 0 ]; then
-            local target_dir="${sysroot_prefix}/runtimes/$(basename "${libdir}")"
-            mkdir -p "${target_dir}" || {
-                echo "Error: Failed to create ${target_dir}"
-                exit 1
-            }
-            cp -a "${runtime_files[@]}" "${target_dir}/" || {
-                echo "Error: Failed to copy files from ${libdir} to ${target_dir}"
-                exit 1
-            }
-        fi
+    for libdir in "${gcc_libs[@]}"; do
+        while IFS= read -r sofile; do
+            fname="$(basename "$sofile")"
+            # Only include .so / .so.* / .dylib / .dylib.* files, exclude *.py
+            if [[ "$fname" == *.py ]]; then
+                continue
+            fi
+            if [[ "$fname" == *.so || "$fname" == *.so.* || "$fname" == *.dylib || "$fname" == *.dylib.* ]]; then
+                gcc_so_whitelist["$fname"]=1
+            fi
+        done < <(find "$libdir" -maxdepth 1 -type f)
     done
 
-    # Copy from sysroot_prefix
+    # Step 2: Copy matching runtime files from sysroot_prefix/lib*
     for libdir in "${sysroot_prefix}"/lib*; do
         [ -d "${libdir}" ] || continue
         [ "$(basename "${libdir}")" = "libexec" ] && continue
@@ -257,9 +253,15 @@ duplicating_runtimes()
             [ -d "${libdir}/bfd-plugins" ] && continue
         fi
 
+        mapfile -t all_so_files < <(find "${libdir}" -maxdepth 1 -type f)
+
         local runtime_files=()
-        mapfile -t runtime_files < <(find "${libdir}" -maxdepth 1 -type f \
-            \( -name '*.so' -o -name '*.so.*' -o -name '*.dylib' -o -name '*.dylib.*' \))
+        for f in "${all_so_files[@]}"; do
+            fname="$(basename "$f")"
+            if [[ -n "${gcc_so_whitelist[$fname]}" ]]; then
+                runtime_files+=("$f")
+            fi
+        done
 
         if [ "${#runtime_files[@]}" -gt 0 ]; then
             local target_dir="${sysroot_prefix}/runtimes/$(basename "${libdir}")"
@@ -274,8 +276,9 @@ duplicating_runtimes()
         fi
     done
 
-    # Create lib → libXX symlink in runtimes if lib is missing
+    # Step 3: Create lib → libXX symlink in runtimes if lib is missing
     if [ ! -d "${sysroot_prefix}/runtimes/lib" ]; then
+        mkdir -p "${sysroot_prefix}/runtimes"
         cd "${sysroot_prefix}/runtimes"
         local best=""
         local max=-1
@@ -298,7 +301,7 @@ duplicating_runtimes()
         fi
     fi
 
-    # Mark phase complete
+    # Step 4: Mark phase complete
     echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${duplicating_runtimes_phase_file}" || {
         echo "Error: Failed to write phase completion file"
         exit 1
@@ -479,7 +482,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
         fi
     fi
     if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
     fi
     cd "$build_prefix_project"
     if [[ "${is_two_phase_build}" == "yes" ]]; then
@@ -546,7 +549,7 @@ if [[ "x${project_name}" == "xgcc" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
         fi
         if [[ "x${is_duplicating_runtime}" == "xyes" ]]; then
-            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${libc_install_prefix}" "${libc_install_prefix}"
+            duplicating_runtimes "${project_name}" "${build_prefix_project}" "${libc_install_prefix}" "${build_prefix}/install/libc"
         fi
     fi
 fi
