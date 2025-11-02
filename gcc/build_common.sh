@@ -304,6 +304,15 @@ fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
 
+local configure_env_vars=(
+  STRIP=llvm-strip
+  ac_cv_path_STRIP_FOR_TARGET=llvm-strip
+)
+
+if [[ "$BUILD_TRIPLET" == "$target_triplet" && "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+  configure_env_vars+=(CC_FOR_TARGET="${target_triplet}-gcc")
+fi
+
 if [ -f "${build_prefix_project}/${current_phase_file}" ]; then
     if [[ "${is_two_phase_build}" == "yes" ]]; then
         build_project_gnu_cookie $1 $2 $3 1
@@ -314,7 +323,7 @@ else
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        STRIP=${host_triplet}-strip ac_cv_path_STRIP_FOR_TARGET=${target_triplet}-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        env "${configure_env_vars[@]}" "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
