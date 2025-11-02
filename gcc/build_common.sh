@@ -260,7 +260,7 @@ parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
 
 if [[ $cookie -eq 0 ]];then
 
-if [[ $target_os == "linux" && $target_abi == "gnu" ]]; then
+if [[ $target_os == "linux" && ( $target_abi == "gnu" || $target_abi == "musl" ) ]]; then
 if [[ "x${is_native_cross}" == "xyes" ]]; then
     is_two_phase_build="yes"
 fi
