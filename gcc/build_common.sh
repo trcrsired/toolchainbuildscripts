@@ -217,7 +217,9 @@ local build_prefix="$currentpathnohosttriplet/$2/$3"
 local configure_phase_file=".${project_name}_phase_configure"
 local build_phase_file=".${project_name}_phase_build"
 local build_all_gcc_phase_file=".${project_name}_all_gcc_phase_build"
+local build_target_libgcc_phase_file=".${project_name}_build_target_libgcc_phase_build"
 local install_gcc_phase_file=".${project_name}_install_gcc_phase_build"
+local install_target_libgcc_phase_file=".${project_name}_install_target_libgcc_phase_build"
 local generate_gcc_limits_phase_file=".${project_name}_generate_gcc_limits"
 local install_phase_file=".${project_name}_phase_install"
 local strip_phase_file=".${project_name}_phase_strip"
@@ -338,21 +340,29 @@ else
 #            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
 #            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
 #        fi
-
-        make all-target-libgcc -j "${JOBS}"
-        if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+        if [ ! -f "${build_prefix_project}/${build_target_libgcc_phase_file}" ]; then
+            make all-target-libgcc -j "${JOBS}"
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_target_libgcc_phase_file}"
         fi
-        make install-strip-gcc -j "${JOBS}"
-        if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+        if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
+            cd "$build_prefix_project"
+            make install-strip-gcc -j "${JOBS}"
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
         fi
-        make install-strip-target-libgcc -j "${JOBS}"
-        if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+        if [ ! -f "${build_prefix_project}/${install_target_libgcc_phase_file}" ]; then
+            make install-strip-target-libgcc -j "${JOBS}"
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
         if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
