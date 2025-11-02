@@ -233,15 +233,7 @@ duplicating_runtimes()
     for libdir in "${gcc_libs[@]}"; do
         while IFS= read -r sofile; do
             fname="$(basename "$sofile")"
-            # Exclude Python files
-            [[ "$fname" == *.py ]] && continue
-
-            # Accept only clean .so / .so.N / .so.N.M / .dylib / .dylib.N / .dylib.N.M
-            if [[ "$fname" =~ \.so\.[0-9]+(\.[0-9]+)*$ || "$fname" =~ \.dylib\.[0-9]+(\.[0-9]+)*$ ]]; then
-                gcc_so_whitelist["$fname"]=1
-            elif [[ "$fname" == *.so || "$fname" == *.dylib ]]; then
-                gcc_so_whitelist["$fname"]=1
-            fi
+            gcc_so_whitelist["$fname"]=1
         done < <(find "$libdir" -maxdepth 1 -type f)
     done
 
