@@ -302,8 +302,12 @@ fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
 
-if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
-
+if [ -f "${build_prefix_project}/${current_phase_file}" ]; then
+    if [[ "${is_two_phase_build}" == "yes" ]]; then
+        build_project_gnu_cookie $1 $2 $3 1
+        return
+    fi
+else
     mkdir -p "$build_prefix_project"
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
@@ -334,6 +338,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 #            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
 #            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
 #        fi
+
         make all-target-libgcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
@@ -354,6 +359,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         fi
         cd "$build_prefix_project"
         if [[ "${is_two_phase_build}" == "yes" ]]; then
+            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
             build_project_gnu_cookie $1 $2 $3 1
             return
         fi
