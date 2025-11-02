@@ -207,6 +207,80 @@ else
     echo "NO_CLONE_OR_UPDATE is set to 'yes'; skipping dependency clone/update."
 fi
 
+duplicating_runtimes()
+{
+    local project_name="$1"
+    local build_prefix_project="$2"
+    local sysroot_prefix="$3"
+    local libc_install_prefix="$4"
+    local duplicating_runtimes_phase_file=".${project_name}_duplicating_runtimes_phase"
+
+    # Skip if phase already completed
+    if [ -f "${build_prefix_project}/${duplicating_runtimes_phase_file}" ]; then
+        return 0
+    fi
+
+    mkdir -p "${sysroot_prefix}/runtimes" || {
+        echo "Error: Failed to create ${sysroot_prefix}/runtimes"
+        exit 1
+    }
+
+    # Copy from libc_install_prefix
+    for libdir in "${libc_install_prefix}"/lib*; do
+        [ -d "${libdir}" ] || continue
+        [ "$(basename "${libdir}")" = "libexec" ] && continue
+
+        local runtime_files=()
+        mapfile -t runtime_files < <(find "${libdir}" -maxdepth 1 -type f \
+            \( -name '*.so' -o -name '*.so.*' -o -name '*.dylib' -o -name '*.dylib.*' \))
+
+        if [ "${#runtime_files[@]}" -gt 0 ]; then
+            local target_dir="${sysroot_prefix}/runtimes/$(basename "${libdir}")"
+            mkdir -p "${target_dir}" || {
+                echo "Error: Failed to create ${target_dir}"
+                exit 1
+            }
+            cp -a "${runtime_files[@]}" "${target_dir}/" || {
+                echo "Error: Failed to copy files from ${libdir} to ${target_dir}"
+                exit 1
+            }
+        fi
+    done
+
+    # Copy from sysroot_prefix
+    for libdir in "${sysroot_prefix}"/lib*; do
+        [ -d "${libdir}" ] || continue
+        [ "$(basename "${libdir}")" = "libexec" ] && continue
+
+        if [ "$(basename "${libdir}")" = "lib" ]; then
+            [ -d "${libdir}/gcc" ] && continue
+            [ -d "${libdir}/bfd-plugins" ] && continue
+        fi
+
+        local runtime_files=()
+        mapfile -t runtime_files < <(find "${libdir}" -maxdepth 1 -type f \
+            \( -name '*.so' -o -name '*.so.*' -o -name '*.dylib' -o -name '*.dylib.*' \))
+
+        if [ "${#runtime_files[@]}" -gt 0 ]; then
+            local target_dir="${sysroot_prefix}/runtimes/$(basename "${libdir}")"
+            mkdir -p "${target_dir}" || {
+                echo "Error: Failed to create ${target_dir}"
+                exit 1
+            }
+            cp -a "${runtime_files[@]}" "${target_dir}/" || {
+                echo "Error: Failed to copy files from ${libdir} to ${target_dir}"
+                exit 1
+            }
+        fi
+    done
+
+    # Mark phase complete
+    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${duplicating_runtimes_phase_file}" || {
+        echo "Error: Failed to write phase completion file"
+        exit 1
+    }
+}
+
 build_project_gnu_cookie() {
 local project_name=$1
 local host_triplet=$2
@@ -232,7 +306,7 @@ local multilibsettings="yes"
 local is_native_or_canadian_native="no"
 local is_native_cross="no"
 local is_canadian_cross="no"
-local libc_install_prefix="${TOOLCHAINSPATH_GNU}/$host_triplet/${target_triplet}"
+local libc_install_prefix="${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}"
 if [[ "$host_triplet" == "$target_triplet" ]]; then
     is_native_or_canadian_native="yes"
 else
@@ -275,6 +349,11 @@ fi
 
 fi
 
+local is_duplicating_runtime="yes"
+if [[ $target_os == mingw* ]]; then
+    is_duplicating_runtime="no"
+fi
+
 if [[ $is_freestanding_or_two_phase_build == "yes" ]];then
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libatomic --disable-libsanitizer"
 if [[ $is_two_phase_build == "yes" ]]; then
@@ -310,6 +389,7 @@ local configure_env_vars=(
 )
 
 if [[ "$BUILD_TRIPLET" == "$target_triplet" && "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+# Fix up the bug related to crossback since GCC would try to use cc instead of gcc which does not exist
   configure_env_vars+=(CC_FOR_TARGET="${target_triplet}-gcc")
 fi
 
@@ -435,9 +515,14 @@ else
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
     fi
 
-    if [[ "x$project_name" == "xgcc" ]]; then
-        if [[ "x$is_to_build_install_libc" == "xyes" && "x$is_native_cross" != "xyes" ]]; then
-            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+    if [[ "x${project_name}" == "xgcc" ]]; then
+        if [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
+            if [[ "x${is_native_cross}" != "xyes" ]]; then
+                install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}"
+            fi
+            if [[ "x${is_duplicating_runtime}" == "xyes" ]]; then
+                duplicating_runtimes "${project_name}" "${build_prefix_project}" "${libc_install_prefix}" "${libc_install_prefix}"
+            fi
         fi
     fi
     echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
