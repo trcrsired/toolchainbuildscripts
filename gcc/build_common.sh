@@ -222,6 +222,7 @@ local install_gcc_phase_file=".${project_name}_install_gcc_phase_build"
 local install_target_libgcc_phase_file=".${project_name}_install_target_libgcc_phase_build"
 local generate_gcc_limits_phase_file=".${project_name}_generate_gcc_limits"
 local install_phase_file=".${project_name}_phase_install"
+local install_strip_phase_file=".${project_name}_phase_install_strip"
 local strip_phase_file=".${project_name}_phase_strip"
 local current_phase_file=".${project_name}_phase_done"
 local configure_project_name="$project_name"
@@ -409,16 +410,37 @@ else
 
     if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
         cd "$build_prefix_project"
-        make install-strip -j "${JOBS}"
+        make install -j "${JOBS}"
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: parallel make install failed, retrying without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            make install-strip
+            make install
             if [ $? -ne 0 ]; then
                 echo "$configure_project_name: make install failed even without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                 exit 1
             fi
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
+    fi
+
+    if [ ! -f "${build_prefix_project}/${install_strip_phase_file}" ]; then
+        cd "$build_prefix_project"
+        if [[ "x$project_name" == "xbinutils-gdb" ]]; then
+            STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip -j "${JOBS}"
+        else
+            make install-strip -j "${JOBS}"
+        fi
+        if [ $? -ne 0 ]; then
+            echo "$configure_project_name: parallel make install-strip failed, retrying without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            if [[ "x$project_name" == "xbinutils-gdb" ]]; then
+                STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
+            else
+                make install-strip
+            fi
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install-strip failed even without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            fi
+        fi
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_strip_phase_file}"
     fi
 
     if [[ "x$project_name" == "xgcc" ]]; then
