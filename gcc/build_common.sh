@@ -371,7 +371,7 @@ fi
 fi
 
 local is_duplicating_runtime="yes"
-if [[ $target_os == mingw* ]]; then
+if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os" == "msdosdjgpp" ]]; then
     is_duplicating_runtime="no"
 fi
 
