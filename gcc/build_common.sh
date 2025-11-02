@@ -222,7 +222,6 @@ local install_gcc_phase_file=".${project_name}_install_gcc_phase_build"
 local install_target_libgcc_phase_file=".${project_name}_install_target_libgcc_phase_build"
 local generate_gcc_limits_phase_file=".${project_name}_generate_gcc_limits"
 local install_phase_file=".${project_name}_phase_install"
-local install_strip_phase_file=".${project_name}_phase_install_strip"
 local strip_phase_file=".${project_name}_phase_strip"
 local current_phase_file=".${project_name}_phase_done"
 local configure_project_name="$project_name"
@@ -415,10 +414,6 @@ else
             echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
-    fi
-
-    if [ ! -f "${build_prefix_project}/${install_strip_phase_file}" ]; then
         cd "$build_prefix_project"
         if [[ "x$project_name" == "xbinutils-gdb" ]]; then
             STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
@@ -428,7 +423,7 @@ else
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_strip_phase_file}"
+        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
     fi
 
     if [[ "x$project_name" == "xgcc" ]]; then
