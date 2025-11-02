@@ -308,7 +308,7 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
 
     if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         cd "$build_prefix_project"
-        STRIP=llvm-strip STRIP_FOR_TARGET=llvm-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
+        STRIP=llvm-strip ac_cv_path_STRIP_FOR_TARGET=llvm-strip "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
         if [ $? -ne 0 ]; then
             echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
@@ -395,8 +395,12 @@ if [ ! -f "${build_prefix_project}/${current_phase_file}" ]; then
         cd "$build_prefix_project"
         make install-strip -j "${JOBS}"
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+            echo "$configure_project_name: parallel make install failed, retrying without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            make install-strip
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install failed even without -j {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
         echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
     fi
