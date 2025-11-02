@@ -274,6 +274,30 @@ duplicating_runtimes()
         fi
     done
 
+    # Create lib → libXX symlink in runtimes if lib is missing
+    if [ ! -d "${sysroot_prefix}/runtimes/lib" ]; then
+        cd "${sysroot_prefix}/runtimes"
+        local best=""
+        local max=-1
+        for d in lib[0-9]*; do
+            [ -d "$d" ] || continue
+            local suffix="${d#lib}"
+            if [[ "$suffix" =~ ^[0-9]+$ ]]; then
+                if (( suffix > max )); then
+                    max=$suffix
+                    best="$d"
+                fi
+            fi
+        done
+
+        if [ -n "$best" ]; then
+            ln -s "$best" lib || {
+                echo "Error: Failed to create symlink lib → $best"
+                exit 1
+            }
+        fi
+    fi
+
     # Mark phase complete
     echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${duplicating_runtimes_phase_file}" || {
         echo "Error: Failed to write phase completion file"
