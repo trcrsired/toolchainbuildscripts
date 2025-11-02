@@ -225,17 +225,14 @@ duplicating_runtimes()
         exit 1
     }
 
-    # Step 1: Build whitelist from .libs under GCC build
+    # Step 1: Build whitelist from all files under GCC build root
     local -A gcc_so_whitelist=()
     local gcc_build_root="${build_prefix_project}/${target_triplet}"
-    mapfile -t gcc_libs < <(find "$gcc_build_root" -type d -name .libs)
 
-    for libdir in "${gcc_libs[@]}"; do
-        while IFS= read -r sofile; do
-            local fname="$(basename "$sofile")"
-            gcc_so_whitelist["$fname"]=1
-        done < <(find "$libdir" -maxdepth 1)
-    done
+    while IFS= read -r entry; do
+        local fname="$(basename "$entry")"
+        gcc_so_whitelist["$fname"]=1
+    done < <(find "$gcc_build_root" -type f -o -type l)
 
     # Step 2: Copy matching runtime files from sysroot_prefix/lib*
     for libdir in "${sysroot_prefix}"/lib*; do
@@ -247,10 +244,10 @@ duplicating_runtimes()
             [ -d "${libdir}/bfd-plugins" ] && continue
         fi
 
-        mapfile -t all_so_files < <(find "${libdir}" -maxdepth 1)
+        mapfile -t all_named_files < <(find "${libdir}" -maxdepth 1)
 
         local runtime_files=()
-        for f in "${all_so_files[@]}"; do
+        for f in "${all_named_files[@]}"; do
             fname="$(basename "$f")"
             if [[ -n "${gcc_so_whitelist[$fname]}" ]]; then
                 runtime_files+=("$f")
