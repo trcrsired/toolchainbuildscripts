@@ -232,7 +232,7 @@ duplicating_runtimes()
 
     for libdir in "${gcc_libs[@]}"; do
         while IFS= read -r sofile; do
-            fname="$(basename "$sofile")"
+            local fname="$(basename "$sofile")"
             gcc_so_whitelist["$fname"]=1
         done < <(find "$libdir" -maxdepth 1 -type f)
     done
