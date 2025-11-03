@@ -384,7 +384,8 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
 fi
 
-if [[ "$target_triplet" == *-linux-gnu ]] || [[ "$target_os" =~ ^freebsd ]]; then
+if [[ "$target_triplet" == *-linux-gnu ]] || [[ "$target_os" =~ ^freebsd ]] ||
+    ([[ "$target_cpu" =~ i[3-6]86 ]] && [[ "$target_os" =~ ^mingw ]]) ; then
     # Disable multilib for *-linux-gnu and FreeBSD targets
     configures="$configures --disable-multilib"
     multilibsettings="no"
