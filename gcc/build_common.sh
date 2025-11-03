@@ -389,6 +389,9 @@ if [[ "$target_triplet" == *-linux-gnu ]] || [[ "$target_os" =~ ^freebsd ]] ||
     # Disable multilib for *-linux-gnu and FreeBSD targets
     configures="$configures --disable-multilib"
     multilibsettings="no"
+    if [[ "$target_os" =~ ^mingw ]]; then
+        configures="$configures --disable-threads"
+    fi
 elif [[ "$target_os" == "msdosdjgpp" ]]; then
     # DJGPP doesn't support threads or libquadmath
     configures="$configures --disable-threads --disable-libquadmath"
