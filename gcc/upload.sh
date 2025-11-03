@@ -19,6 +19,7 @@ TAG="$(date -u +%Y%m%d)"
 REPO="trcrsired/gcc-releases"
 
 # === Create release if it doesn't exist ===
+
 if ! gh release view "$TAG" --repo "$REPO" &>/dev/null; then
   echo "Creating release: $TAG"
   gh release create "$TAG" --repo "$REPO" --title "$TAG" --notes "Auto-uploaded toolchain release for $TAG"
@@ -27,13 +28,13 @@ else
 fi
 
 # === Define regex: match x.y.tar.xz where x and y contain at least one dash ===
-regex='^[^-]*-[^-]*\.[^-]*-[^-]*\.tar\.xz$'
+regex='^.+-.+\..+-.+\.tar\.xz$'
 
 # === Recursively find and upload matching files ===
 find "$TOOLCHAINSPATH_GNU" -type f -name '*.tar.xz' | while read -r file; do
   filename="$(basename "$file")"
   if [[ "$filename" =~ $regex ]]; then
-    echo "Uploading $filename..."
+    echo "Uploading $filename"
     gh release upload "$TAG" "$file" --repo "$REPO" --clobber
   fi
 done
