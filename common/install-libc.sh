@@ -120,7 +120,11 @@ install_libc() {
 
             # Step 3: Install
             mkdir -p "$installdirpath"
-            cp -r --preserve=links "$decompress_dir/${CPU}-freebsd-libc/"* "$installdirpath/"
+            cp -a "$decompress_dir/${CPU}-freebsd-libc/"* "$installdirpath/"
+            if [ $? -ne 0 ]; then
+                echo "Error: Copy to installdir for freebsd"
+                exit 1
+            fi
         elif [[ "$OS" == "windows" ]]; then
             if [[ "$ABI" == "msvc" ]]; then
                 clone_or_update_dependency windows-msvc-sysroot
