@@ -384,13 +384,16 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
 fi
 
-if [[ "$target_triplet" == *-linux-gnu ]] || [[ "$target_os" =~ ^freebsd ]] ||
+if [[ "$target_os" == linux ]] || [[ "$target_os" =~ ^freebsd ]] ||
     ([[ "$target_cpu" =~ i[3-6]86 ]] && [[ "$target_os" =~ ^mingw ]]) ; then
     # Disable multilib for *-linux-gnu and FreeBSD targets
     configures="$configures --disable-multilib"
     multilibsettings="no"
     if [[ "$target_os" =~ ^mingw ]]; then
         configures="$configures --disable-threads"
+    fi
+    if [[ "$target_os" == "linux" ]] && [[ "$target_cpu" =~ i[3-6]86 ]]; then
+	configures="$configures --disable-libsanitizer"
     fi
 elif [[ "$target_os" == "msdosdjgpp" ]]; then
     # DJGPP doesn't support threads or libquadmath
