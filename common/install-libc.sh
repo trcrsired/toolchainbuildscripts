@@ -78,31 +78,49 @@ install_libc() {
             fi
         elif [[ "$OS" == "freebsd"* ]]; then
             cd "${currentpathlibc}"
-            local base_url
 
+            local base_url
             if [ "$CLONE_IN_CHINA" = "yes" ]; then
                 base_url="https://github.com/trcrsired/x86_64-freebsd-libc-bin/releases/download"
             else
                 base_url="https://gitee.com/qabeowjbtkwb/x86_64-freebsd-libc-bin/releases/download"
             fi
-            wget --no-verbose $base_url/1/${CPU}-freebsd-libc.tar.xz
+
+            local version_tag="1"
+            local archive_name="${CPU}-freebsd-libc.tar.xz"
+            local remote_url="${base_url}/${version_tag}/${archive_name}"
+            local local_archive="${currentpathlibc}/downloads/${archive_name}"
+            local shared_archive="${sharedstorage}/freebsd-libc/${archive_name}"
+            local decompress_dir="${currentpathlibc}/sysroot_decompress"
+
+            mkdir -p "$(dirname "$local_archive")"
+            mkdir -p "$(dirname "$shared_archive")"
+            mkdir -p "$decompress_dir"
+
+            # Step 1: Try to reuse shared archive if available
+            if [ -f "$shared_archive" ]; then
+                echo "Using cached libc archive from sharedstorage"
+                cp "$shared_archive" "$local_archive"
+            else
+                echo "Downloading libc archive from $remote_url"
+                wget --no-verbose -O "$local_archive" "$remote_url"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to download $archive_name for $TRIPLET"
+                    exit 1
+                fi
+                cp "$local_archive" "$shared_archive"
+            fi
+
+            # Step 2: Extract
+            tar -xf "$local_archive" -C "$decompress_dir"
             if [ $? -ne 0 ]; then
-                echo "wget ${TRIPLET} failure"
+                echo "Error: Failed to extract $archive_name"
                 exit 1
             fi
 
-            mkdir -p ${currentpathlibc}/sysroot_decompress
-            tar -xvf ${CPU}-freebsd-libc.tar.xz -C "${currentpathlibc}/sysroot_decompress"
-            if [ $? -ne 0 ]; then
-                echo "tar extraction failure"
-                exit 1
-            fi
-            mkdir -p "${installdirpath}"
-            cp -r --preserve=links "${currentpathlibc}/sysroot_decompress"/${CPU}-freebsd-libc/* "${installdirpath}/"
-            if [ $? -ne 0 ]; then
-                echo "Failed to move files to ${installdirpath}"
-                exit 1
-            fi
+            # Step 3: Install
+            mkdir -p "$installdirpath"
+            cp -r --preserve=links "$decompress_dir/${CPU}-freebsd-libc/"* "$installdirpath/"
         elif [[ "$OS" == "windows" ]]; then
             if [[ "$ABI" == "msvc" ]]; then
                 clone_or_update_dependency windows-msvc-sysroot
