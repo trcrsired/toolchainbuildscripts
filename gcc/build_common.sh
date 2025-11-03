@@ -384,14 +384,15 @@ else
 configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
 fi
 
-if [[ "$target_triplet" == *-linux-gnu ]]; then
-# We disable mulitlib for *-linux-gnu since it is a total mess
-configures="$configures --disable-multilib"
-multilibsettings="no"
-elif [[ "x$target_os" == "xmsdosdjgpp" ]]; then
-configures="$configures --disable-threads --disable-libquadmath"
+if [[ "$target_triplet" == *-linux-gnu ]] || [[ "$target_os" =~ ^freebsd ]]; then
+    # Disable multilib for *-linux-gnu and FreeBSD targets
+    configures="$configures --disable-multilib"
+    multilibsettings="no"
+elif [[ "$target_os" == "msdosdjgpp" ]]; then
+    # DJGPP doesn't support threads or libquadmath
+    configures="$configures --disable-threads --disable-libquadmath"
 else
-configures="$configures --enable-multilib"
+    configures="$configures --enable-multilib"
 fi
 
 elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
