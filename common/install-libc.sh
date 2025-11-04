@@ -265,7 +265,7 @@ install_libc() {
 #                        echo "Error: copy mingw-w64-crt($TRIPLET) failed"
 #                        exit 1
 #                    fi
-                fi
+#                fi
             else
                 echo "Unknown Windows ABI: $ABI"
                 exit 1
