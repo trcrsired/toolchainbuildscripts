@@ -205,7 +205,7 @@ install_libc() {
 #                            echo "Error: copy mingw-w64-headers($TRIPLET) failed"
 #                            exit 1
 #                        fi
-                    fi
+#                    fi
                     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_header"
                 fi
 
