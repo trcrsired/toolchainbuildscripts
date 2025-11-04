@@ -147,7 +147,7 @@ install_libc() {
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
-                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=${tripletpath}"
+                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=${sysrootpathusr}"
                 local MINGWW64COMMONENV="
                 CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
@@ -194,17 +194,17 @@ install_libc() {
                         exit 1
                     fi
                     # Skip copy if source and destination are the same directory
-                    if [ "$tripletpath_real" = "$installdirpath_real" ]; then
-                        echo "Skip copy: source and destination are the same ($tripletpath_real)"
-                    else
+#                    if [ "$tripletpath_real" = "$installdirpath_real" ]; then
+#                        echo "Skip copy: source and destination are the same ($tripletpath_real)"
+#                    else
                         # Copy all files from source to destination, preserving symbolic links
-                        cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
+#                        cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
 
                         # Check if the copy command failed
-                        if [ $? -ne 0 ]; then
-                            echo "Error: copy mingw-w64-headers($TRIPLET) failed"
-                            exit 1
-                        fi
+#                        if [ $? -ne 0 ]; then
+#                            echo "Error: copy mingw-w64-headers($TRIPLET) failed"
+#                            exit 1
+#                        fi
                     fi
                     echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_header"
                 fi
@@ -254,17 +254,17 @@ install_libc() {
                 fi
 
                 # Skip copy if source and destination are the same directory
-                if [ "$tripletpath_real" = "$installdirpath_real" ]; then
-                    echo "Skip copy: source and destination are the same ($tripletpath_real)"
-                else
+#                if [ "$tripletpath_real" = "$installdirpath_real" ]; then
+#                    echo "Skip copy: source and destination are the same ($tripletpath_real)"
+#                else
                     # Copy all files from source to destination, preserving symbolic links
-                    cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
+#                    cp -r --preserve=links "${tripletpath}"/* "${installdirpath}"/
 
                     # Check if the copy command failed
-                    if [ $? -ne 0 ]; then
-                        echo "Error: copy mingw-w64-crt($TRIPLET) failed"
-                        exit 1
-                    fi
+#                    if [ $? -ne 0 ]; then
+#                        echo "Error: copy mingw-w64-crt($TRIPLET) failed"
+#                        exit 1
+#                    fi
                 fi
             else
                 echo "Unknown Windows ABI: $ABI"
