@@ -147,7 +147,7 @@ install_libc() {
                 else
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --disable-libarm64 --enable-lib$CPU"
                 fi
-                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=${sysrootpathusr}"
+                MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror"
                 local MINGWW64COMMONENV="
                 CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
                 CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
@@ -172,9 +172,9 @@ install_libc() {
 
                     if [ ! -f Makefile ]; then
                         if [[ "$usellvm" == "yes" ]]; then
-                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
+                            eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} --prefix=${sysrootpathusr}/${TRIPLET}
                         else
-                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON}
+                            $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-headers/configure ${MINGWW64COMMON} --prefix=${sysrootpathusr}/${TRIPLET}
                         fi
                         if [ $? -ne 0 ]; then
                             echo "Error: mingw-w64-headers($TRIPLET) configure failed"
@@ -214,9 +214,9 @@ install_libc() {
 
                 if [ ! -f Makefile ]; then
                     if [[ "$usellvm" == "yes" ]]; then
-                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
+                        eval ${MINGWW64COMMONENV} $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} --prefix=${sysrootpathusr}
                     else
-                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON}
+                        $TOOLCHAINS_BUILD/mingw-w64/mingw-w64-crt/configure ${MINGWW64COMMON} --prefix=${sysrootpathusr}
                     fi
                     if [ $? -ne 0 ]; then
                         echo "Error: configure mingw-w64-crt($TRIPLET) failed"
