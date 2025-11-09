@@ -62,10 +62,16 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "aarch64-windows-gnu"
         "aarch64-linux-gnu"
         "aarch64-linux-android30"
+        "aarch64-linux-musl"
         "x86_64-windows-gnu"
         "x86_64-linux-gnu"
+        "x86_64-linux-musl"
         "x86_64-linux-android30"
         "loongarch64-linux-gnu"
+        "loongarch64-linux-musl"
+        "riscv64-linux-android35"
+        "riscv64-linux-gnu"
+        "riscv64-linux-musl"
         "wasm-sysroots"
     )
 else

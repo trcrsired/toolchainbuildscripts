@@ -96,8 +96,11 @@ function Create-CfgFile {
 # Standard flags for C
 $STANDARD_FLAGS_C = "-rtlib=compiler-rt --unwindlib=libunwind"
 
+# Standard flags for C++ without libunwind
+$STANDARD_FLAGS_CPP_NOLIBUNWIND = "-rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lc++abi"
+
 # Standard flags for C++
-$STANDARD_FLAGS_CPP = "-rtlib=compiler-rt --unwindlib=libunwind -stdlib=libc++ -lunwind -lc++abi"
+$STANDARD_FLAGS_CPP = "$STANDARD_FLAGS_CPP_NOLIBUNWIND -lunwind"
 
 # Flags for Darwin
 $FLAGS_DARWIN = "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
@@ -117,12 +120,12 @@ Create-CfgFile "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLC
 # Create wasm .cfg files
 Create-CfgFile "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
 Create-CfgFile "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
-Create-CfgFile "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag"
-Create-CfgFile "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag"
+Create-CfgFile "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag"
+Create-CfgFile "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag"
 Create-CfgFile "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
 Create-CfgFile "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
-Create-CfgFile "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
-Create-CfgFile "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
+Create-CfgFile "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND ""
+Create-CfgFile "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND ""
 
 # Create msvc .cfg files
 Create-CfgFile "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"
