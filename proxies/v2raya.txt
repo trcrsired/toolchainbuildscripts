@@ -1,0 +1,32 @@
+# Default outbound is direct
+default: proxy
+
+# --- Force Bing traffic through proxy, placed at the top ---
+domain(full:www.bing.com) -> proxy
+domain(domain:bing.com)   -> proxy
+
+# --- Force MSN traffic through proxy ---
+domain(full:www.msn.com)  -> proxy
+domain(domain:msn.com)    -> proxy
+
+# --- Force all non-China domains through proxy ---
+domain(geosite:geolocation-!cn) -> proxy
+
+# Other general rules
+domain(geosite:category-ads) -> block
+ip(geoip:hk, geoip:mo) -> proxy
+domain(domain:tiktok.com) -> proxy
+
+# CN traffic goes direct by default, so no need to force
+# but you can keep explicit rules if desired:
+domain(geosite:cn) -> direct
+ip(geoip:cn) -> direct
+
+# agedm direct routing (necessary, otherwise blocked by CrowdStrike)
+domain(domain:www.agedm.io) -> direct
+domain(domain:agedm.io) -> direct
+domain(domain:m.agedm.io) -> direct
+domain(domain:ffzy-plays.com) -> direct
+domain(domain:qrssuv.com) -> direct
+domain(domain:ymuuy.com) -> direct
+domain(domain:fentvoss.com) -> direct
