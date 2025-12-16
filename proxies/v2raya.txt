@@ -1,5 +1,5 @@
 # Default outbound is direct
-default: proxy
+default: direct
 
 # --- Force Bing traffic through proxy, placed at the top ---
 domain(full:www.bing.com) -> proxy
