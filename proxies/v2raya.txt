@@ -1,13 +1,15 @@
 # Default outbound is direct
-default: direct
+default: proxy
 
 # --- Force Bing traffic through proxy, placed at the top ---
-domain(full:www.bing.com) -> proxy
+domain(domain:www.bing.com) -> proxy
 domain(domain:bing.com)   -> proxy
+domain(domain:cn.bing.com)   -> proxy
 
 # --- Force MSN traffic through proxy ---
 domain(full:www.msn.com)  -> proxy
 domain(domain:msn.com)    -> proxy
+domain(domain:cn.msn.com) -> proxy
 
 # --- Force all non-China domains through proxy ---
 domain(geosite:geolocation-!cn) -> proxy
