@@ -16,6 +16,7 @@ domain(geosite:geolocation-!cn) -> proxy
 domain(geosite:category-ads) -> block
 ip(geoip:hk, geoip:mo) -> proxy
 domain(domain:tiktok.com) -> proxy
+domain(domain:tiktokcdn-us.com) -> proxy
 
 # CN traffic goes direct by default, so no need to force
 # but you can keep explicit rules if desired:
