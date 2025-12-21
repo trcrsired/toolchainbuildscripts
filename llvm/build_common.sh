@@ -160,6 +160,13 @@ if [ -z ${SYSTEMNAME+x} ]; then
             fi
         fi
     fi
+    if [[ "${SYSTEMNAME}" == "Freebsd" ]]; then
+	SYSTEMNAME=FreeBSD
+    elif [[ "${SYSTEMNAME}" == "Openbsd" ]]; then
+        SYSTEMNAME=OpenBSD
+    elif [[ "${SYSTEMNAME}" == "Openvms" ]]; then
+        SYSTEMNAME=OpenVMS
+    fi
 fi
 
 LIBC_HEADERS_PHASE=0
