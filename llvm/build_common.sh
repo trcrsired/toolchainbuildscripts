@@ -185,6 +185,7 @@ USE_LLVM_LIBS=1
 BUILD_LIBC_WITH_LLVM="yes"
 USE_LLVM_LINK_DYLIB=0
 USE_CMAKE_LLVM_ENABLE_LLD=1
+USE_CMAKE_POSITION_INDEPENDENT_CODE=0
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -238,6 +239,7 @@ else
     elif [[ "$OS" == "freebsd"* ]]; then
         ZLIB_PHASE=0
         USE_CMAKE_LLVM_ENABLE_LLD=0
+        USE_CMAKE_POSITION_INDEPENDENT_CODE=1
     fi
 fi
 
@@ -314,6 +316,12 @@ EOF
 if [[ $USE_CMAKE_LLVM_ENABLE_LLD -eq 1 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_LINKER_TYPE LLD)
+EOF
+fi
+
+if [[ $USE_CMAKE_POSITION_INDEPENDENT_CODE -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_POSITION_INDEPENDENT_CODE On)
 EOF
 fi
 
