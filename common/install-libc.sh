@@ -118,7 +118,10 @@ install_libc() {
                 exit 1
             fi
 
-            # Step 3: Install
+            # Step 3: Add write permission for owner
+            chmod -R u+w "$decompress_dir/${CPU}-freebsd-libc"
+
+            # Step 4: Install
             mkdir -p "$installdirpath"
             cp -a "$decompress_dir/${CPU}-freebsd-libc/"* "$installdirpath/"
             if [ $? -ne 0 ]; then
