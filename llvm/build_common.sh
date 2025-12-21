@@ -237,7 +237,6 @@ else
 #            USE_EMULATED_TLS=1
 #        fi
     elif [[ "$OS" == "freebsd"* ]]; then
-        ZLIB_PHASE=0
         USE_CMAKE_LLVM_ENABLE_LLD=0
         USE_CMAKE_POSITION_INDEPENDENT_CODE=1
     fi
