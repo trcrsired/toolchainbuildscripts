@@ -238,7 +238,6 @@ else
 #        fi
     elif [[ "$OS" == "freebsd"* ]]; then
         USE_CMAKE_LLVM_ENABLE_LLD=0
-        USE_CMAKE_POSITION_INDEPENDENT_CODE=1
     fi
 fi
 
