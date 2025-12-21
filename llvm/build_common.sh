@@ -184,6 +184,7 @@ USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
 BUILD_LIBC_WITH_LLVM="yes"
 USE_LLVM_LINK_DYLIB=0
+USE_CMAKE_LLVM_ENABLE_LLD=1
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -234,6 +235,8 @@ else
 #        if [[ -n ${ABI_VERSION} && ${ABI_VERSION} -lt 29 ]]; then
 #            USE_EMULATED_TLS=1
 #        fi
+    elif [[ "$OS" == "freebsd"* ]]; then
+        USE_CMAKE_LLVM_ENABLE_LLD=0
     fi
 fi
 
@@ -302,13 +305,18 @@ set(CMAKE_RC_FLAGS "--target=\${CMAKE_C_COMPILER_TARGET} -I\${CMAKE_FIND_ROOT_PA
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
 set(LLVM_ENABLE_LTO thin)
 set(LLVM_ENABLE_LLD On)
-set(CMAKE_LINKER_TYPE LLD)
 set(CMAKE_C_FLAGS_INIT "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
 
-if [[ USE_LLVM_LIBS -ne 0 ]]; then
+if [[ $USE_CMAKE_LLVM_ENABLE_LLD -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_LINKER_TYPE LLD)
+EOF
+fi
+
+if [[ $USE_LLVM_LIBS -ne 0 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -rtlib=compiler-rt")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libunwind")
