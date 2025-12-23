@@ -84,12 +84,12 @@ create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOL
 # Create wasm .cfg files
 create_cfg_file "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag -fwasm-exceptions"
 create_cfg_file "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fsanitize=memtag -fwasm-exceptions"
-create_cfg_file "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fsanitize=memtag"
-create_cfg_file "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fsanitize=memtag"
+create_cfg_file "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fsanitize=memtag -fno-exceptions"
+create_cfg_file "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fsanitize=memtag -fno-exceptions"
 create_cfg_file "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fwasm-exceptions"
 create_cfg_file "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-fwasm-exceptions"
-create_cfg_file "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" ""
-create_cfg_file "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" ""
+create_cfg_file "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fno-exceptions"
+create_cfg_file "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP_NOLIBUNWIND" "-fno-exceptions"
 
 # Create msvc .cfg files
 create_cfg_file "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"
@@ -101,24 +101,28 @@ create_cfg_file "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOO
 create_cfg_file "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 create_cfg_file "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
+if [ "x$CLONE_FAST_IO" == "xyes" ]; then
 if [ ! -d "$LIBRARIES/fast_io" ]; then
-git clone --quiet git@github.com:trcrsired/fast_io.git "$LIBRARIES/fast_io"
-if [ $? -ne 0 ]; then
-git clone --quiet --branch next git@github.com:cppfastio/fast_io.git "$LIBRARIES/fast_io"
-if [ $? -ne 0 ]; then
-git clone --quiet git@github.com:cppfastio/fast_io.git "$LIBRARIES/fast_io"
-if [ $? -ne 0 ]; then
-git clone --quiet --branch next git@gitee.com:qabeowjbtkwb/fast_io.git "$LIBRARIES/fast_io"
-if [ $? -ne 0 ]; then
-git clone --quiet git@gitee.com:qabeowjbtkwb/fast_io.git "$LIBRARIES/fast_io"
+git clone --branch next https://github.com/cppfastio/fast_io.git "$LIBRARIES/fast_io"
 if [ $? -ne 0 ]; then
 echo "fast_io clone failure"
 exit 1
 fi
 fi
-fi
-fi
-fi
-fi
 cd "$LIBRARIES/fast_io"
 git pull --quiet
+fi
+
+if [ "x$CLONE_WINDOWS_MSVC_SYSROOT" == "xyes" ]; then
+if [ ! -d "$TOOLCHAINSPATH/windows-msvc-sysroot" ]; then
+git clone https://github.com/trcrsired/windows-msvc-sysroot.git "$TOOLCHAINSPATH/windows-msvc-sysroot"
+if [ $? -ne 0 ]; then
+echo "windows-msvc-sysroot clone failure"
+exit 1
+fi
+fi
+cd "$TOOLCHAINSPATH/windows-msvc-sysroot"
+git pull --quiet --rebase
+fi
+
+echo "Configuration files and repository setup completed successfully."
