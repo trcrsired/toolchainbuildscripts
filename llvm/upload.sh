@@ -61,45 +61,54 @@ LLVM_NOTES=$(mktemp)
     fi
 } > "$LLVM_NOTES"
 
-if ! gh release view "$LLVM_TAG" --repo "$LLVM_REPO" >/dev/null 2>&1; then
-    gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes-file "$LLVM_NOTES"
+# --- Upload LLVM release (optional) ---
+if [ "x${DISABLE_UPLOAD_LLVM}" != "xyes" ]; then
+    if ! gh release view "$LLVM_TAG" --repo "$LLVM_REPO" >/dev/null 2>&1; then
+        gh release create "$LLVM_TAG" --repo "$LLVM_REPO" --title "$LLVM_TAG" --notes-file "$LLVM_NOTES"
+    fi
+
+    for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
+        if [ -f "$file" ]; then
+            echo "Uploading LLVM file: $file"
+            gh release upload "$LLVM_TAG" "$file" --repo "$LLVM_REPO"
+        fi
+    done
+else
+    echo "DISABLE_UPLOAD_LLVM=yes → Skipping LLVM upload."
 fi
 
-for file in "$TOOLCHAINS_LLVMPATH"/*.tar.xz; do
-    if [ -f "$file" ]; then
-        echo "Uploading LLVM file: $file"
-        gh release upload "$LLVM_TAG" "$file" --repo "$LLVM_REPO"
+# --- Upload WAVM release (optional) ---
+if [ "x${DISABLE_UPLOAD_WAVM}" != "xyes" ]; then
+    WAVM_TAG="$DATE"
+
+    WAVM_NOTES=$(mktemp)
+    {
+        echo "Automatically uploaded WAVM binaries at $TIMESTAMP"
+        if [ "$SKIP_HASH" = false ]; then
+            for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
+                if [ -f "$file" ]; then
+                    FILENAME=$(basename "$file")
+                    SHA512=$(sha512sum "$file" | awk '{print $1}')
+                    echo "File: $FILENAME"
+                    echo "SHA-512: $SHA512"
+                fi
+            done
+        fi
+    } > "$WAVM_NOTES"
+
+    if ! gh release view "$WAVM_TAG" --repo "$WAVM_REPO" >/dev/null 2>&1; then
+        gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes-file "$WAVM_NOTES"
     fi
-done
 
-# --- Upload WAVM release ---
-WAVM_TAG="$DATE"
-
-# Build multi-line release notes
-WAVM_NOTES=$(mktemp)
-{
-    echo "Automatically uploaded WAVM binaries at $TIMESTAMP"
-    if [ "$SKIP_HASH" = false ]; then
-        for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
-            if [ -f "$file" ]; then
-                FILENAME=$(basename "$file")
-                SHA512=$(sha512sum "$file" | awk '{print $1}')
-                echo "File: $FILENAME"
-                echo "SHA-512: $SHA512"
-            fi
-        done
-    fi
-} > "$WAVM_NOTES"
-
-if ! gh release view "$WAVM_TAG" --repo "$WAVM_REPO" >/dev/null 2>&1; then
-    gh release create "$WAVM_TAG" --repo "$WAVM_REPO" --title "$WAVM_TAG" --notes-file "$WAVM_NOTES"
+    for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
+        if [ -f "$file" ]; then
+            echo "Uploading WAVM file: $file"
+            gh release upload "$WAVM_TAG" "$file" --repo "$WAVM_REPO"
+        fi
+    done
+else
+    echo "DISABLE_UPLOAD_WAVM=yes → Skipping WAVM upload."
 fi
 
-for file in "$SOFTWARES_WAVMPATH"/*.tar.xz; do
-    if [ -f "$file" ]; then
-        echo "Uploading WAVM file: $file"
-        gh release upload "$WAVM_TAG" "$file" --repo "$WAVM_REPO"
-    fi
-done
 
 echo "All releases have been uploaded successfully! 🚀"
