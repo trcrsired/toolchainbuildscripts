@@ -164,7 +164,8 @@ if ($NOINSTALLING -ne "yes") {
             [string]$dest
         )
 
-        (New-Object System.Net.WebClient).DownloadFile($url, $dest)
+        Write-Host "Download-File, url: $url"
+        & curl.exe -L "$url" -o "$dest" --retry 5 --retry-delay 2 --ssl-no-revoke
     }
 
     # Download and extract files
