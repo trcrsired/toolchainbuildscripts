@@ -140,7 +140,7 @@ cd "$llvmcurrentrealpath/../wavm"
 ./all.sh "$@"
 fi
 
-if [[ $NO_BUILD_WINE != "yes" ]]; then
+if [[ $BUILD_WINE == "yes" ]]; then
 cd "$llvmcurrentrealpath/../wine"
 ./all-min.sh "$@"
 fi
