@@ -43,22 +43,36 @@ if (-not (Test-Path -Path $env:TOOLCHAINSPATH_LLVM)) {
 
 # Determine ARCH and TRIPLE from PROCESSOR_ARCHITECTURE if Windows
 if ($env:OS -eq "Windows_NT") {
-    switch ($env:PROCESSOR_ARCHITECTURE) {
-        "AMD64" {
-            $ARCH = "x86_64"
+    $win32ArchCode = (Get-CimInstance Win32_Processor).Architecture
+
+    switch ($win32ArchCode) {
+        0 {   # x86 / 32-bit
+            $ARCH   = "i686"
+            $TRIPLE = "i686-windows-gnu"
+        }
+
+        9 {   # AMD64 / x86_64
+            $ARCH   = "x86_64"
             $TRIPLE = "x86_64-windows-gnu"
         }
-        "ARM64" {
-            $ARCH = "aarch64"
+
+        12 {  # ARM64 / AArch64
+            $ARCH   = "aarch64"
             $TRIPLE = "aarch64-windows-gnu"
         }
-        "LOONG64" {
-            $ARCH = "loongarch64"
+
+        21 {  # RISC-V 64
+            $ARCH   = "riscv64"
+            $TRIPLE = "riscv64-windows-gnu"
+        }
+
+        24 {  # LoongArch64
+            $ARCH   = "loongarch64"
             $TRIPLE = "loongarch64-windows-gnu"
         }
+
         Default {
-            $ARCH = $env:PROCESSOR_ARCHITECTURE.ToLower()
-            $TRIPLE = "$ARCH-windows-gnu"
+            throw "Unsupported CPU architecture code: $win32ArchCode"
         }
     }
 } else {
