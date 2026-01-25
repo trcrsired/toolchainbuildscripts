@@ -192,21 +192,29 @@ if ($NOINSTALLING -ne "yes") {
 
     Write-Host "Downloads completed successfully to $env:TOOLCHAINSPATH_LLVM"
 
-    # Check if Windows Defender real-time protection is enabled
+    # ------------------------------------------------------------
+    # Safely check if Windows Defender real-time protection is enabled
+    # ------------------------------------------------------------
     function Check-DefenderRealtimeProtection {
+        # If Defender cmdlets do not exist, treat as disabled
+        if (-not (Get-Command Get-MpPreference -ErrorAction SilentlyContinue)) {
+            return $false
+        }
+
         try {
-            $defenderStatus = Get-MpPreference
-            if ($defenderStatus.AMSIEnable) {
-                return $true
-            } else {
-                return $false
-            }
+            $pref = Get-MpPreference -ErrorAction Stop
+            return [bool]$pref.AMSIEnable
         } catch {
+            # WMI provider broken → treat as disabled
             return $false
         }
     }
 
-    # Extract and clean up tar.xz files
+
+    # ------------------------------------------------------------
+    # Extract .tar.xz using 7z (preferred) or tar (fallback)
+    # Optionally adds/removes Defender exclusions if enabled
+    # ------------------------------------------------------------
     function Extract-TarFile {
         param (
             [string]$tarFile,
@@ -216,69 +224,80 @@ if ($NOINSTALLING -ne "yes") {
 
         $errorOccured = $false
 
+        # Determine if Defender APIs are actually usable
+        $defenderAvailable = $false
+        if ($isDefenderEnabled -and (Get-Command Add-MpPreference -ErrorAction SilentlyContinue)) {
+            try {
+                $null = Get-MpPreference -ErrorAction Stop
+                $defenderAvailable = $true
+            } catch {
+                $defenderAvailable = $false
+            }
+        }
+
         try {
-            if ($isDefenderEnabled) {
-                # Add the destination path to the exclusion list
+            # Add Defender exclusion only if safe
+            if ($defenderAvailable) {
                 Add-MpPreference -ExclusionPath $destination
             }
-            # First, use 7z to extract the .xz part to the temporary directory
+
+            # Prefer 7z
             if (Get-Command 7z -ErrorAction SilentlyContinue) {
-                # Remove the .xz extension from the tar.xz file
-                if ($tarFile -like "*.tar.xz") {
-                    $tarFilenoxz = $tarFile.Substring(0, $tarFile.Length - 3) # Remove the last 3 characters (.xz)
-                    $tarFilenotarxz = $tarFile.Substring(0, $tarFile.Length - 7) # Remove the last 7 characters (.tar.xz)
-                } else {
-                    Write-Host "The file does not have a .xz extension."
+
+                if ($tarFile -notlike "*.tar.xz") {
+                    Write-Host "The file does not have a .tar.xz extension."
                     return
                 }
-                # Then, extract the .tar part to the destination directory
-                if (Test-Path -Path "$tarFilenotarxz") {
-                    Remove-Item "$tarFilenotarxz" -Recurse -Force -ErrorAction SilentlyContinue
+
+                $tarNoXz     = $tarFile.Substring(0, $tarFile.Length - 3)
+                $tarNoTarXz  = $tarFile.Substring(0, $tarFile.Length - 7)
+
+                if (Test-Path $tarNoTarXz) {
+                    Remove-Item $tarNoTarXz -Recurse -Force -ErrorAction SilentlyContinue
                 }
 
-                7z x "$tarFile" -o"$tarFilenoxz" -y -mmt
+                # Step 1: extract .xz → .tar
+                7z x "$tarFile" -o"$tarNoXz" -y -mmt
 
-                # Then, extract the .tar part to the destination directory
-                if (Test-Path -Path "$tarFilenoxz") {
-                    7z x "$tarFilenoxz" -o"$destination" -y -mmt
-                    Remove-Item "$tarFilenoxz" -Recurse -Force -ErrorAction SilentlyContinue
+                # Step 2: extract .tar → destination
+                if (Test-Path $tarNoXz) {
+                    7z x "$tarNoXz" -o"$destination" -y -mmt
+                    Remove-Item $tarNoXz -Recurse -Force -ErrorAction SilentlyContinue
                 } else {
-                    Write-Host "$tarFilenoxz not found after extracting .xz part."
+                    Write-Host "Failed: $tarNoXz not found after extracting .xz."
                     $errorOccured = $true
                 }
             }
-            # If 7z is not available, try using tar
+            # Fallback to tar
             elseif (Get-Command tar -ErrorAction SilentlyContinue) {
                 & { $env:XZ_OPT = '-T0'; tar -xf "$tarFile" -C "$destination" }
-            } 
+            }
             else {
-                Write-Host "Neither 7z nor tar is available to extract files. Please install one of them and try again."
+                Write-Host "Neither 7z nor tar is available."
                 $errorOccured = $true
             }
-        } catch {
+        }
+        catch {
             $errorOccured = $true
             throw $_
-        } finally {
-            # Clean up temporary directory
-
-            if ($isDefenderEnabled) {
-                # Remove the destination path from the exclusion list
-                Remove-MpPreference -ExclusionPath "$destination" -ErrorAction SilentlyContinue
+        }
+        finally {
+            # Remove Defender exclusion only if safe
+            if ($defenderAvailable) {
+                Remove-MpPreference -ExclusionPath $destination -ErrorAction SilentlyContinue
             }
         }
 
-        if ($errorOccured) {
-            exit 1
-        } else {
-            return $true
-        }
+        if ($errorOccured) { exit 1 }
+        return $true
     }
 
-    # Ensure the script execution policy allows running the script
-    # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-    # Check Windows Defender real-time protection status once
-    $isDefenderEnabled = [bool](Check-DefenderRealtimeProtection)
+    # ------------------------------------------------------------
+    # Check Defender status once and pass into Extract-TarFile
+    # ------------------------------------------------------------
+    $isDefenderEnabled = Check-DefenderRealtimeProtection
+
 
     Get-ChildItem -Path "$env:TOOLCHAINSPATH_LLVM" -Filter *.tar.xz | ForEach-Object {
         $tarFile = $_.FullName
