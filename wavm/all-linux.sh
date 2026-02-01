@@ -12,6 +12,8 @@ HOSTS=(
     loongarch64-linux-musl
     x86_64-linux-gnu
     x86_64-linux-musl
+#    i686-linux-gnu
+#    i686-linux-musl
 )
 
 # The build script to invoke for each HOST.
@@ -19,7 +21,9 @@ HOSTS=(
 TARGET_SCRIPT=./loongarch64-linux-gnu.sh
 
 for host in "${HOSTS[@]}"; do
-    echo "=== Building for HOST=$host ==="
     HOST="$host" "$TARGET_SCRIPT" "$@"
+    if [ $? -ne 0 ]; then
+        echo "WAVM $host failed"
+    fi
 done
 
