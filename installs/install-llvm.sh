@@ -73,6 +73,8 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "riscv64-linux-gnu"
         "riscv64-linux-musl"
         "wasm-sysroots"
+	"i686-windows-gnu"
+	"i686-windows-musl"
     )
 else
     if [ -z "$TRIPLE" ]; then
