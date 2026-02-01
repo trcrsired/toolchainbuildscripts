@@ -157,7 +157,9 @@ if ($NOINSTALLING -ne "yes") {
             "riscv64-linux-android35",
             "riscv64-linux-gnu",
             "riscv64-linux-musl",
-            "wasm-sysroots"
+            "wasm-sysroots",
+	    "i686-windows-gnu",
+	    "i686-linux-musl"
         )
     } else {
         if (-not $TRIPLE) {
