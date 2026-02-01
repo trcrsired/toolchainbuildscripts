@@ -50,16 +50,18 @@ currentwavmpath=${currentpath}/wavm
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
-	rm -rf ${currentpath}
-	rm -f $SOFTWARESPATH/$HOST.tar.xz
+	rm -rf "${currentpath}"
+	rm -f "$SOFTWARESPATH/$HOST.tar.xz"
+	rm -rf "$SOFTWARESPATH/$HOST"
 	echo "cleaning done"
-    exit 0
+	exit 0
 fi
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
-	rm -rf ${currentpath}
-	rm -f $SOFTWARESPATH/$HOST.tar.xz
+	rm -rf "${currentpath}"
+	rm -f "$SOFTWARESPATH/$HOST.tar.xz"
+	rm -rf "${SOFTWARESPATH}/${HOST}"
 	echo "restart done"
 fi
 
