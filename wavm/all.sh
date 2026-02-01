@@ -23,7 +23,7 @@ fi
 if [ $? -ne 0 ]; then
 echo "WAVM all-linux failed"
 fi
-#./aarch64-apple-darwin24.sh "$@"
-#if [ $? -ne 0 ]; then
-#echo "WAVM aarch64-apple-darwin24 failed"
-#fi
+./aarch64-apple-darwin24.sh "$@"
+if [ $? -ne 0 ]; then
+echo "WAVM aarch64-apple-darwin24 failed"
+fi
