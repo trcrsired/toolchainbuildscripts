@@ -28,7 +28,7 @@ install_linux_kernel_headers() {
             echo "linux kernel headers install failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.linuxkernelheadersinstallsuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/.linuxkernelheadersinstallsuccess"
     fi
 }
 
@@ -123,7 +123,7 @@ build_glibc() {
                 echo "glibc ($item) configure failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.configuresuccess"
         fi
 
         if [[ "$headersonly" == "yes" ]]; then
@@ -139,7 +139,7 @@ build_glibc() {
                 fi
                 mkdir -p "$sysrootpathusr"
                 cp -r --preserve=links "${currentpathlibc}/install/glibc/$item"/* "$sysrootpathusr/"
-                echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess"
+                echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.headersinstallsuccess"
             fi
             return
         fi
@@ -154,7 +154,7 @@ build_glibc() {
                 echo "glibc ($item) build failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.buildsuccess"
         fi
 
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess" ]; then
@@ -167,7 +167,7 @@ build_glibc() {
                 echo "glibc ($item) install failure"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess"
         fi
 
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess" ]; then
@@ -183,12 +183,12 @@ build_glibc() {
                     fi
                 fi
             done
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.removehardcodedpathsuccess"
         fi
 
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess" ]; then
             safe_llvm_strip "${currentpathlibc}/install/glibc/${item}"
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.stripsuccess"
         fi
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess" ]; then
             local to_copy_include_lib="yes"
@@ -216,11 +216,11 @@ build_glibc() {
                     exit 1
                 fi
             fi
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/glibc/$item/.sysrootsuccess"
         fi
     done
 
-    echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/install/.glibcinstallsuccess"
+    echo "$(date +%s)" > "${currentpathlibc}/install/.glibcinstallsuccess"
 }
 
 build_musl() {
@@ -304,7 +304,7 @@ build_musl() {
             exit 1
         fi
 
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.configuresuccess"
 
     fi
 
@@ -321,7 +321,7 @@ build_musl() {
             fi
             mkdir -p "$sysrootpathusr"
             cp -r --preserve=links "${currentpathlibc}/install/musl/default"/* "$sysrootpathusr/"
-            echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess"
+            echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.headersinstallsuccess"
         fi
         return
     fi
@@ -336,7 +336,7 @@ build_musl() {
             echo "musl ${phase_dir} failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.buildsuccess"
     fi
 
     if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess" ]; then
@@ -349,12 +349,12 @@ build_musl() {
             echo "musl install failure"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.installsuccess"
     fi
 
     if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess" ]; then
         safe_llvm_strip "${currentpathlibc}/install/musl"
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.stripsuccess"
     fi
 
     if [ ! -f "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess" ]; then
@@ -370,6 +370,6 @@ build_musl() {
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/include" "$sysrootpathusr/"
 #        mkdir -p "$sysrootpathusr/lib"
 #        cp -r --preserve=links "${currentpathlibc}/install/musl/default/lib"/* "$sysrootpathusr/lib"/
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_dir}/musl/default/.sysrootsuccess"
     fi
 }

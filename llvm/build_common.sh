@@ -703,7 +703,7 @@ build_project() {
                 if [ -d "${SYSROOTPATHUSR}/include/c++/v1" ]; then
                     rm -rf "${SYSROOTPATHUSR}/include/c++/v1"
                 fi
-                echo "$(date --iso-8601=seconds)" > "${build_prefix}/${delete_previous_phase_file}"
+                echo "$(date +%s)" > "${build_prefix}/${delete_previous_phase_file}"
             fi
         fi
 
@@ -720,7 +720,7 @@ build_project() {
                 echo "${project_name}: CMake configuration failed for $TRIPLET"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${configure_phase_file}"
+            echo "$(date +%s)" > "${configure_phase_file}"
         fi
 
         if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
@@ -743,7 +743,7 @@ build_project() {
                 echo "${project_name}: Ninja build failed for $TRIPLET"
                 exit 1
             fi
-            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${build_phase_file}"
+            echo "$(date +%s)" > "${build_prefix}/${build_phase_file}"
         fi
 
         if [ ! -f "${build_prefix}/${install_phase_file}" ]; then
@@ -761,7 +761,7 @@ build_project() {
                     ln -s libc++.so.1 libc++.so
                 fi
             fi
-            echo "$(date --iso-8601=seconds)" > "${build_prefix}/${install_phase_file}"
+            echo "$(date +%s)" > "${build_prefix}/${install_phase_file}"
         fi
         if [[ "$project_name" == "compiler-rt" || "$project_name" == "builtins" ]]; then
             if [[ ${COPY_COMPILER_RT_WITH_SPECIAL_NAME} -eq 1 ]]; then
@@ -790,7 +790,7 @@ build_project() {
                                 ln -s "$file" "${filename}-${CPU}-${ABI_NO_VERSION}.so"
                             done
                         fi
-                        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${rt_rename_phase_file}"
+                        echo "$(date +%s)" > "${build_prefix}/${rt_rename_phase_file}"
                     fi
                 fi
             fi
@@ -803,7 +803,7 @@ build_project() {
                 local clangbuiltin="$llvm_install_directory/lib/clang/$clang_major_version"
                 mkdir -p "${clangbuiltin}"
                 cp -r --preserve=links "$install_prefix"/* "${clangbuiltin}/"
-                echo "$(date --iso-8601=seconds)" > "${build_prefix}/${copy_phase_file}"
+                echo "$(date +%s)" > "${build_prefix}/${copy_phase_file}"
             fi
         fi
         if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
@@ -818,7 +818,7 @@ build_project() {
                 mv "${project_name_alternative}_tmp" "${project_name_alternative}"
             fi
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix}/${current_phase_file}"
+        echo "$(date +%s)" > "${build_prefix}/${current_phase_file}"
     fi
 }
 
@@ -939,5 +939,5 @@ if [ ! -f "$currentpath/.packagesuccess" ]; then
 	cd "$TOOLCHAINS_LLVMPATH"
 	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
 	chmod 755 ${TRIPLET}.tar.xz
-	echo "$(date --iso-8601=seconds)" > "$currentpath/.packagesuccess"
+	echo "$(date +%s)" > "$currentpath/.packagesuccess"
 fi

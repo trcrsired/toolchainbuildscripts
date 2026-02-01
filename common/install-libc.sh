@@ -209,7 +209,7 @@ install_libc() {
 #                            exit 1
 #                        fi
 #                    fi
-                    echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/.libc_phase_header"
+                    echo "$(date +%s)" > "${currentpathlibc}/.libc_phase_header"
                 fi
 
                 mkdir -p "${currentpathlibc}/mingw-w64-crt"
@@ -319,7 +319,7 @@ install_libc() {
                         echo "wget ${NDKURL} failure"
                         exit 1
                     fi
-                    echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
+                    echo "$(date +%s)" > "${NDK_DONE_FILE}"
                 fi
 
                 # Prepare target extraction directory
@@ -334,7 +334,7 @@ install_libc() {
                 fi
 
                 # Record download completion timestamp
-                echo "$(date --iso-8601=seconds)" > "${NDK_DONE_FILE}"
+                echo "$(date +%s)" > "${NDK_DONE_FILE}"
                 mkdir -p "${installdirpath}"
                 cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${installdirpath}/lib
                 cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${installdirpath}/
@@ -443,6 +443,6 @@ install_libc() {
             cp -a "${local_djgpp_root}"/include "${sysrootpathusr}/"
             cp -a "${local_djgpp_root}"/lib "${sysrootpathusr}/"
         fi
-        echo "$(date --iso-8601=seconds)" > "${currentpathlibc}/${phase_file}"
+        echo "$(date +%s)" > "${currentpathlibc}/${phase_file}"
     fi
 }

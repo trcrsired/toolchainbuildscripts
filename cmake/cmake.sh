@@ -103,7 +103,7 @@ if [ $? -ne 0 ]; then
 echo "CMake configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentcmakepath}/.cmakeconfiguresuccess"
+echo "$(date +%s)" > "${currentcmakepath}/.cmakeconfiguresuccess"
 fi
 
 if [ ! -f "${currentcmakepath}/.cmakeninjasuccess" ]; then
@@ -113,7 +113,7 @@ if [ $? -ne 0 ]; then
 echo "CMake build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentcmakepath}/.cmakeninjasuccess"
+echo "$(date +%s)" > "${currentcmakepath}/.cmakeninjasuccess"
 fi
 
 if [ ! -f "${currentcmakepath}/.cmakeninjainstallstripsuccess" ]; then
@@ -123,7 +123,7 @@ if [ $? -ne 0 ]; then
 echo "CMake install and strip failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentcmakepath}/.cmakeninjainstallstripsuccess"
+echo "$(date +%s)" > "${currentcmakepath}/.cmakeninjainstallstripsuccess"
 fi
 
 mkdir -p "$currentninjapath"
@@ -142,7 +142,7 @@ if [ $? -ne 0 ]; then
 echo "ninja configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentninjapath}/.ninjaconfiguresuccess"
+echo "$(date +%s)" > "${currentninjapath}/.ninjaconfiguresuccess"
 fi
 
 if [ ! -f "${currentninjapath}/.ninjaninjasuccess" ]; then
@@ -152,7 +152,7 @@ if [ $? -ne 0 ]; then
 echo "ninja build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentninjapath}/.ninjaninjasuccess"
+echo "$(date +%s)" > "${currentninjapath}/.ninjaninjasuccess"
 fi
 
 if [ ! -f "${currentninjapath}/.ninjaninjainstallstripsuccess" ]; then
@@ -162,7 +162,7 @@ if [ $? -ne 0 ]; then
 echo "ninja install and strip failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentninjapath}/.ninjaninjainstallstripsuccess"
+echo "$(date +%s)" > "${currentninjapath}/.ninjaninjainstallstripsuccess"
 fi
 
 if [ ! -f "${currentcmakepath}/.cmakepackagingsuccess" ]; then
@@ -174,5 +174,5 @@ echo "tar failed"
 exit 1
 fi
 chmod 755 $HOST.tar.xz
-echo "$(date --iso-8601=seconds)" > "${currentcmakepath}/.cmakepackagingsuccess"
+echo "$(date +%s)" > "${currentcmakepath}/.cmakepackagingsuccess"
 fi

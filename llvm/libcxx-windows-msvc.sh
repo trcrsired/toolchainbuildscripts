@@ -127,7 +127,7 @@ if [ $? -ne 0 ]; then
 echo "runtimesconfigure build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesconfigure
+echo "$(date +%s)" > ${buildprefix}/runtimes/.runtimesconfigure
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesninja" ]; then
@@ -143,7 +143,7 @@ if [ $? -ne 0 ]; then
 echo "runtimes build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninja
+echo "$(date +%s)" > ${buildprefix}/runtimes/.runtimesninja
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesninjainstall" ]; then
@@ -158,7 +158,7 @@ if [ $? -ne 0 ]; then
 echo "runtimes install failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesninjainstall
+echo "$(date +%s)" > ${buildprefix}/runtimes/.runtimesninjainstall
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimesmodulefix" ]; then
@@ -168,7 +168,7 @@ if [ $? -ne 0 ]; then
 echo "runtimes fix rename failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesmodulefix
+echo "$(date +%s)" > ${buildprefix}/runtimes/.runtimesmodulefix
 fi
 
 if [ ! -f "${buildprefix}/runtimes/.runtimescopied" ]; then
@@ -186,7 +186,7 @@ git add $WINDOWSSYSROOT/lib/$hosttriple/*
 git add $WINDOWSSYSROOT/bin/$hosttriple/*
 mkdir -p "$WINDOWSSYSROOT/share"
 git add $WINDOWSSYSROOT/share*
-echo "$(date --iso-8601=seconds)" > ${buildprefix}/runtimes/.runtimesupdated
+echo "$(date +%s)" > ${buildprefix}/runtimes/.runtimesupdated
 fi
 
 }
@@ -199,5 +199,5 @@ if [ ! -f "${currentpath}/.runtimespushed" ]; then
 cd $WINDOWSSYSROOT
 git commit -m "auto update libc++ from LLVM source"
 git push
-echo "$(date --iso-8601=seconds)" > ${currentpath}/.runtimespushed
+echo "$(date +%s)" > ${currentpath}/.runtimespushed
 fi

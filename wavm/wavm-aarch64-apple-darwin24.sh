@@ -128,7 +128,7 @@ if [ $? -ne 0 ]; then
 echo "WAVM configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmconfiguresuccess"
+echo "$(date +%s)" > "${currentwavmpath}/.wavmconfiguresuccess"
 fi
 
 if [ ! -f "${currentwavmpath}/.wavmninjasuccess" ]; then
@@ -138,7 +138,7 @@ if [ $? -ne 0 ]; then
 echo "WAVM build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjasuccess"
+echo "$(date +%s)" > "${currentwavmpath}/.wavmninjasuccess"
 fi
 
 if [ ! -f "${currentwavmpath}/.wavmninjainstallstripsuccess" ]; then
@@ -148,7 +148,7 @@ if [ $? -ne 0 ]; then
 echo "WAVM install and strip failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
+echo "$(date +%s)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
 fi
 
 if [ ! -f "${currentwavmpath}/.wavmpackagingsuccess" ]; then
@@ -160,5 +160,5 @@ echo "tar failed"
 exit 1
 fi
 chmod 755 $HOST.tar.xz
-echo "$(date --iso-8601=seconds)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
+echo "$(date +%s)" > "${currentwavmpath}/.wavmninjainstallstripsuccess"
 fi

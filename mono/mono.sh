@@ -56,7 +56,7 @@ if [ $? -ne 0 ]; then
 echo "mono configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoconfigure"
+echo "$(date +%s)" > "${currentmonopath}/.monoconfigure"
 fi
 
 if [ ! -f "${currentmonopath}/.monobuild" ]; then
@@ -66,7 +66,7 @@ if [ $? -ne 0 ]; then
 echo "mono build failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monobuild"
+echo "$(date +%s)" > "${currentmonopath}/.monobuild"
 fi
 
 if [ ! -f "${currentmonopath}/.monoinstallstrip" ]; then
@@ -76,7 +76,7 @@ if [ $? -ne 0 ]; then
 echo "mono install-strip failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monoinstallstrip"
+echo "$(date +%s)" > "${currentmonopath}/.monoinstallstrip"
 fi
 
 if [ ! -f "${currentmonopath}/.monopackaging" ]; then
@@ -88,5 +88,5 @@ echo "tar failed"
 exit 1
 fi
 chmod 755 $HOST.tar.xz
-echo "$(date --iso-8601=seconds)" > "${currentmonopath}/.monopackaging"
+echo "$(date +%s)" > "${currentmonopath}/.monopackaging"
 fi

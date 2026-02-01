@@ -293,7 +293,7 @@ duplicating_runtimes()
     fi
 
     # Step 4: Mark phase complete
-    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${duplicating_runtimes_phase_file}" || {
+    echo "$(date +%s)" > "${build_prefix_project}/${duplicating_runtimes_phase_file}" || {
         echo "Error: Failed to write phase completion file"
         exit 1
     }
@@ -440,7 +440,7 @@ if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
         echo "$configure_project_name: configure failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
         exit 1
     fi
-    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${configure_phase_file}"
+    echo "$(date +%s)" > "${build_prefix_project}/${configure_phase_file}"
 fi
 
 if [[ "x$project_name" == "xgcc" ]]; then
@@ -451,7 +451,7 @@ if [[ "x$project_name" == "xgcc" ]]; then
             echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
+        echo "$(date +%s)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
     fi
 fi
 if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "xyes" ]]; then
@@ -459,7 +459,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
 #        freestanding should not deal with this?
 #        if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
 #            cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
-#            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
+#            echo "$(date +%s)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
 #        fi
     if [ ! -f "${build_prefix_project}/${build_target_libgcc_phase_file}" ]; then
         make all-target-libgcc -j "${JOBS}"
@@ -467,7 +467,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
             echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_target_libgcc_phase_file}"
+        echo "$(date +%s)" > "${build_prefix_project}/${build_target_libgcc_phase_file}"
     fi
     if [ ! -f "${build_prefix_project}/${install_gcc_phase_file}" ]; then
         cd "$build_prefix_project"
@@ -476,7 +476,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
             echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
+        echo "$(date +%s)" > "${build_prefix_project}/${install_gcc_phase_file}"
     fi
     if [ ! -f "${build_prefix_project}/${install_target_libgcc_phase_file}" ]; then
         make install-strip-target-libgcc
@@ -490,7 +490,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
     fi
     cd "$build_prefix_project"
     if [[ "${is_two_phase_build}" == "yes" ]]; then
-        echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
+        echo "$(date +%s)" > "${build_prefix_project}/${current_phase_file}"
         build_project_gnu_cookie $1 $2 $3 1
         return
     fi
@@ -505,7 +505,7 @@ else
                     echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
                     exit 1
                 fi
-                echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_gcc_phase_file}"
+                echo "$(date +%s)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
             if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
                 install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
@@ -513,7 +513,7 @@ else
         fi
         if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
             cat "$TOOLCHAINS_BUILD/gcc/gcc/limitx.h" "$TOOLCHAINS_BUILD/gcc/gcc/glimits.h" "$TOOLCHAINS_BUILD/gcc/gcc/limity.h" > "${build_prefix_project}/gcc/include/limits.h"
-            echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
+            echo "$(date +%s)" > "${build_prefix_project}/${generate_gcc_limits_phase_file}"
         fi
     fi
 fi
@@ -525,7 +525,7 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
         echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
         exit 1
     fi
-    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${build_phase_file}"
+    echo "$(date +%s)" > "${build_prefix_project}/${build_phase_file}"
 fi
 
 if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
@@ -544,7 +544,7 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
     if [ $? -ne 0 ]; then
         echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
     fi
-    echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${install_phase_file}"
+    echo "$(date +%s)" > "${build_prefix_project}/${install_phase_file}"
 fi
 
 if [[ "x${project_name}" == "xgcc" ]]; then
@@ -557,7 +557,7 @@ if [[ "x${project_name}" == "xgcc" ]]; then
         fi
     fi
 fi
-echo "$(date --iso-8601=seconds)" > "${build_prefix_project}/${current_phase_file}"
+echo "$(date +%s)" > "${build_prefix_project}/${current_phase_file}"
 
 }
 
@@ -573,7 +573,7 @@ packaging_toolchain() {
         XZ_OPT=-e9T0 tar cJf ${target_triplet}.${host_triplet}.tar.xz ${target_triplet}
         chmod 755 ${target_triplet}.${host_triplet}.tar.xz
         mkdir -p "${build_prefix}"
-        echo "$(date --iso-8601=seconds)" > "$build_prefix/.packagesuccess"
+        echo "$(date +%s)" > "$build_prefix/.packagesuccess"
     fi
 }
 

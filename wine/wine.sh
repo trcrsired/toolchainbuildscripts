@@ -258,7 +258,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname cmake configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.cmakeconfiguresuccess
+echo "$(date +%s)" > ${currentpath}/$x11pjname/.cmakeconfiguresuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
@@ -268,7 +268,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname ninja failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.buildsuccess
+echo "$(date +%s)" > ${currentpath}/$x11pjname/.buildsuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
@@ -279,7 +279,7 @@ echo "$x11pjname install failed"
 exit 1
 fi
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
-echo "$(date --iso-8601=seconds)" > ${currentpath}/$x11pjname/.installsuccess
+echo "$(date +%s)" > ${currentpath}/$x11pjname/.installsuccess
 fi
 
 elif [ -f $TOOLCHAINS_BUILD/${x11pjname}/configure.ac ]; then
@@ -293,7 +293,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname autogen failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.autogensuccess
+echo "$(date +%s)" > ${currentpath}/${x11pjname}/.autogensuccess
 fi
 fi
 
@@ -318,7 +318,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname configure failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.configuresuccess
+echo "$(date +%s)" > ${currentpath}/${x11pjname}/.configuresuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
@@ -350,7 +350,7 @@ fi
 echo "$x11pjname build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.buildsuccess
+echo "$(date +%s)" > $currentpath/$x11pjname/.buildsuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
@@ -387,7 +387,7 @@ fi
 fi
 llvm-strip --strip-unneeded $currentpath/installs/lib/*
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
+echo "$(date +%s)" > $currentpath/$x11pjname/.installsuccess
 fi
 
 elif [ -f ${TOOLCHAINS_BUILD}/${x11pjname}/meson.build ]; then
@@ -424,7 +424,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname meson setup failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentpath}/${x11pjname}/.mesonconfiguresuccess
+echo "$(date +%s)" > ${currentpath}/${x11pjname}/.mesonconfiguresuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
@@ -434,7 +434,7 @@ if [ $? -ne 0 ]; then
 echo "$x11pjname ninja failed"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.buildsuccess
+echo "$(date +%s)" > $currentpath/$x11pjname/.buildsuccess
 fi
 
 if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
@@ -446,7 +446,7 @@ exit 1
 fi
 llvm-strip --strip-unneeded $currentpath/installs/lib/*
 cp -r --preserve=links $currentpath/installs/* $SYSROOT/usr/
-echo "$(date --iso-8601=seconds)" > $currentpath/$x11pjname/.installsuccess
+echo "$(date +%s)" > $currentpath/$x11pjname/.installsuccess
 fi
 fi
 }
@@ -526,7 +526,7 @@ if [ $? -ne 0 ]; then
 echo "wine build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.buildsuccess
+echo "$(date +%s)" > ${currentwinepath}/.buildsuccess
 fi
 
 if [ ! -f ${currentwinepath}/.nlsbuildsuccess ]; then
@@ -536,7 +536,7 @@ if [ $? -ne 0 ]; then
 echo "wine build failure"
 exit 1
 fi
-echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.nlsbuildsuccess
+echo "$(date +%s)" > ${currentwinepath}/.nlsbuildsuccess
 fi
 
 if [ ! -f ${currentwinepath}/.installsuccess ]; then
@@ -548,7 +548,7 @@ exit 1
 fi
 mkdir -p $PREFIX/wine/share/wine
 cp -r --preserve=links $TOOLCHAINS_BUILD/wine/nls $PREFIX/wine/share/wine/
-echo "$(date --iso-8601=seconds)" > ${currentwinepath}/.installsuccess
+echo "$(date +%s)" > ${currentwinepath}/.installsuccess
 fi
 
 if [ ! -f $SOFTWARESPATH/$HOST.tar.xz ]; then
