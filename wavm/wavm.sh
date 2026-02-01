@@ -50,18 +50,16 @@ currentwavmpath=${currentpath}/wavm
 
 if [[ $1 == "clean" ]]; then
 	echo "cleaning"
-	rm -rf "${currentpath}"
-	rm -f "$SOFTWARESPATH/$HOST.tar.xz"
-	rm -rf "$SOFTWARESPATH/$HOST"
+	rm -rf ${currentpath}
+	rm -f $SOFTWARESPATH/$HOST.tar.xz
 	echo "cleaning done"
-	exit 0
+    exit 0
 fi
 
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
-	rm -rf "${currentpath}"
-	rm -f "$SOFTWARESPATH/$HOST.tar.xz"
-	rm -rf "${SOFTWARESPATH}/${HOST}"
+	rm -rf ${currentpath}
+	rm -f $SOFTWARESPATH/$HOST.tar.xz
 	echo "restart done"
 fi
 
@@ -97,6 +95,8 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 		fi
 		EXTRACXXFLAGS="-L\"$currentpath/templibs\" -lc++abi -lunwind $EXTRACXXFLAGS"
 		SYSTEMNAME=Linux
+	elif [[ ${SYSTEMNAME} == "Darwin" ]]; then
+		SYSROOT_SETTINGS="$SYSROOT_SETTINGS -DCMAKE_CURRENT_OSX_VERSION=10.5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"
 	fi
 fi
 
@@ -116,6 +116,16 @@ mkdir -p "$currentwavmpath"
 
 if [ ! -f "${currentwavmpath}/.wavmconfiguresuccess" ]; then
 cd $currentwavmpath
+if [[ ${SYSTEMNAME} == "Darwin" ]]; then
+cmake "$TOOLCHAINS_BUILD/WAVM" -Wno-dev -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
+	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$HOST \
+	-DCMAKE_C_FLAGS="-fuse-ld=lld -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument $EXTRACFLAGS  -mmacosx-version-min=11.0" \
+	-DCMAKE_ASM_FLAGS="-fuse-ld=lld -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument $EXTRAASMFLAGS  -mmacosx-version-min=11.0" \
+	-DCMAKE_CXX_FLAGS="-fuse-ld=lld -fuse-lipo=llvm-lipo -Wno-unused-command-line-argument $EXTRACXXFLAGS  -mmacosx-version-min=11.0" \
+	-DCMAKE_LINKER_TYPE=LLD -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DCMAKE_SYSTEM_PROCESSOR=$ARCH -DCMAKE_SYSTEM_NAME=$SYSTEMNAME \
+	-DCMAKE_INSTALL_PREFIX="$SOFTWARESPATH/$HOST" \
+	$SYSROOT_SETTING $EXTRAFLAGS -DCMAKE_CURRENT_OSX_VERSION=10.5 -DCMAKE_SYSTEM_VERSION=24 -DCMAKE_STRIP=llvm-strip -DCMAKE_LIBTOOL=llvm-libtool-darwin -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DCMAKE_OSX_ARCHITECTURES="arm64" -DCMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG=""
+else
 cmake "$TOOLCHAINS_BUILD/WAVM" -Wno-dev -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC \
 	-DCMAKE_C_COMPILER_TARGET=$HOST -DCMAKE_CXX_COMPILER_TARGET=$HOST -DCMAKE_ASM_COMPILER_TARGET=$HOST \
 	-DCMAKE_C_FLAGS="-fuse-ld=lld -Wno-unused-command-line-argument $EXTRACFLAGS" \
@@ -124,6 +134,7 @@ cmake "$TOOLCHAINS_BUILD/WAVM" -Wno-dev -GNinja -DCMAKE_BUILD_TYPE=Release -DCMA
 	-DCMAKE_LINKER_TYPE=LLD -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DCMAKE_SYSTEM_PROCESSOR=$ARCH -DCMAKE_SYSTEM_NAME=$SYSTEMNAME \
 	-DCMAKE_INSTALL_PREFIX="$SOFTWARESPATH/$HOST" \
 	$SYSROOT_SETTING $EXTRAFLAGS
+fi
 if [ $? -ne 0 ]; then
 echo "WAVM configure failed"
 exit 1
