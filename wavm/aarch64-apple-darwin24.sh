@@ -21,5 +21,5 @@ if [ -z ${HOST+x} ]; then
 HOST=$TARGETTRIPLE
 fi
 
-HOST=$HOST SYSTEMNAME=$SYSTEMNAME ./wavm.sh "$@"
+HOST=$HOST SYSTEMNAME=$SYSTEMNAME ./wavm-aarch64-apple-darwin24.sh "$@"
 exit $?
