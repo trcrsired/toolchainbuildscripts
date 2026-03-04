@@ -46,24 +46,6 @@ BUILD_JOBS=(
     "x86_64-linux-gnu x86_64-linux-gnu"
     "x86_64-w64-mingw32 x86_64-w64-mingw32"
 )
-# ---------------------------------------------------------
-# Insert native builds at the top (without replacing first two)
-# ---------------------------------------------------------
-
-# Native → native (only if not one of the first two)
-if [[ "$NATIVE_TRIPLET" != "x86_64-linux-gnu" && "$NATIVE_TRIPLET" != "x86_64-w64-mingw32" ]]; then
-    BUILD_JOBS=( "${NATIVE_TRIPLET} ${NATIVE_TRIPLET}" "${BUILD_JOBS[@]}" )
-fi
-
-# Native → x86_64-linux-gnu
-if [[ "$NATIVE_TRIPLET" != "x86_64-linux-gnu" ]]; then
-    BUILD_JOBS=( "${NATIVE_TRIPLET} x86_64-linux-gnu" "${BUILD_JOBS[@]}" )
-fi
-
-# Native → x86_64-w64-mingw32
-if [[ "$NATIVE_TRIPLET" != "x86_64-w64-mingw32" ]]; then
-    BUILD_JOBS=( "${NATIVE_TRIPLET} x86_64-w64-mingw32" "${BUILD_JOBS[@]}" )
-fi
 
 # ---------------------------------------------------------
 # Print job list
