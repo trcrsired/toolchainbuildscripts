@@ -115,5 +115,14 @@ clone_or_update_dependency() {
         fi
     fi
     cd "$toolchains_path/$DEPENDENCY_NAME" || return
+
+    # Special handling for GCC: use modular patch pipeline
+    if [ "$DEPENDENCY_NAME" = "gcc" ]; then
+        SCRIPT_DIR="$(dirname "$0")/gcc_patches"
+        "$SCRIPT_DIR/update_gcc_and_patch.sh" "$toolchains_path/$DEPENDENCY_NAME"
+        return
+    fi
+
+    # Default behavior for all other dependencies
     git pull --quiet
 }
