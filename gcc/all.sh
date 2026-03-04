@@ -17,6 +17,7 @@ BUILD_JOBS=(
     "x86_64-linux-gnu x86_64-linux-gnu"
     "x86_64-w64-mingw32 x86_64-w64-mingw32"
 
+    if false; then
     # x86_64-linux-gnu host
     "x86_64-linux-gnu aarch64-linux-gnu"
     "x86_64-linux-gnu loongarch64-linux-gnu"
@@ -38,6 +39,7 @@ BUILD_JOBS=(
     "x86_64-w64-mingw32 x86_64-elf"
     "x86_64-w64-mingw32 i586-msdosdjgpp"
     "x86_64-w64-mingw32 x86_64-freebsd14"
+    fi
 )
 
 # ---------------------------------------------------------
