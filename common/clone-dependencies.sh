@@ -118,7 +118,7 @@ clone_or_update_dependency() {
 
     # Special handling for GCC: use modular patch pipeline
     if [ "$DEPENDENCY_NAME" = "gcc" ]; then
-        SCRIPT_DIR="$(dirname "$0")/gcc_patches"
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../common/gcc_patches" && pwd)"
         "$SCRIPT_DIR/update_gcc_and_patch.sh" "$toolchains_path/$DEPENDENCY_NAME"
         return
     fi
