@@ -26,7 +26,7 @@ build_all() {
         BUILD_TRIPLET=$build \
         HOST_TRIPLET=$host \
         TARGET_TRIPLET=$target \
-        ./build_common "$@"
+        ./build_common.sh "$@"
     done
 }
 
