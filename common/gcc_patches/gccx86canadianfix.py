@@ -62,9 +62,6 @@ def main():
        $RM \\$dlpath'
     shlibpath_overrides_runpath=yes)"""
 
-    old_b = OLD.encode("utf-8")
-    new_b = NEW.encode("utf-8")
-
     for root, dirs, files in os.walk(srcdir):
         for name in files:
             if name not in ("configure", "libtool.m4"):
