@@ -9,6 +9,7 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN i686-w64-mingw32 i686-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-linux-musl x86_64-linux-musl"
     "$GCC_BUILD_MAIN aarch64-linux-musl aarch64-linux-musl"
+    "$GCC_BUILD_MAIN i686-linux-musl i686-linux-musl"
 
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 x86_64-linux-gnu"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-linux-gnu"
@@ -19,6 +20,7 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 x86_64-linux-musl"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-linux-musl"
+    "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-linux-musl"
 
     "$GCC_BUILD_MAIN x86_64-linux-gnu x86_64-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-linux-gnu aarch64-linux-gnu"
@@ -29,6 +31,7 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN x86_64-linux-gnu i686-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-linux-gnu x86_64-linux-musl"
     "$GCC_BUILD_MAIN x86_64-linux-gnu aarch64-linux-musl"
+    "$GCC_BUILD_MAIN x86_64-linux-gnu i686-linux-musl"
 
     "$GCC_BUILD_MAIN loongarch64-linux-gnu x86_64-w64-mingw32"
     "$GCC_BUILD_MAIN loongarch64-linux-gnu x86_64-linux-gnu"
@@ -39,5 +42,6 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN loongarch64-linux-gnu i686-w64-mingw32"
     "$GCC_BUILD_MAIN loongarch64-linux-gnu x86_64-linux-musl"
     "$GCC_BUILD_MAIN loongarch64-linux-gnu aarch64-linux-musl"
+    "$GCC_BUILD_MAIN loongarch64-linux-gnu i686-linux-musl"
 )
 unset GCC_GCC_BUILD_MAIN
