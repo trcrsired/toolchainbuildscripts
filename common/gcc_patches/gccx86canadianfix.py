@@ -69,23 +69,21 @@ def main():
 
             path = os.path.join(root, name)
 
-            # First load file as bytes
             with open(path, "rb") as f:
                 data = f.read()
 
-            # Check if block exists (equivalent to first native_file_loader + search)
             if OLD not in data:
                 continue
 
             print("Patching", path)
 
-            # Replace all occurrences (equivalent to the loop with searcher + write_all)
             newdata = data.replace(OLD, NEW)
 
             with open(path, "wb") as f:
                 f.write(newdata)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
