@@ -47,23 +47,24 @@ echo "GCC's ./contrib/download_prerequisites"
 cd "$GCC_DIR" || exit 1
 ./contrib/download_prerequisites
 
-# Copy dependency tarballs from GCC directory to binutils-gdb directory
+# Link binutils-gdb dependencies using relative paths
 BINUTILS_DIR="$(dirname "$GCC_DIR")/binutils-gdb"
 
 if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
     echo "Found binutils-gdb at $BINUTILS_DIR"
 
-    for dep in gettext gmp mpfr mpc isl; do
-        # Find tarball inside GCC directory
-        TAR=$(ls "$GCC_DIR"/${dep}-*.tar.* 2>/dev/null | head -n 1)
+    REL_BINUTILS_DIR="../$(basename "$BINUTILS_DIR")"
 
-        if [ -z "$TAR" ]; then
-            echo "Skipping $dep (no tarball found in GCC directory)"
-            continue
+    for dep in gmp mpfr mpc; do
+        TARGET="$GCC_DIR/$dep"
+        SOURCE="$REL_BINUTILS_DIR/$dep"
+
+        # Attempt to create symlink; if it fails, target already exists
+        if ln -s "$SOURCE" "$TARGET" 2>/dev/null; then
+            echo "Linking $dep -> $SOURCE"
+        else
+            echo "Skipping $dep (exists)"
         fi
-
-        echo "Copying $(basename "$TAR") to binutils-gdb directory"
-        cp "$TAR" "$BINUTILS_DIR/"
     done
 fi
 
