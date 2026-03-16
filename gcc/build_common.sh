@@ -17,6 +17,7 @@ currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
+
 mkdir -p "$currentpath"
 
 cd ../common
@@ -149,6 +150,14 @@ fi
 
 if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
+fi
+
+if [[ $1 == "restart" ]]; then
+	echo "restarting"
+	rm -rf "${currentpath}"
+    rm -rf "${TOOLCHAINSPATH_GNU}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
+    rm "${TOOLCHAINSPATH_GNU}/${HOST_TRIPLET}.${TARGET_TRIPLET}.tar.xz"
+	echo "restart done"
 fi
 
 mkdir -p "${TOOLCHAINSPATH_GNU}"
