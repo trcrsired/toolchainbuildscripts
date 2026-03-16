@@ -9,16 +9,13 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
     TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
 fi
 
-restart_artifacts()
-{
-    echo "restarting"
-    rm -rf "$(realpath .)/.artifacts"
-    rm -rf "${TOOLCHAINSPATH_GNU}"
-    echo "restart done"
-}
+REALPATHCURRENT="$(realpath .)"
 
 if [[ $1 == "restart" ]]; then
-    restart_artifacts
+    echo "restarting"
+    rm -rf "$REALPATHCURRENT/.artifacts"
+    rm -rf "${TOOLCHAINSPATH_GNU}"
+    echo "restart done"
 fi
 
 build_all() {
@@ -61,6 +58,6 @@ build_all() {
 build_all "$@"
 
 if [[ "$UPLOAD_GCC" == "yes" ]]; then
-cd "$TOOLCHAINSPATH_GNU"
+cd "$REALPATHCURRENT"
 ./upload.sh
 fi
