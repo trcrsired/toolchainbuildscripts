@@ -27,7 +27,7 @@ def main():
     postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\\''. $file; echo \\$dlname'\\''`~
       dlpath=$dir/\\$dldll~
        $RM \\$dlpath'
-    shlibpath_overrides_runpath=yes)"""
+    shlibpath_overrides_runpath=yes"""
 
     # EXACT COPY of C++ newvw (byte-for-byte)
     NEW = b"""case $GCC,$host_os in
@@ -60,7 +60,7 @@ def main():
     postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\\''. $file; echo \\$dlname'\\''`~
       dlpath=$dir/\\$dldll~
        $RM \\$dlpath'
-    shlibpath_overrides_runpath=yes)"""
+    shlibpath_overrides_runpath=yes"""
 
     for root, dirs, files in os.walk(srcdir):
         for name in files:
