@@ -31,6 +31,9 @@ build_all() {
     local build_main="x86_64-linux-gnu"
     local triplets=(
         "$build_main x86_64-w64-mingw32 i586-msdosdjgpp"
+#       "$build_main x86_64-w64-mingw32 x86_64-freebsd14"
+#	"$build_main x86_64-freebsd14 x86_64-freebsd14"
+	"$build_main x86_64-w64-mingw32 x86_64-elf"
     )
 
     for t in "${triplets[@]}"; do

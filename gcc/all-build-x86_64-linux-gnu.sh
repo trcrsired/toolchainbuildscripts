@@ -40,6 +40,13 @@ build_all() {
         "$build_main riscv64-linux-gnu riscv64-linux-gnu"
         "$build_main x86_64-w64-mingw32 riscv64-linux-gnu"
         "$build_main x86_64-w64-mingw32 x86_64-elf"
+        "$build_main x86_64-w64-mingw32 i586-msdosdjgpp"
+        "$build_main x86_64-w64-mingw32 i686-w64-mingw32"
+        "$build_main i686-w64-mingw32 i686-w64-mingw32"
+        "$build_main x86_64-w64-mingw32 x86_64-linux-musl"
+        "$build_main x86_64-linux-musl x86_64-linux-musl"
+        "$build_main x86_64-w64-mingw32 aarch64-linux-musl"
+        "$build_main aarch64-linux-musl aarch64-linux-musl"
     )
 
     for t in "${triplets[@]}"; do
