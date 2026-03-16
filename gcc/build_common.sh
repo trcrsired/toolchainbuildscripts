@@ -345,11 +345,8 @@ local is_two_phase_build="no"
 local is_freestanding_or_two_phase_build="no"
 local is_between_build="no"
 
-local max_aligned_fix_copy_phase=".${project_name}_max_aligned_fix_copy_phase"
-local max_aligned_fix_cleanup_phase=".${project_name}_max_aligned_fix_cleanup_phase"
-
 # see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
-local max_aligned_fix="no"
+local not_having_fenv_fix="no"
 
 if [[ "x$project_name" == "xgcc" ]]; then
 
@@ -360,7 +357,7 @@ local target_abi
 parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
 
 if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-    max_aligned_fix="yes"
+    not_having_fenv_fix="yes"
 fi
 
 if [[ $cookie -eq 0 ]];then
@@ -378,44 +375,11 @@ elif [[ $target_os == "elf" ]]; then
     is_freestanding_build="yes"
     is_freestanding_or_two_phase_build="${is_freestanding_build}"
 else
-if [[ "x$max_aligned_fix" != "xyes" ]]; then
+if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
 install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
 fi
 fi
 
-fi
-
-
-if [[ "$max_aligned_fix" == "yes" ]]; then
-    if [ ! -f "${build_prefix}/${configure_project_name}/${max_aligned_fix_copy_phase}" ]; then
-
-        # inside your function
-        local libc_include="${libc_install_prefix}/include"
-        local libc_include_temp="${libc_install_prefix}/include_temp"
-
-        local toolchain_include="${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/include"
-        local toolchain_include_temp="${toolchain_include}_temp"
-
-        # 1. move libc include → include_temp
-        if [ -d "$libc_include" ]; then
-            mv "$libc_include" "$libc_include_temp"
-        fi
-
-        # 2. move toolchain include → include_temp
-        if [ -d "$toolchain_include" ]; then
-            mv "$toolchain_include" "$toolchain_include_temp"
-        fi
-
-        # 3. create fresh empty include directories
-        mkdir -p "$libc_include"
-        mkdir -p "$toolchain_include"
-
-        # 4. copy libc headers into toolchain include
-        cp -a "$libc_include_temp"/* "$toolchain_include"
-
-        # 5. Mark phase complete
-        echo "$(date +%s)" > "${build_prefix}/${configure_project_name}/${max_aligned_fix_copy_phase}"
-    fi
 fi
 
 if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os" == "msdosdjgpp" ]]; then
@@ -570,8 +534,8 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
     make -j "${JOBS}"
     if [ $? -ne 0 ]; then
         local make_okay
-        # If GCC build failed and max_aligned_fix is enabled
-        if [[ "x$project_name" == "xgcc" ]] && [[ "x$max_aligned_fix" == "xyes" ]]; then
+        # If GCC build failed and not_having_fenv_fix is enabled
+        if [[ "x$project_name" == "xgcc" ]] && [[ "x$not_having_fenv_fix" == "xyes" ]]; then
             
             # If libstdc++-v3 directory exists, it is very likely the failure came from libstdc++
             local libstdcpp_path="${build_prefix_project}/${target_triplet}/libstdc++-v3"
@@ -633,39 +597,8 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
     echo "$(date +%s)" > "${build_prefix_project}/${install_phase_file}"
 fi
 
-if [[ "$max_aligned_fix" == "yes" ]]; then
-    if [ ! -f "${build_prefix}/${configure_project_name}/${max_aligned_fix_cleanup_phase}" ]; then
-
-        # local variables
-        local libc_include="${libc_install_prefix}/include"
-        local libc_include_temp="${libc_install_prefix}/include_temp"
-
-        local toolchain_include="${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/include"
-        local toolchain_include_temp="${toolchain_include}_temp"
-
-        # 1. remove toolchain include (the temporary one used during build)
-        rm -rf "$toolchain_include"
-
-        # 2. restore toolchain include_temp → include
-        if [ -d "$toolchain_include_temp" ]; then
-            mv "$toolchain_include_temp" "$toolchain_include"
-        fi
-
-        # 3. copy libc include_temp → include
-        if [ -d "$libc_include_temp" ]; then
-            cp -a "$libc_include_temp/"* "$libc_include/"
-        fi
-
-        # 4. remove libc include_temp
-        rm -rf "$libc_include_temp"
-
-        # 5. mark cleanup complete
-        echo "$(date +%s)" > "${build_prefix}/${configure_project_name}/${max_aligned_fix_cleanup_phase}"
-    fi
-fi
-
 if [[ "x${project_name}" == "xgcc" ]]; then
-    if [[ "x$max_aligned_fix" != "xyes" ]]; then
+    if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
         install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
     elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
         if [[ "x${is_native_cross}" != "xyes" ]]; then
