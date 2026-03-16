@@ -9,6 +9,8 @@ if [ -z ${TARGET_TRIPLET+x} ]; then
 echo "TARGET_TRIPLET is not set. Please set the TARGET_TRIPLET environment variable to the target triplet."
 exit 1
 fi
+
+GCC_COMMON_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../common/gcc_patches" &>/dev/null && pwd)"
 artifactspath="$(realpath .)/.artifacts"
 currentpathnohosttriplet="${artifactspath}/gcc"
 currentpath="${currentpathnohosttriplet}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
@@ -16,6 +18,7 @@ if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
 mkdir -p "$currentpath"
+
 cd ../common
 source ./common.sh
 

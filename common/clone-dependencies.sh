@@ -116,11 +116,13 @@ clone_or_update_dependency() {
     fi
     cd "$toolchains_path/$DEPENDENCY_NAME" || return
 
-    # Special handling for GCC: use modular patch pipeline
+# Special handling for GCC: use modular patch pipeline
     if [ "$DEPENDENCY_NAME" = "gcc" ]; then
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../common/gcc_patches" && pwd)"
-        "$SCRIPT_DIR/update_gcc_and_patch.sh" "$toolchains_path/$DEPENDENCY_NAME"
-        return
+        if [ ! -z "$GCC_COMMON_SCRIPT_DIR" ]; then
+            "$GCC_COMMON_SCRIPT_DIR/update_gcc_and_patch.sh" "$toolchains_path/$DEPENDENCY_NAME"
+            return
+        fi
+        echo "Warning: GCC_COMMON_SCRIPT_DIR is not set. GCC patch scripts may not run correctly."
     fi
 
     # Default behavior for all other dependencies
