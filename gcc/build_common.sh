@@ -350,9 +350,6 @@ local max_aligned_fix_cleanup_phase=".${project_name}_max_aligned_fix_cleanup_ph
 
 # see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
 local max_aligned_fix="no"
-if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-    max_aligned_fix="yes"
-fi
 
 if [[ "x$project_name" == "xgcc" ]]; then
 
@@ -361,6 +358,10 @@ local target_vendor
 local target_os
 local target_abi
 parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
+
+if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+    max_aligned_fix="yes"
+fi
 
 if [[ $cookie -eq 0 ]];then
 
@@ -382,14 +383,15 @@ fi
 
 fi
 
+
 if [[ "$max_aligned_fix" == "yes" ]]; then
-    if [ ! -f "${build_prefix_project}/${max_aligned_fix_copy_phase}" ]; then
+    if [ ! -f "${build_prefix}/${configure_project_name}/${max_aligned_fix_copy_phase}" ]; then
 
         # inside your function
         local libc_include="${libc_install_prefix}/include"
         local libc_include_temp="${libc_install_prefix}/include_temp"
 
-        local toolchain_include="${toolchainspath_gnu}/${host_triplet}/${target_triplet}/include"
+        local toolchain_include="${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/include"
         local toolchain_include_temp="${toolchain_include}_temp"
 
         # 1. move libc include → include_temp
@@ -410,9 +412,8 @@ if [[ "$max_aligned_fix" == "yes" ]]; then
         cp -a "$libc_include_temp"/* "$toolchain_include"
 
         # 5. Mark phase complete
-        echo "$(date +%s)" > "${build_prefix_project}/${max_aligned_fix_copy_phase}"
+        echo "$(date +%s)" > "${build_prefix}/${configure_project_name}/${max_aligned_fix_copy_phase}"
     fi
-    exit 0
 fi
 
 if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os" == "msdosdjgpp" ]]; then
@@ -592,13 +593,13 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
 fi
 
 if [[ "$max_aligned_fix" == "yes" ]]; then
-    if [ ! -f "${build_prefix_project}/${max_aligned_fix_cleanup_phase}" ]; then
+    if [ ! -f "${build_prefix}/${configure_project_name}/${max_aligned_fix_cleanup_phase}" ]; then
 
         # local variables
         local libc_include="${libc_install_prefix}/include"
         local libc_include_temp="${libc_install_prefix}/include_temp"
 
-        local toolchain_include="${toolchainspath_gnu}/${host_triplet}/${target_triplet}/include"
+        local toolchain_include="${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/include"
         local toolchain_include_temp="${toolchain_include}_temp"
 
         # 1. remove toolchain include (the temporary one used during build)
@@ -618,7 +619,7 @@ if [[ "$max_aligned_fix" == "yes" ]]; then
         rm -rf "$libc_include_temp"
 
         # 5. mark cleanup complete
-        echo "$(date +%s)" > "${build_prefix_project}/${max_aligned_fix_cleanup_phase}"
+        echo "$(date +%s)" > "${build_prefix}/${configure_project_name}/${max_aligned_fix_cleanup_phase}"
     fi
 fi
 
