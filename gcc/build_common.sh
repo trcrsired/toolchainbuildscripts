@@ -374,9 +374,7 @@ elif [[ $target_os == "elf" ]]; then
     is_freestanding_build="yes"
     is_freestanding_or_two_phase_build="${is_freestanding_build}"
 else
-if [[ $max_aligned_fix != "yes" ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
-fi
+install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
 fi
 
 fi
@@ -557,9 +555,7 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
 fi
 
 if [[ "x${project_name}" == "xgcc" ]]; then
-    if [[ $max_aligned_fix == "yes" ]]; then
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
-    elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
+    if [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
         if [[ "x${is_native_cross}" != "xyes" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
         fi
