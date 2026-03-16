@@ -30,19 +30,21 @@ main() {
     local script_dir
     script_dir="$currentrealpath"
 
-    local build_script="$script_dir/all-build-${platform_triplet_no_vendor}.sh"
+    local build_script_name="all-build-${platform_triplet_no_vendor}.sh"
+    local build_script="$script_dir/$build_script_name"
 
     # Check if the build script exists
     if [[ ! -f "$build_script" ]]; then
         echo "Error: build script not found: $build_script"
-        echo "Expected file: all-build-${platform_triplet_no_vendor}.sh"
+        echo "Expected file: ${build_script_name}"
         exit 1
     fi
 
     echo "Dispatching to: $build_script"
 
     # Execute the build script and forward all arguments
-    exec "$build_script" "$@"
+    cd "$script_dir"
+    "./$build_script_name" "$@"
 }
 
 main "$@"
