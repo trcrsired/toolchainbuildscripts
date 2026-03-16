@@ -4,7 +4,6 @@ set -e
 restart_artifacts()
 {
     local toolchainspath
-    local toolchains_path_gnu
     if [ -z ${TOOLCHAINSPATH+x} ]; then
         toolchainspath="$HOME/toolchains"
     else
@@ -12,14 +11,12 @@ restart_artifacts()
     fi
 
     if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
-        toolchains_path_gnu="$toolchainspath/gnu"
-    else
-        toolchains_path_gnu="$TOOLCHAINSPATH_GNU"
+        TOOLCHAINSPATH_GNU="$toolchainspath/gnu"
     fi
 
     echo "restarting"
     rm -rf "$(realpath .)/.artifacts"
-    rm -rf "${toolchains_path_gnu}"
+    rm -rf "${TOOLCHAINSPATH_GNU}"
     echo "restart done"
 }
 
@@ -66,3 +63,7 @@ build_all() {
 
 build_all "$@"
 
+if [[ "$UPLOAD_GCC" == "yes" ]]; then
+cd "$TOOLCHAINSPATH_GNU"
+./upload.sh
+fi
