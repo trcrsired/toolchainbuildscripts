@@ -1,96 +1,48 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-restart_artifacts()
-{
-    local toolchainspath
-    local toolchains_path_gnu
-    if [ -z ${TOOLCHAINSPATH+x} ]; then
-        toolchainspath="$HOME/toolchains"
+currentrealpath="$(realpath .)"
+
+# Load common utilities
+cd ../common
+source ./common.sh
+
+main() {
+    # Variables for detected platform triplet
+    local platform_triplet
+    local platform_triplet_no_vendor
+
+    # Detect the current platform triplet
+    detect_platform_triplet platform_triplet platform_triplet_no_vendor
+    echo "Detected platform: $platform_triplet (no-vendor: $platform_triplet_no_vendor)"
+
+    # Parse triplet into components
+    local cpu vendor os abi
+    parse_triplet "$platform_triplet_no_vendor" cpu vendor os abi
+
+    # Only Linux + GNU ABI is supported for now
+    if [[ "$os" != "linux" || "$abi" != "gnu" ]]; then
+        echo "Unsupported platform: $platform_triplet_no_vendor"
+        exit 1
     fi
 
-    if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
-        toolchains_path_gnu="$toolchainspath/gnu"
+    # Determine the build script based on the platform triplet
+    local script_dir
+    script_dir="$(dirname "$currentrealpath")"
+
+    local build_script="$script_dir/all-build-${platform_triplet_no_vendor}.sh"
+
+    # Check if the build script exists
+    if [[ ! -f "$build_script" ]]; then
+        echo "Error: build script not found: $build_script"
+        echo "Expected file: all-build-${platform_triplet_no_vendor}.sh"
+        exit 1
     fi
 
-    echo "restarting"
-    rm -rf "$(realpath .)/.artifacts"
-    rm -rf "${toolchains_path_gnu}"
-    echo "restart done"
+    echo "Dispatching to: $build_script"
+
+    # Execute the build script and forward all arguments
+    exec "$build_script" "$@"
 }
 
-if [[ $1 == "restart" ]]; then
-restart_artifacts()
-fi
-
-ROOT_DIR="$(dirname "$0")"
-COMMON_BUILD="${ROOT_DIR}/build_common.sh"
-
-# Detect native triplet
-NATIVE_TRIPLET="$(gcc -dumpmachine)"
-
-echo "Detected native GCC triplet: $NATIVE_TRIPLET"
-
-# ---------------------------------------------------------
-# Manually listed host-target pairs (flat list)
-# ---------------------------------------------------------
-BUILD_JOBS=(
-    # Always build these two first
-    "x86_64-linux-gnu x86_64-linux-gnu"
-    "x86_64-w64-mingw32 x86_64-w64-mingw32"
-
-
-    # x86_64-linux-gnu host
-    "x86_64-linux-gnu aarch64-linux-gnu"
-    "x86_64-linux-gnu loongarch64-linux-gnu"
-    "x86_64-linux-gnu x86_64-linux-musl"
-    "x86_64-linux-gnu aarch64-linux-musl"
-    "x86_64-linux-gnu loongarch64-linux-musl"
-    "x86_64-linux-gnu i686-w64-mingw32"
-    "x86_64-linux-gnu x86_64-elf"
-    "x86_64-linux-gnu i586-msdosdjgpp"
-    "x86_64-linux-gnu x86_64-freebsd14"
-
-    # x86_64-w64-mingw32 host
-    "x86_64-w64-mingw32 aarch64-linux-gnu"
-    "x86_64-w64-mingw32 loongarch64-linux-gnu"
-    "x86_64-w64-mingw32 x86_64-linux-musl"
-    "x86_64-w64-mingw32 aarch64-linux-musl"
-    "x86_64-w64-mingw32 loongarch64-linux-musl"
-    "x86_64-w64-mingw32 i686-w64-mingw32"
-    "x86_64-w64-mingw32 x86_64-elf"
-    "x86_64-w64-mingw32 i586-msdosdjgpp"
-    "x86_64-w64-mingw32 x86_64-freebsd14"
-)
-
-BUILD_JOBS=(
-    # Always build these two first
-    "x86_64-linux-gnu x86_64-linux-gnu"
-    "x86_64-w64-mingw32 x86_64-w64-mingw32"
-)
-
-# ---------------------------------------------------------
-# Print job list
-# ---------------------------------------------------------
-echo "Final build job list:"
-for JOB in "${BUILD_JOBS[@]}"; do
-    echo "  $JOB"
-done
-
-# ---------------------------------------------------------
-# Execute builds
-# ---------------------------------------------------------
-for JOB in "${BUILD_JOBS[@]}"; do
-    HOST_TRIPLET="${JOB%% *}"
-    TARGET_TRIPLET="${JOB##* }"
-
-    echo "=============================================="
-    echo " Building toolchain:"
-    echo "   HOST   = $HOST_TRIPLET"
-    echo "   TARGET = $TARGET_TRIPLET"
-    echo "=============================================="
-
-    export HOST_TRIPLET TARGET_TRIPLET
-    bash "$COMMON_BUILD"
-done
-
+main "$@"
