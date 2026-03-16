@@ -348,6 +348,12 @@ local is_between_build="no"
 local max_aligned_fix_copy_phase=".${project_name}_max_aligned_fix_copy_phase"
 local max_aligned_fix_cleanup_phase=".${project_name}_max_aligned_fix_cleanup_phase"
 
+# see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
+local max_aligned_fix="no"
+if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+    max_aligned_fix="yes"
+fi
+
 if [[ "x$project_name" == "xgcc" ]]; then
 
 local target_cpu
@@ -355,12 +361,6 @@ local target_vendor
 local target_os
 local target_abi
 parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
-
-# see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
-local max_aligned_fix="no"
-if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-    max_aligned_fix="yes"
-fi
 
 if [[ $cookie -eq 0 ]];then
 
@@ -412,6 +412,7 @@ if [[ "$max_aligned_fix" == "yes" ]]; then
         # 5. Mark phase complete
         echo "$(date +%s)" > "${build_prefix_project}/${max_aligned_fix_copy_phase}"
     fi
+    exit 0
 fi
 
 if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os" == "msdosdjgpp" ]]; then
