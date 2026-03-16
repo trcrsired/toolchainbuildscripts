@@ -53,17 +53,15 @@ BINUTILS_DIR="$(dirname "$GCC_DIR")/binutils-gdb"
 if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
     echo "Found binutils-gdb at $BINUTILS_DIR"
 
-    REL_BINUTILS_DIR="../$(basename "$BINUTILS_DIR")"
-
     for dep in gmp mpfr mpc; do
-        TARGET="$GCC_DIR/$dep"
-        SOURCE="$REL_BINUTILS_DIR/$dep"
+        SRC="../$(basename "$GCC_DIR")/$dep"
+        DEST="$BINUTILS_DIR/$dep"
 
-        # Attempt to create symlink; if it fails, target already exists
-        if ln -s "$SOURCE" "$TARGET" 2>/dev/null; then
-            echo "Linking $dep -> $SOURCE"
+        # Try to create symlink directly; if it fails, skip
+        if ln -s "$SRC" "$DEST" 2>/dev/null; then
+            echo "Linking $dep -> $SRC"
         else
-            echo "Skipping $dep (exists)"
+            echo "Skipping $dep (already exists)"
         fi
     done
 fi
