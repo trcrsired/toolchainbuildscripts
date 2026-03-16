@@ -44,7 +44,7 @@ def main():
       $install_prog $dir/$dlname $destdir/$dlname~
       chmod a+x $destdir/$dlname~
       if test -n '\\''$stripme'\\'' && test -n '\\''$striplib'\\''; then
-\teval '\\''$striplib $destdir/$dlname'\\'' || exit \\$?;
+        eval '\\''$striplib $destdir/$dlname'\\'' || exit \\$?;
       fi'
     else
     postinstall_cmds='base_file=`basename \\${file}`~
@@ -54,7 +54,7 @@ def main():
       $install_prog $dir/$dlname \\$dldir/$dlname~
       chmod a+x \\$dldir/$dlname~
       if test -n '\\''$stripme'\\'' && test -n '\\''$striplib'\\''; then
-\teval '\\''$striplib \\$dldir/$dlname'\\'' || exit \\$?;
+        eval '\\''$striplib \\$dldir/$dlname'\\'' || exit \\$?;
       fi'
     fi
     postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\\''. $file; echo \\$dlname'\\''`~
