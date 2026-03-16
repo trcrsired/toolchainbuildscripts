@@ -12,16 +12,20 @@ cd "$GCC_DIR" || exit 1
 echo "Fetching GCC..."
 git fetch --all --prune
 
-echo "Checking for updates..."
-LOCAL_HASH=$(git rev-parse HEAD)
-REMOTE_HASH=$(git rev-parse origin/master)
+if [ "$FORCE_GCC_UPDATE_AND_PATCH" = "yes" ]; then
+    echo "FORCE_GCC_UPDATE_AND_PATCH=yes, forcing update."
+else
+    echo "Checking for updates..."
 
-if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-    echo "No updates found. Exiting."
-    exit 0
+    if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ]; then
+        echo "No updates found. Exiting."
+        exit 0
+    fi
+
+    echo "Updates detected."
 fi
 
-echo "Updates detected. Resetting..."
+echo "Resetting gcc..."
 git reset --hard origin/master
 
 echo "Pulling without hooks..."
