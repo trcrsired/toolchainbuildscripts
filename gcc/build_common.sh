@@ -605,7 +605,7 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
                 cd "$build_prefix_project"
             fi
         fi
-        if [[ "x${make_okay}" == "xyes" ]]; then
+        if [[ "x${make_okay}" != "xyes" ]]; then
             echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
             exit 1
         fi
