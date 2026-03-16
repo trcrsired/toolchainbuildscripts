@@ -34,7 +34,7 @@ git pull --no-edit --no-verify
 SCRIPT_DIR="$(dirname "$0")"
 
 echo "Applying GCC x86 canadian patch..."
-"$SCRIPT_DIR/gccx86canadianfix.sh" "$GCC_DIR"
+python3 "$SCRIPT_DIR/gccx86canadianfix.py" "$GCC_DIR"
 
 echo "Applying libgcc multilib no‑red‑zone patch..."
 "$SCRIPT_DIR/patch_libgcc_multilib.sh" "$GCC_DIR"
