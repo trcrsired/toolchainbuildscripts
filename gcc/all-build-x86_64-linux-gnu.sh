@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ "$UPLOAD_GCC" == "yes" ]]; then
+    echo "UPLOAD_GCC is set to yes, We will upload built GCC toolchains to GitHub"
+else
+    echo "UPLOAD_GCC is not set to yes, skipping upload"
+fi
+
 if [ -z ${TOOLCHAINSPATH+x} ]; then
     TOOLCHAINSPATH="$HOME/toolchains"
 fi
