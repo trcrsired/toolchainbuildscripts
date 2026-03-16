@@ -474,8 +474,6 @@ if [[ "x$max_aligned_fix" == "xyes" ]]; then
         # 7. Write phase marker
         echo "$(date +%s)" > "${build_prefix_project}/${build_max_aligned_phase_file}"
     fi
-
-    exit 0
 fi
 if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
     cd "$build_prefix_project"
