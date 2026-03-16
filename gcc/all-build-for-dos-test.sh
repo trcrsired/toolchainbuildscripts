@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 set -e
 
+if [ -z ${TOOLCHAINSPATH+x} ]; then
+    TOOLCHAINSPATH="$HOME/toolchains"
+fi
+
+if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
+    TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
+fi
+
 restart_artifacts()
 {
-    local toolchainspath
-    local toolchains_path_gnu
-    if [ -z ${TOOLCHAINSPATH+x} ]; then
-        toolchainspath="$HOME/toolchains"
-    else
-        toolchainspath="$TOOLCHAINSPATH"
-    fi
-
-    if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
-        toolchains_path_gnu="$toolchainspath/gnu"
-    else
-        toolchains_path_gnu="$TOOLCHAINSPATH_GNU"
-    fi
-
     echo "restarting"
     rm -rf "$(realpath .)/.artifacts"
-    rm -rf "${toolchains_path_gnu}"
+    rm -rf "${TOOLCHAINSPATH_GNU}"
     echo "restart done"
 }
 
