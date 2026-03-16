@@ -9,8 +9,27 @@ fi
 
 FILE="$GCC_DIR/libgcc/config/i386/gthr-win32.h"
 
-# Replace the #if guard with commented-out version
-sed -i 's/^#if _WIN32_WINNT >= 0x0600/\/\/#if _WIN32_WINNT >= 0x0600/' "$FILE"
-sed -i 's/^#endif/\/\/#endif/' "$FILE"
+# Exact block to match (must match file content exactly)
+read -r -d '' BLOCK << 'EOF'
+#if _WIN32_WINNT >= 0x0600
+#define __GTHREAD_HAS_COND 1
+#define __GTHREADS_CXX0X 1
+#endif
+EOF
 
-echo "Win32 gthread condition‑variable patch applied."
+# Replacement block (only #if and #endif commented)
+read -r -d '' BLOCK_NEW << 'EOF'
+//#if _WIN32_WINNT >= 0x0600
+#define __GTHREAD_HAS_COND 1
+#define __GTHREADS_CXX0X 1
+//#endif
+EOF
+
+# Perform replacement only if exact block exists
+if grep -Fq "$BLOCK" "$FILE"; then
+    echo "Applying Win32 gthread condition‑variable patch..."
+    sed -i "s|$BLOCK|$BLOCK_NEW|" "$FILE"
+    echo "Patch applied."
+else
+    echo "Expected block not found. No changes made."
+fi
