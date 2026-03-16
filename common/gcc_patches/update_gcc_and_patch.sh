@@ -47,23 +47,23 @@ echo "GCC's ./contrib/download_prerequisites"
 cd "$GCC_DIR" || exit 1
 ./contrib/download_prerequisites
 
-# Copy dependency tarballs from binutils-gdb to GCC directory
+# Copy dependency tarballs from GCC directory to binutils-gdb directory
 BINUTILS_DIR="$(dirname "$GCC_DIR")/binutils-gdb"
 
 if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
     echo "Found binutils-gdb at $BINUTILS_DIR"
 
     for dep in gettext gmp mpfr mpc isl; do
-        # Find tarball inside binutils-gdb
-        TAR=$(ls "$BINUTILS_DIR"/${dep}-*.tar.* 2>/dev/null | head -n 1)
+        # Find tarball inside GCC directory
+        TAR=$(ls "$GCC_DIR"/${dep}-*.tar.* 2>/dev/null | head -n 1)
 
         if [ -z "$TAR" ]; then
-            echo "Skipping $dep (no tarball found)"
+            echo "Skipping $dep (no tarball found in GCC directory)"
             continue
         fi
 
-        echo "Copying $(basename "$TAR") to GCC directory"
-        cp "$TAR" "$GCC_DIR/"
+        echo "Copying $(basename "$TAR") to binutils-gdb directory"
+        cp "$TAR" "$BINUTILS_DIR/"
     done
 fi
 
