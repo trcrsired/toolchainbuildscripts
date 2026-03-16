@@ -152,14 +152,6 @@ if [ -z ${TOOLCHAINSPATH_GNU+x} ]; then
 	TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
 fi
 
-if [[ $1 == "restart" ]]; then
-	echo "restarting"
-	rm -rf "${currentpath}"
-    rm -rf "${TOOLCHAINSPATH_GNU}/${HOST_TRIPLET}/${TARGET_TRIPLET}"
-    rm "${TOOLCHAINSPATH_GNU}/${HOST_TRIPLET}.${TARGET_TRIPLET}.tar.xz"
-	echo "restart done"
-fi
-
 mkdir -p "${TOOLCHAINSPATH_GNU}"
 
 if [ -z ${BUILD_TRIPLET+x} ]; then
@@ -331,6 +323,9 @@ local current_phase_file=".${project_name}_phase_done"
 local configure_project_name="$project_name"
 local configures="--build=$BUILD_TRIPLET --host=$host_triplet --target=$target_triplet"
 
+local build_max_aligned_phase_file=".${project_name}_max_aligned_phase"
+local delete_max_aligned_phase_file=".${project_name}_delete_max_aligned_phase"
+
 local multilibsettings="yes"
 
 local is_native_or_canadian_native="no"
@@ -381,10 +376,14 @@ install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet 
 fi
 
 fi
-
-local is_duplicating_runtime="yes"
 if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os" == "msdosdjgpp" ]]; then
     is_duplicating_runtime="no"
+fi
+
+# see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
+local max_aligned_fix="no"
+if [[ "$target_os" == "msdosdjgpp" ]] && [[ "${is_canadian_cross}" == "yes" ]]; then
+    max_aligned_fix="yes"
 fi
 
 if [[ $is_freestanding_or_two_phase_build == "yes" ]];then
@@ -443,8 +442,41 @@ if [ -f "${build_prefix_project}/${current_phase_file}" ]; then
     return
 fi
 
-mkdir -p "$build_prefix_project"
+if [[ "x$max_aligned_fix" == "xyes" ]]; then
+    if [ ! -f "${build_prefix_project}/${build_max_aligned_phase_file}" ]; then
 
+        # 1. Locate the actual target GCC binary
+        local gcc_path
+        gcc_path="$(which ${target_triplet}-gcc)"
+
+        # 2. Derive the GCC installation prefix
+        #    Example:
+        #      /path/to/.../bin/i586-msdosdjgpp-gcc
+        #    → /path/to/.../
+        local gcc_prefix
+        gcc_prefix="$(dirname "$(dirname "$gcc_path")")"
+
+        # 3. Query the GCC version
+        local gcc_version
+        gcc_version="$(${target_triplet}-gcc -dumpversion)"
+
+        # 4. Construct the GCC include directory path
+        local gcc_include_dir
+        gcc_include_dir="${gcc_prefix}/lib/gcc/${target_triplet}/${gcc_version}/include"
+
+        # 5. Ensure the GCC include directory exists
+        mkdir -p "${gcc_include_dir}"
+
+        # 6. Link sys-include → GCC include directory
+        ln -sf "${gcc_include_dir}" \
+               "${prefix}/${target_triplet}/sys-include"
+
+        # 7. Write phase marker
+        echo "$(date +%s)" > "${build_prefix_project}/${build_max_aligned_phase_file}"
+    fi
+
+    exit 0
+fi
 if [ ! -f "${build_prefix_project}/${configure_phase_file}" ]; then
     cd "$build_prefix_project"
     env "${configure_env_vars[@]}" "$TOOLCHAINS_BUILD"/${project_name}/configure --disable-nls --disable-werror --disable-bootstrap --prefix="$prefix" $configures
@@ -557,6 +589,23 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
         echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
     fi
     echo "$(date +%s)" > "${build_prefix_project}/${install_phase_file}"
+fi
+
+if [[ "x$max_aligned_fix" == "xyes" ]]; then
+    if [ ! -f "${build_prefix_project}/${delete_max_aligned_phase_file}" ]; then
+
+        # 1. Remove the sys-include symlink if it exists
+        local sys_include_path
+        sys_include_path="${prefix}/${target_triplet}/sys-include"
+
+        if [ -L "${sys_include_path}" ]; then
+            # Remove only if it is a symlink
+            rm -f "${sys_include_path}"
+        fi
+
+        # 2. Write phase marker
+        echo "$(date +%s)" > "${build_prefix_project}/${delete_max_aligned_phase_file}"
+    fi
 fi
 
 if [[ "x${project_name}" == "xgcc" ]]; then
