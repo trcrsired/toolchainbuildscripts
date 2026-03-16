@@ -27,6 +27,7 @@ fi
 
 echo "Resetting gcc..."
 git reset --hard origin/master
+git clean -fdx
 
 echo "Pulling without hooks..."
 git pull --no-edit --no-verify
@@ -41,5 +42,30 @@ echo "Applying libgcc multilib no‑red‑zone patch..."
 
 echo "Applying Win32 gthread condition‑variable patch..."
 python3 "$SCRIPT_DIR/patch_win32_gthread.py" "$GCC_DIR"
+
+echo "Download dependencies"
+cd "$GCC_DIR" || exit 1
+./contrib/download_prerequisites
+
+# Link binutils-gdb dependencies using relative paths
+BINUTILS_DIR="$(dirname "$GCC_DIR")/binutils-gdb"
+
+if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
+    echo "Found binutils-gdb at $BINUTILS_DIR"
+
+    REL_BINUTILS_DIR="../$(basename "$BINUTILS_DIR")"
+
+    for dep in gettext gmp mpfr mpc isl; do
+        TARGET="$GCC_DIR/$dep"
+        SOURCE="$REL_BINUTILS_DIR/$dep"
+
+        # Attempt to create symlink; if it fails, target already exists
+        if ln -s "$SOURCE" "$TARGET" 2>/dev/null; then
+            echo "Linking $dep -> $SOURCE"
+        else
+            echo "Skipping $dep (exists)"
+        fi
+    done
+fi
 
 echo "All GCC post‑pull patches applied."
