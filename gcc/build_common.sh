@@ -423,6 +423,8 @@ fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
 
+mkdir -p "${build_prefix_project}"
+
 local configure_env_vars=(
   STRIP=llvm-strip
   ac_cv_path_STRIP_FOR_TARGET=llvm-strip
