@@ -573,8 +573,8 @@ packaging_toolchain() {
     if [ ! -f "$build_prefix/.packagesuccess" ]; then
         rm -f "${prefix}.tar.xz"
         cd "$prefix_parent"
-        XZ_OPT=-e9T0 tar cJf ${target_triplet}.${host_triplet}.tar.xz ${target_triplet}
-        chmod 755 ${target_triplet}.${host_triplet}.tar.xz
+        XZ_OPT=-e9T0 tar cJf ${host_triplet}.${target_triplet}.tar.xz ${target_triplet}
+        chmod 755 ${host_triplet}.${target_triplet}.tar.xz
         mkdir -p "${build_prefix}"
         echo "$(date +%s)" > "$build_prefix/.packagesuccess"
     fi
