@@ -8,8 +8,8 @@ fi
 
 SRCDIR="$1"
 
-# Original block to search for (vw)
-OLD=$(cat << 'EOF'
+# Original block to search for
+read -r -d '' OLD << 'EOF'
 case $GCC,$host_os in
   yes,cygwin* | yes,mingw* | yes,pw32* | yes,cegcc*)
     library_names_spec='$libname.dll.a'
@@ -28,10 +28,9 @@ case $GCC,$host_os in
        $RM \$dlpath'
     shlibpath_overrides_runpath=yes)
 EOF
-)
 
-# Replacement block (newvw)
-NEW=$(cat << 'EOF'
+# Replacement block
+read -r -d '' NEW << 'EOF'
 case $GCC,$host_os in
   yes,cygwin* | yes,mingw* | yes,pw32* | yes,cegcc*)
     library_names_spec='$libname.dll.a'
@@ -65,15 +64,46 @@ case $GCC,$host_os in
        $RM \$dlpath'
     shlibpath_overrides_runpath=yes)
 EOF
-)
 
 # Find and patch files
 find "$SRCDIR" -type f \( -name configure -o -name libtool.m4 \) | while read -r file; do
-    # Check if the file contains the old block
+    # Check if file contains the old block (fixed-string search)
     if grep -Fq "$OLD" "$file"; then
         echo "Patching $file"
-        # Use Perl for multi-line replacement
-        perl -0777 -pi -e "s/\Q$OLD\E/$NEW/g" "$file"
+
+        # Use AWK for safe multiline literal replacement
+        awk -v old="$OLD" -v new="$NEW" '
+            BEGIN {
+                # Split old/new blocks into arrays
+                n_old = split(old, old_lines, "\n")
+                n_new = split(new, new_lines, "\n")
+            }
+            {
+                buf[NR] = $0
+            }
+            END {
+                i = 1
+                while (i <= NR) {
+                    match_ok = 1
+                    for (j = 1; j <= n_old; j++) {
+                        if (buf[i+j-1] != old_lines[j]) {
+                            match_ok = 0
+                            break
+                        }
+                    }
+                    if (match_ok) {
+                        # Write replacement block
+                        for (k = 1; k <= n_new; k++)
+                            print new_lines[k]
+                        i += n_old
+                    } else {
+                        print buf[i]
+                        i++
+                    }
+                }
+            }
+        ' "$file" > "$file.tmp"
+
+        mv "$file.tmp" "$file"
     fi
 done
-
