@@ -29,8 +29,8 @@ git pull --no-edit --no-verify
 
 SCRIPT_DIR="$(dirname "$0")"
 
-echo "Applying Canadian Cross red‑zone patch..."
-"$SCRIPT_DIR/patch_redzone.sh" "$GCC_DIR"
+echo "Applying GCC x86 canadian patch..."
+"$SCRIPT_DIR/gccx86canadianfix.sh" "$GCC_DIR"
 
 echo "Applying libgcc multilib no‑red‑zone patch..."
 "$SCRIPT_DIR/patch_libgcc_multilib.sh" "$GCC_DIR"
