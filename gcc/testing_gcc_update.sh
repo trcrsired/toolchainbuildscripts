@@ -4,3 +4,4 @@ cd ../common
 source ./common.sh
 
 clone_or_update_dependency gcc
+# echo "FORCE_GCC_UPDATE_AND_PATCH=yes, forcing update."

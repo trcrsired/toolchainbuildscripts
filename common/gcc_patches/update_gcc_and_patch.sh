@@ -43,9 +43,9 @@ echo "Applying libgcc multilib no‑red‑zone patch..."
 echo "Applying Win32 gthread condition‑variable patch..."
 python3 "$SCRIPT_DIR/patch_win32_gthread.py" "$GCC_DIR"
 
-echo "GCC's ./contrib/download_prerequisites"
+echo "GCC's ./contrib/download_prerequisites (--no-isl)"
 cd "$GCC_DIR" || exit 1
-./contrib/download_prerequisites
+./contrib/download_prerequisites --no-isl
 
 # Link binutils-gdb dependencies using relative paths
 BINUTILS_DIR="$(dirname "$GCC_DIR")/binutils-gdb"
