@@ -74,13 +74,13 @@ def main():
                 data = f.read()
 
             # Check if block exists (equivalent to first native_file_loader + search)
-            if old_b not in data:
+            if OLD not in data:
                 continue
 
             print("Patching", path)
 
             # Replace all occurrences (equivalent to the loop with searcher + write_all)
-            newdata = data.replace(old_b, new_b)
+            newdata = data.replace(OLD, NEW)
 
             with open(path, "wb") as f:
                 f.write(newdata)
