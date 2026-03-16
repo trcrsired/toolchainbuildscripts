@@ -40,6 +40,6 @@ echo "Applying libgcc multilib no‑red‑zone patch..."
 "$SCRIPT_DIR/patch_libgcc_multilib.sh" "$GCC_DIR"
 
 echo "Applying Win32 gthread condition‑variable patch..."
-"$SCRIPT_DIR/patch_win32_gthread.sh" "$GCC_DIR"
+python3 "$SCRIPT_DIR/patch_win32_gthread.py" "$GCC_DIR"
 
 echo "All GCC post‑pull patches applied."
