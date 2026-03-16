@@ -20,7 +20,7 @@ restart_artifacts()
 }
 
 if [[ $1 == "restart" ]]; then
-restart_artifacts()
+    restart_artifacts
 fi
 
 build_all() {
