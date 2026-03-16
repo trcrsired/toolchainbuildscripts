@@ -28,7 +28,7 @@ main() {
 
     # Determine the build script based on the platform triplet
     local script_dir
-    script_dir="$(dirname "$currentrealpath")"
+    script_dir="$currentrealpath"
 
     local build_script="$script_dir/all-build-${platform_triplet_no_vendor}.sh"
 
