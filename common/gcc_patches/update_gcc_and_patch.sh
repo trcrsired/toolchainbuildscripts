@@ -43,7 +43,7 @@ echo "Applying libgcc multilib no‑red‑zone patch..."
 echo "Applying Win32 gthread condition‑variable patch..."
 python3 "$SCRIPT_DIR/patch_win32_gthread.py" "$GCC_DIR"
 
-echo "Download dependencies"
+echo "GCC's ./contrib/download_prerequisites"
 cd "$GCC_DIR" || exit 1
 ./contrib/download_prerequisites
 
