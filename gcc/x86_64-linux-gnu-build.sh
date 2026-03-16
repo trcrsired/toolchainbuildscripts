@@ -6,6 +6,7 @@ build_all() {
     local triplets=(
         "$build_main x86_64-linux-gnu x86_64-linux-gnu"
         "$build_main x86_64-w64-mingw32 x86_64-w64-mingw32"
+        "$build_main x86_64-w64-mingw32 x86_64-linux-gnu"
         "$build_main aarch64-linux-gnu aarch64-linux-gnu"
         "$build_main x86_64-w64-mingw32 aarch64-linux-gnu"
         "$build_main loongarch64-linux-gnu loongarch64-linux-gnu"
