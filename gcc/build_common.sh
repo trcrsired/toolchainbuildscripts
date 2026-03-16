@@ -569,6 +569,7 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
     cd "$build_prefix_project"
     make -j "${JOBS}"
     if [ $? -ne 0 ]; then
+        local make_okay
         # If GCC build failed and max_aligned_fix is enabled
         if [[ "x$project_name" == "xgcc" ]] && [[ "x$max_aligned_fix" == "xyes" ]]; then
             
@@ -597,15 +598,17 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
                         echo "libstdc++ build still failed after applying fenv.h workaround"
                         exit 1
                     fi
+                    make_okay="yes"
                 fi
 
                 # Return to GCC build root
                 cd "$build_prefix_project"
             fi
         fi
-
-        echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-        exit 1
+        if [[ "x${make_okay}" == "xyes" ]]; then
+            echo "$configure_project_name: make failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            exit 1
+        fi
     fi
 
     echo "$(date +%s)" > "${build_prefix_project}/${build_phase_file}"
