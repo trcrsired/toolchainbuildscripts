@@ -14,8 +14,15 @@ if [ -z "${TOOLCHAINSPATH_GNU+x}" ]; then
   TOOLCHAINSPATH_GNU="$TOOLCHAINSPATH/gnu"
 fi
 
+# === Extract GCC major version (before the first dot) ===
+gcc_version="$(gcc -dumpversion)"
+gcc_major="${gcc_version%%.*}"
+
 # === Generate UTC date tag in YYYYMMDD format ===
-TAG="$(date -u +%Y%m%d)"
+date_tag="$(date -u +%Y%m%d)"
+
+# === Final TAG format: gcc${Major}-YYYYMMDD ===
+TAG="${gcc_major}-${date_tag}"
 REPO="trcrsired/gcc-releases"
 
 # === Create release if it doesn't exist ===
