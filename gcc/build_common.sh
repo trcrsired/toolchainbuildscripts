@@ -428,16 +428,6 @@ if [[ "x$project_name" == "xgcc" && "${is_freestanding_build}" != "yes" ]]; then
 is_to_build_install_libc="yes"
 fi
 
-if [[ "$sys_include_temp" == "yes" ]]; then
-    if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase" ]; then
-        if [[ ! -L "${gcc_include_dir}/sys-include" ]]; then
-            echo "Creating temporary sys-include symlink for Canadian build"
-            ln -s "${TOOLCHAINSPATH_GNU}/${BUILD_TRIPLET}/${target_triplet}/${target_triplet}/include" "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
-        fi
-        echo "$(date +%s)" > "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase"
-    fi
-fi
-
 local build_prefix_project="$build_prefix/$configure_project_name"
 
 mkdir -p "${build_prefix_project}"
@@ -446,6 +436,14 @@ local configure_env_vars=(
   STRIP=llvm-strip
   ac_cv_path_STRIP_FOR_TARGET=llvm-strip
 )
+
+if [[ "$sys_include_temp" == "yes" ]]; then
+    if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase" ]; then
+        echo "Creating temporary sys-include symlink for Canadian build"
+        ln -s "${TOOLCHAINSPATH_GNU}/${BUILD_TRIPLET}/${target_triplet}/${target_triplet}/include" "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
+        echo "$(date +%s)" > "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase"
+    fi
+fi
 
 if [[ "$BUILD_TRIPLET" == "$target_triplet" && "$BUILD_TRIPLET" != "$host_triplet" ]]; then
 # Fix up the bug related to crossback since GCC would try to use cc instead of gcc which does not exist
@@ -615,10 +613,8 @@ fi
 if [[ "x${project_name}" == "xgcc" ]]; then
     if [[ "$sys_include_temp" == "yes" ]]; then
         if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_cleanup_phase" ]; then
-            if [[ ! -L "${gcc_include_dir}/sys-include" ]]; then
-                echo "Removing temporary sys-include symlink for Canadian build"
-                rm "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
-            fi
+            echo "Removing temporary sys-include symlink for Canadian build"
+            rm "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
             echo "$(date +%s)" > "${build_prefix_project}/.${project_name}_sys_include_temp_cleanup_phase"
         fi
     fi
