@@ -22,7 +22,7 @@ gcc_major="${gcc_version%%.*}"
 date_tag="$(date -u +%Y%m%d)"
 
 # === Final TAG format: gcc${Major}-YYYYMMDD ===
-TAG="gcc${gcc_major}-${date_tag}"
+TAG="${date_tag}-gcc${gcc_major}"
 REPO="${GITHUB_BUILD_GCC_REPO:-trcrsired/gcc-releases}"
 
 # === Create release if it doesn't exist ===
