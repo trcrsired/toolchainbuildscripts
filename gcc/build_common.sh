@@ -361,12 +361,17 @@ if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" 
     not_having_fenv_fix="yes"
 fi
 
-if [[ "x$project_name" == "xgcc" ]] && \
-   ([[ "$target_cpu" == "loongarch64" ]] || [[ "$target_cpu" == "riscv64" ]]) && \
+if [[ "x$project_name" == "xgcc" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+   if ([[ "$target_cpu" == "loongarch64" ]] || [[ "$target_cpu" == "riscv64" ]]) && \
    [[ "$target_os" == "linux" ]] && \
-   [[ "$target_abi" == "gnu" ]] && \
-   [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-    sys_include_temp="yes"
+   [[ "$target_abi" == "gnu" ]]; then
+       sys_include_temp="yes"
+   fi
+   if [[ "$target_cpu" == "i686" ]] && \
+   [[ "$target_os" == "windows" ]] && \
+   [[ "$target_abi" == "gnu" ]]; then
+       sys_include_temp="yes"
+   fi
 fi
 
 if [[ $cookie -eq 0 ]];then
