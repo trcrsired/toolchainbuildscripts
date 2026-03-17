@@ -347,6 +347,7 @@ local is_between_build="no"
 
 # see https://gcc.gnu.org/pipermail/libstdc++/2026-March/065725.html
 local not_having_fenv_fix="no"
+local sys_include_temp="no"
 
 if [[ "x$project_name" == "xgcc" ]]; then
 
@@ -358,6 +359,10 @@ parse_triplet $target_triplet target_cpu target_vendor target_os target_abi
 
 if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
     not_having_fenv_fix="yes"
+fi
+
+if [[ "x$project_name" == "xgcc" ]] && [[ "$target_cpu" == "loongarch64" ]] && [[ "$target_os" == "linux" ]] && [[ "$target_abi" == "gnu" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+    sys_include_temp="yes"
 fi
 
 if [[ $cookie -eq 0 ]];then
@@ -421,6 +426,16 @@ local is_to_build_install_libc="no"
 
 if [[ "x$project_name" == "xgcc" && "${is_freestanding_build}" != "yes" ]]; then
 is_to_build_install_libc="yes"
+fi
+
+if [[ "$sys_include_temp" == "yes" ]]; then
+    if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase" ]; then
+        if [[ ! -L "${gcc_include_dir}/sys-include" ]]; then
+            echo "Creating temporary sys-include symlink for Canadian build"
+            ln -s "${TOOLCHAINSPATH_GNU}/${BUILD_TRIPLET}/${target_triplet}/${target_triplet}/include" "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
+        fi
+        echo "$(date +%s)" > "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase"
+    fi
 fi
 
 local build_prefix_project="$build_prefix/$configure_project_name"
@@ -598,6 +613,16 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
 fi
 
 if [[ "x${project_name}" == "xgcc" ]]; then
+    if [[ "$sys_include_temp" == "yes" ]]; then
+        if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_cleanup_phase" ]; then
+            if [[ ! -L "${gcc_include_dir}/sys-include" ]]; then
+                echo "Removing temporary sys-include symlink for Canadian build"
+                rm "${TOOLCHAINSPATH_GNU}/${host_triplet}/${target_triplet}/${target_triplet}/sys-include"
+            fi
+            echo "$(date +%s)" > "${build_prefix_project}/.${project_name}_sys_include_temp_cleanup_phase"
+        fi
+    fi
+
     if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
         install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
     elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
