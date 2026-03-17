@@ -66,4 +66,11 @@ if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
     done
 fi
 
+cd "$GCC_DIR" || exit 1
+git apply "$SCRIPT_DIR"
+if [ $? -ne 0 ]; then
+    echo "git apply $SCRIPT_DIR failed"
+    exit 1
+fi
+
 echo "All GCC post‑pull patches applied."
