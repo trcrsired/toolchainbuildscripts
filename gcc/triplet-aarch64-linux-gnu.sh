@@ -49,7 +49,7 @@ GCC_EXTRA_HOSTS=(
     "$GCC_BUILD_MAIN loongarch64-linux-gnu i686-linux-musl"
 )
 
-if [[ -n "$GCC_BUILD_ALL_HOSTS" ]]; then
+if [[ "x$GCC_BUILD_ALL_HOSTS" == "xyes" ]]; then
     GCCTRIPLETS+=("${EXTRA_HOSTS[@]}")
 fi
 
