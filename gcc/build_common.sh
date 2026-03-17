@@ -367,9 +367,7 @@ if [[ "x$project_name" == "xgcc" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]
    [[ "$target_abi" == "gnu" ]]; then
        sys_include_temp="yes"
    fi
-   if [[ "$target_cpu" == "i686" ]] && \
-   [[ "$target_os" == "windows" ]] && \
-   [[ "$target_abi" == "gnu" ]]; then
+   if [[ "$target_cpu" == "i686" ]] && [[ $target_os == mingw* ]]; then
        sys_include_temp="yes"
    fi
 fi
