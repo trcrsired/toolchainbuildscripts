@@ -362,9 +362,7 @@ if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" 
 fi
 
 if [[ "x$project_name" == "xgcc" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-   if ([[ "$target_cpu" == "loongarch64" ]] || [[ "$target_cpu" == "riscv64" ]]) && \
-   [[ "$target_os" == "linux" ]] && \
-   [[ "$target_abi" == "gnu" ]]; then
+   if [[ "$target_os" == "linux" ]]; then
        sys_include_temp="yes"
    fi
    if [[ "$target_cpu" == "i686" ]] && [[ $target_os == mingw* ]]; then
