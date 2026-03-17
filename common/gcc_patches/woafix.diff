@@ -5,13 +5,13 @@ index 662c94dc112..fd765c2ba91 100755
 @@ -4818,8 +4818,7 @@ fi
  else
    case $host in
-        i?86-*-msdosdjgpp* | \
--       i?86-*-mingw32* | \
--       x86_64-*-mingw32* | \
-+       *-*-mingw32* | \
-        *-*-beos* | \
+ 	i?86-*-msdosdjgpp* | \
+-	i?86-*-mingw32* | \
+-	x86_64-*-mingw32* | \
++	*-*-mingw32* | \
+ 	*-*-beos* | \
          *-*-*vms*)
-                TARGET=twoprocess
+ 		TARGET=twoprocess
 diff --git a/fixincludes/configure.ac b/fixincludes/configure.ac
 index 4e78511d20f..4aad757e3e8 100644
 --- a/fixincludes/configure.ac
@@ -19,10 +19,10 @@ index 4e78511d20f..4aad757e3e8 100644
 @@ -50,8 +50,7 @@ else
  fi],
  [case $host in
-        i?86-*-msdosdjgpp* | \
--       i?86-*-mingw32* | \
--       x86_64-*-mingw32* | \
-+       *-*-mingw32* | \
-        *-*-beos* | \
+ 	i?86-*-msdosdjgpp* | \
+-	i?86-*-mingw32* | \
+-	x86_64-*-mingw32* | \
++	*-*-mingw32* | \
+ 	*-*-beos* | \
          *-*-*vms*)
-                TARGET=twoprocess
+ 		TARGET=twoprocess
