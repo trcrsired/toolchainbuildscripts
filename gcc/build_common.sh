@@ -472,8 +472,12 @@ if [[ "x$project_name" == "xgcc" ]]; then
         cd "$build_prefix_project"
         make all-gcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+            echo "$configure_project_name: make all-gcc -j ${JOBS} failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, retry with no -j ${JOBS}"
+            make all-gcc
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make all-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
         echo "$(date +%s)" > "${build_prefix_project}/${build_all_gcc_phase_file}"
     fi
@@ -488,8 +492,12 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
     if [ ! -f "${build_prefix_project}/${build_target_libgcc_phase_file}" ]; then
         make all-target-libgcc -j "${JOBS}"
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+            echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, retrying"
+            make all-target-libgcc
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make all-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
         echo "$(date +%s)" > "${build_prefix_project}/${build_target_libgcc_phase_file}"
     fi
@@ -572,8 +580,12 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
                     # Try building libstdc++ again after the fix
                     make -j "${JOBS}"
                     if [ $? -ne 0 ]; then
-                        echo "libstdc++ build still failed after applying fenv.h workaround"
-                        exit 1
+                        echo "libstdc++ build failed after applying fenv.h workaround retry with single thread"
+                        make
+                        if [ $? -ne 0 ]; then
+                            echo "libstdc++ build still failed after applying fenv.h workaround and retrying"
+                            exit 1
+                        fi
                     fi
                     make_okay="yes"
                 fi
@@ -595,8 +607,12 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
     cd "$build_prefix_project"
     make install
     if [ $? -ne 0 ]; then
-        echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-        exit 1
+        echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet} for the first time, retry"
+        make install
+        if [ $? -ne 0 ]; then
+            echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+            exit 1
+        fi
     fi
     cd "$build_prefix_project"
     if [[ "x$project_name" == "xbinutils-gdb" ]]; then
