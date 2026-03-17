@@ -67,7 +67,7 @@ if [ -d "$BINUTILS_DIR" ] && [ -f "$BINUTILS_DIR/configure" ]; then
 fi
 
 cd "$GCC_DIR" || exit 1
-git apply "$SCRIPT_DIR"
+git apply "$SCRIPT_DIR/woafix.diff"
 if [ $? -ne 0 ]; then
     echo "git apply $SCRIPT_DIR failed"
     exit 1
