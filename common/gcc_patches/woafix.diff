@@ -26,3 +26,33 @@ index 4e78511d20f..4aad757e3e8 100644
  	*-*-beos* | \
          *-*-*vms*)
  		TARGET=twoprocess
+diff --git a/gcc/config.host b/gcc/config.host
+index 8b809a8d5dd..f4456aa8939 100644
+--- a/gcc/config.host
++++ b/gcc/config.host
+@@ -100,7 +100,7 @@ esac
+ 
+ case ${host} in
+   aarch64*-*-freebsd* | aarch64*-*-linux* | aarch64*-*-fuchsia* |\
+-  aarch64*-*-darwin*)
++  aarch64*-*-darwin* | aarch64*-*-mingw* | aarch64*-*-cygwin* )
+     case ${target} in
+       aarch64*-*-*)
+ 	host_extra_gcc_objs="driver-aarch64.o"
+@@ -223,14 +223,14 @@ case ${host} in
+         ;;
+     esac
+     ;;
+-  i[34567]86-*-cygwin* | x86_64-*-cygwin*)
++  *-*-cygwin*)
+     host_xm_file=i386/xm-cygwin.h
+     out_host_hook_obj=host-cygwin.o
+     host_xmake_file="${host_xmake_file} i386/x-cygwin"
+     host_exeext=.exe
+     host_lto_plugin_soname=cyglto_plugin.dll
+     ;;
+-  i[34567]86-*-mingw32* | x86_64-*-mingw*)
++  *-*-mingw*)
+     host_xm_file=i386/xm-mingw32.h
+     host_xmake_file="${host_xmake_file} ${host_xmake_mingw} i386/x-mingw32"
+     host_extra_gcc_objs="${host_extra_gcc_objs} ${host_extra_gcc_objs_mingw} driver-mingw32.o"
