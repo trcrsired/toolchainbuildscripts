@@ -9,6 +9,7 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN i686-w64-mingw32 i686-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-linux-musl x86_64-linux-musl"
     "$GCC_BUILD_MAIN aarch64-linux-musl aarch64-linux-musl"
+#    "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-w64-mingw32"
 #    "$GCC_BUILD_MAIN i686-linux-musl i686-linux-musl"
 
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 x86_64-linux-gnu"
@@ -20,8 +21,25 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-w64-mingw32"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 x86_64-linux-musl"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-linux-musl"
+#    "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-w64-mingw32"
 #    "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-linux-musl"
 )
+
+if [[ "x$GCC_BUILD_WOA_HOST" == "xyes" ]]; then
+GCCTRIPLETS+=(
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-linux-gnu"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-gnu"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 loongarch64-linux-gnu"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 riscv64-linux-gnu"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-elf"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 i586-msdosdjgpp"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 i686-w64-mingw32"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-linux-musl"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-musl"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-w64-mingw32"
+#    "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-linux-musl"
+)
+fi
 
 GCC_EXTRA_HOSTS=(
     # aarch64-linux-gnu hosts
