@@ -21,7 +21,6 @@ if ($Restart) {
 # 1. Environment variables
 # ============================================================
 
-# TOOLCHAINS: optional, with fallback
 if ($env:TOOLCHAINS) {
     $TOOLCHAINS = $env:TOOLCHAINS
     Write-Host "TOOLCHAINS = $TOOLCHAINS"
@@ -30,7 +29,6 @@ if ($env:TOOLCHAINS) {
     Write-Host "TOOLCHAINS not set - using default: $TOOLCHAINS"
 }
 
-# TOOLCHAINS_BUILD: optional, with fallback
 if ($env:TOOLCHAINS_BUILD) {
     $TOOLCHAINS_BUILD = $env:TOOLCHAINS_BUILD
     Write-Host "TOOLCHAINS_BUILD = $TOOLCHAINS_BUILD"
@@ -39,7 +37,6 @@ if ($env:TOOLCHAINS_BUILD) {
     Write-Host "TOOLCHAINS_BUILD not set - using default: $TOOLCHAINS_BUILD"
 }
 
-# WINDOWSMSVCSYSROOT: optional, with fallback
 if ($env:WINDOWSMSVCSYSROOT) {
     $WINDOWSMSVCSYSROOT = $env:WINDOWSMSVCSYSROOT
     Write-Host "WINDOWSMSVCSYSROOT = $WINDOWSMSVCSYSROOT"
@@ -73,47 +70,39 @@ function Update-STL {
 
     Push-Location $Path
 
-    # Ensure clean state
     git fetch origin
     git reset --hard origin/main
 
-    # Update submodules
     git submodule update --init --recursive boost-math
 
-# Patch CMakeLists.txt to comment out MSVC version checks
-$cmakeFile = Join-Path $Path "CMakeLists.txt"
-if (Test-Path $cmakeFile) {
-    # Read file as lines, preserving CRLF
-    $lines = Get-Content $cmakeFile -Encoding UTF8
+    $cmakeFile = Join-Path $Path "CMakeLists.txt"
+    if (Test-Path $cmakeFile) {
+        $lines = Get-Content $cmakeFile -Encoding UTF8
 
-    $output = New-Object System.Collections.Generic.List[string]
-    $commenting = $false
+        $output = New-Object System.Collections.Generic.List[string]
+        $commenting = $false
 
-    foreach ($line in $lines) {
-
-        # Detect start of version check
-        if (-not $commenting -and $line -match 'if\s*\(.*CMAKE_CXX_COMPILER_VERSION') {
-            $commenting = $true
-            $output.Add("# $line")
-            continue
-        }
-
-        # Comment until endif()
-        if ($commenting) {
-            $output.Add("# $line")
-            if ($line -match 'endif\s*\(\s*\)') {
-                $commenting = $false
+        foreach ($line in $lines) {
+            if (-not $commenting -and $line -match 'if\s*\(.*CMAKE_CXX_COMPILER_VERSION') {
+                $commenting = $true
+                $output.Add("# $line")
+                continue
             }
-            continue
+
+            if ($commenting) {
+                $output.Add("# $line")
+                if ($line -match 'endif\s*\(\s*\)') {
+                    $commenting = $false
+                }
+                continue
+            }
+
+            $output.Add($line)
         }
 
-        # Normal line
-        $output.Add($line)
+        Write-Host "Commenting out MSVC version check block in CMakeLists.txt"
+        [System.IO.File]::WriteAllLines($cmakeFile, $output, [System.Text.Encoding]::UTF8)
     }
-
-    Write-Host "Commenting out MSVC version check block in CMakeLists.txt"
-    [System.IO.File]::WriteAllLines($cmakeFile, $output, [System.Text.Encoding]::UTF8)
-}
 
     Pop-Location
 }
@@ -121,15 +110,12 @@ if (Test-Path $cmakeFile) {
 if (Test-Path $STL_DIR) {
     Write-Host "STL source found at $STL_DIR - updating"
     Update-STL -Path $STL_DIR
-}
-else {
+} else {
     Write-Host "STL source not found - cloning from GitHub"
-
+    New-Item -ItemType Directory -Force -Path $TOOLCHAINS_BUILD | Out-Null
     Push-Location $TOOLCHAINS_BUILD
     git clone https://github.com/microsoft/STL.git stl
     Pop-Location
-
-    # Apply the same processing to the fresh clone
     Update-STL -Path $STL_DIR
 }
 
@@ -186,15 +172,12 @@ $hostCombos = @()
 
 foreach ($target in $ARCHES) {
     if ($target -eq $NATIVE_ARCH) {
-        # native build
         $hostCombos += $NATIVE_ARCH
     } else {
-        # cross build
         $hostCombos += "${NATIVE_ARCH}_${target}"
     }
 }
 
-# Extract target architectures cleanly
 $TARGET_ARCHES = $hostCombos |
     ForEach-Object {
         if ($_ -eq $NATIVE_ARCH) { $NATIVE_ARCH }
@@ -229,25 +212,36 @@ function Invoke-Build {
         $vcArg = "${HostArch}_${TargetArch}"
     }
 
-    # Quote paths for cmd.exe
     $Vcvarsall_Q = '"' + $VcvarsallPath + '"'
     $StlDir_Q    = '"' + $StlDir + '"'
     $Sysroot_Q   = '"' + $Sysroot + '"'
     $buildDir_Q  = '"' + $buildDir + '"'
 
-    # Build commands
     $cmakeConfigure = "cmake -GNinja -S $StlDir_Q -B $buildDir_Q -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DBUILD_TESTING=Off -DCONFIGURE_TESTING=Off -DVCLIBS_SUFFIX= -DCMAKE_INSTALL_PREFIX=$Sysroot_Q"
     $cmakeBuild     = "ninja -C $buildDir_Q"
 
-    # Build final cmd.exe chain
     $cmdLine = $Vcvarsall_Q + " " + $vcArg + " && " + $cmakeConfigure + " && " + $cmakeBuild
 
     cmd /c $cmdLine
 }
 
 # ============================================================
-# 7. Build all discovered targets
+# 7. Build and install all discovered targets
 # ============================================================
+
+function Get-BuildOutputArch {
+    param([string]$TargetArch)
+
+    switch ($TargetArch) {
+        "x86"   { return "i386" }
+        "x64"   { return "amd64" }
+        "arm64" { return "arm64" }
+        default { throw "Unsupported TargetArch: $TargetArch" }
+    }
+}
+
+$HeadersInstalled = $false
+$ModulesInstalled = $false
 
 foreach ($arch in $TARGET_ARCHES) {
     Invoke-Build -HostArch $NATIVE_ARCH `
@@ -255,6 +249,76 @@ foreach ($arch in $TARGET_ARCHES) {
                  -VcvarsallPath $vcvarsall `
                  -StlDir $STL_DIR `
                  -Sysroot $WINDOWSMSVCSYSROOT
+
+    Write-Host "=== Installing for target $arch ==="
+
+    $buildDir = ".artifacts/stl/$arch"
+
+    switch ($arch) {
+        "x86"   { $msvcLibDir = "i686-windows-msvc" }
+        "x64"   { $msvcLibDir = "x86_64-windows-msvc" }
+        "arm64" { $msvcLibDir = "aarch64-windows-msvc" }
+        default { throw "Unsupported TargetArch: $arch" }
+    }
+
+    if (-not $HeadersInstalled) {
+        $incSrc = Join-Path $buildDir "out\inc"
+        $incDst = Join-Path $WINDOWSMSVCSYSROOT "include\c++\msstl"
+
+        if (Test-Path $incDst) {
+            Write-Host "Removing old msstl headers"
+            Remove-Item $incDst -Recurse -Force
+        }
+
+        Write-Host "Installing headers to $incDst"
+        New-Item -ItemType Directory -Force -Path $incDst | Out-Null
+        Copy-Item "$incSrc\*" $incDst -Recurse -Force
+
+        $HeadersInstalled = $true
+    }
+
+    $buildOutArch = Get-BuildOutputArch $arch
+    $libSrc = Join-Path $buildDir "out\lib\$buildOutArch"
+    $libDst = Join-Path $WINDOWSMSVCSYSROOT "lib\$msvcLibDir"
+
+    Write-Host "Copying libraries to $libDst"
+    New-Item -ItemType Directory -Force -Path $libDst | Out-Null
+    Copy-Item "$libSrc\*" $libDst -Recurse -Force
+
+    if (-not $ModulesInstalled) {
+        $modulesJson = Join-Path $buildDir "modules.json"
+        if (Test-Path $modulesJson) {
+            Write-Host "Rewriting modules.json (.ixx → .cppm)"
+            $json = Get-Content $modulesJson -Raw
+            $json = $json -replace '\.ixx"', '.cppm"'
+            Set-Content -Path $modulesJson -Value $json -Encoding UTF8
+        }
+
+        $modulesDir = Join-Path $buildDir "out\modules"
+        if (Test-Path $modulesDir) {
+            Write-Host "Renaming module files (.ixx → .cppm)"
+            Get-ChildItem $modulesDir -Filter *.ixx | ForEach-Object {
+                $new = $_.FullName -replace '\.ixx$', '.cppm'
+
+                if (Test-Path $new) {
+                    Write-Host "Skipping rename: $new already exists"
+                    return
+                }
+
+                Rename-Item $_.FullName $new -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        $modulesDst = Join-Path $WINDOWSMSVCSYSROOT "share\msstl"
+        Write-Host "Copying modules to $modulesDst"
+        New-Item -ItemType Directory -Force -Path $modulesDst | Out-Null
+        if (Test-Path $modulesDir) {
+            Copy-Item "$modulesDir\*" $modulesDst -Recurse -Force
+        }
+        if (Test-Path $modulesJson) {
+            Copy-Item $modulesJson $modulesDst -Force
+        }
+    }
 }
 
 Write-Host "All builds completed successfully."
