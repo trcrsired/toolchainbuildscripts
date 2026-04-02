@@ -80,20 +80,40 @@ function Update-STL {
     # Update submodules
     git submodule update --init --recursive boost-math
 
-    # Patch CMakeLists.txt to remove MSVC version checks
-    $cmakeFile = Join-Path $Path "CMakeLists.txt"
-    if (Test-Path $cmakeFile) {
-        $content = Get-Content $cmakeFile -Raw
+# Patch CMakeLists.txt to comment out MSVC version checks
+$cmakeFile = Join-Path $Path "CMakeLists.txt"
+if (Test-Path $cmakeFile) {
+    # Read file as lines, preserving CRLF
+    $lines = Get-Content $cmakeFile -Encoding UTF8
 
-        # Remove any block that checks CMAKE_CXX_COMPILER_VERSION
-        $pattern = 'if\s*\(\s*CMAKE_CXX_COMPILER_VERSION[\s\S]*?endif\s*\(\s*\)'
-        $newContent = [regex]::Replace($content, $pattern, '', 'IgnoreCase')
+    $output = New-Object System.Collections.Generic.List[string]
+    $commenting = $false
 
-        if ($newContent -ne $content) {
-            Write-Host "Patching CMakeLists.txt to remove MSVC version checks"
-            Set-Content -Path $cmakeFile -Value $newContent -Encoding UTF8
+    foreach ($line in $lines) {
+
+        # Detect start of version check
+        if (-not $commenting -and $line -match 'if\s*\(.*CMAKE_CXX_COMPILER_VERSION') {
+            $commenting = $true
+            $output.Add("# $line")
+            continue
         }
+
+        # Comment until endif()
+        if ($commenting) {
+            $output.Add("# $line")
+            if ($line -match 'endif\s*\(\s*\)') {
+                $commenting = $false
+            }
+            continue
+        }
+
+        # Normal line
+        $output.Add($line)
     }
+
+    Write-Host "Commenting out MSVC version check block in CMakeLists.txt"
+    [System.IO.File]::WriteAllLines($cmakeFile, $output, [System.Text.Encoding]::UTF8)
+}
 
     Pop-Location
 }
@@ -216,8 +236,8 @@ function Invoke-Build {
     $buildDir_Q  = '"' + $buildDir + '"'
 
     # Build commands
-    $cmakeConfigure = "cmake -GNinja -S $StlDir_Q -B $buildDir_Q -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DBUILD_TESTING=Off -DVCLIBS_SUFFIX= -DCMAKE_INSTALL_PREFIX=$Sysroot_Q"
-    $cmakeBuild     = "cmake --build $buildDir_Q --config Release"
+    $cmakeConfigure = "cmake -GNinja -S $StlDir_Q -B $buildDir_Q -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DBUILD_TESTING=Off -DCONFIGURE_TESTING=Off -DVCLIBS_SUFFIX= -DCMAKE_INSTALL_PREFIX=$Sysroot_Q"
+    $cmakeBuild     = "ninja -C $buildDir_Q"
 
     # Build final cmd.exe chain
     $cmdLine = $Vcvarsall_Q + " " + $vcArg + " && " + $cmakeConfigure + " && " + $cmakeBuild
