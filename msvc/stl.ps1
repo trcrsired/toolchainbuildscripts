@@ -296,7 +296,7 @@ foreach ($arch in $TARGET_ARCHES) {
 
         $modulesDir = Join-Path $buildDir "out\modules"
         if (Test-Path $modulesDir) {
-            Write-Host "Renaming module files (.ixx → .cppm)"
+            Write-Host "Renaming module files (.ixx -> .cppm)"
             Get-ChildItem $modulesDir -Filter *.ixx | ForEach-Object {
                 $new = $_.FullName -replace '\.ixx$', '.cppm'
 
