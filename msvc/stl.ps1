@@ -17,6 +17,18 @@ if ($Restart) {
     }
 }
 
+function Write-Stage {
+    param([string]$Name)
+
+    $stageDir = ".artifacts/stl"
+    New-Item -ItemType Directory -Force -Path $stageDir | Out-Null
+
+    $stageFile = Join-Path $stageDir ".$Name`_stage"
+    $timestamp = [int][double]::Parse((Get-Date -UFormat %s))
+
+    Set-Content -Path $stageFile -Value $timestamp
+}
+
 # ============================================================
 # 1. Environment variables
 # ============================================================
@@ -332,6 +344,28 @@ foreach ($arch in $TARGET_ARCHES) {
             Copy-Item $modulesJson $modulesDst -Force
         }
     }
+}
+
+Write-Host "=== Checking commit stage ==="
+
+$commitStage = ".artifacts/stl/.commit_stage"
+
+if (Test-Path $commitStage) {
+    Write-Host "Commit stage already exists - skipping git commit."
+}
+else {
+    Write-Host "=== Committing changes to STL repository ==="
+
+    Push-Location $STL_DIR
+
+    git add *
+    git commit -m "Automated STL sysroot update $(Get-Date -Format o)" --allow-empty
+    git push
+
+    Pop-Location
+
+    Write-Stage "commit"
+    Write-Host "Commit completed."
 }
 
 Write-Host "All builds completed successfully."
