@@ -302,7 +302,7 @@ foreach ($arch in $TARGET_ARCHES) {
 
                 if (Test-Path $new) {
                     Write-Host "Skipping rename: $new already exists"
-                    return
+                    continue
                 }
 
                 # Try rename
