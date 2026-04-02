@@ -297,15 +297,11 @@ foreach ($arch in $TARGET_ARCHES) {
         $modulesDir = Join-Path $buildDir "out\modules"
         if (Test-Path $modulesDir) {
             Write-Host "Renaming module files (.ixx → .cppm)"
-
             Get-ChildItem $modulesDir -Filter *.ixx | ForEach-Object {
-                $old = $_.FullName
-                $new = $old -replace '\.ixx$', '.cppm'
+                $new = $_.FullName -replace '\.ixx$', '.cppm'
 
-                # If .cppm already exists, skip rename and delete .ixx
                 if (Test-Path $new) {
-                    Write-Host "Skipping rename: $new already exists — deleting $old"
-                    Remove-Item $old -Force -ErrorAction SilentlyContinue
+                    Write-Host "Skipping rename: $new already exists"
                     return
                 }
 
@@ -317,6 +313,16 @@ foreach ($arch in $TARGET_ARCHES) {
                     Remove-Item $old -Force -ErrorAction SilentlyContinue
                 }
             }
+        }
+
+        $modulesDst = Join-Path $WINDOWSMSVCSYSROOT "share\msstl"
+        Write-Host "Copying modules to $modulesDst"
+        New-Item -ItemType Directory -Force -Path $modulesDst | Out-Null
+        if (Test-Path $modulesDir) {
+            Copy-Item "$modulesDir\*" $modulesDst -Recurse -Force
+        }
+        if (Test-Path $modulesJson) {
+            Copy-Item $modulesJson $modulesDst -Force
         }
     }
 }
