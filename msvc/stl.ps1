@@ -356,9 +356,9 @@ if (Test-Path $commitStage) {
 else {
     Write-Host "=== Committing changes to STL repository ==="
 
-    Push-Location $STL_DIR
+    Push-Location $WINDOWSMSVCSYSROOT
 
-    git add *
+    git add .
     git commit -m "Automated STL sysroot update $(Get-Date -Format o)" --allow-empty
     git push
 
