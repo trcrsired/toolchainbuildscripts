@@ -297,20 +297,27 @@ foreach ($arch in $TARGET_ARCHES) {
         $modulesDir = Join-Path $buildDir "out\modules"
         if (Test-Path $modulesDir) {
             Write-Host "Renaming module files (.ixx -> .cppm)"
-            Get-ChildItem $modulesDir -Filter *.ixx | ForEach-Object {
-                $new = $_.FullName -replace '\.ixx$', '.cppm'
 
-                if (Test-Path $new) {
-                    Write-Host "Skipping rename: $new already exists"
-                    continue
-                }
+            $ixxFiles = Get-ChildItem -Path $modulesDir -Filter *.ixx -ErrorAction SilentlyContinue
+            if ($ixxFiles) {
+                foreach ($file in $ixxFiles) {
+                    $old = $file.FullName
+                    $new = $old -replace '\.ixx$', '.cppm'
 
-                # Try rename
-                Rename-Item $old $new -Force -ErrorAction SilentlyContinue
+                    # If .cppm already exists, delete .ixx
+                    if (Test-Path $new) {
+                        Write-Host "Deleting leftover .ixx: $old"
+                        Remove-Item $old -Force -ErrorAction SilentlyContinue
+                        continue
+                    }
 
-                # If rename failed but .cppm exists, delete .ixx
-                if (Test-Path $old -and Test-Path $new) {
-                    Remove-Item $old -Force -ErrorAction SilentlyContinue
+                    # Try rename
+                    Rename-Item -Path $old -NewName (Split-Path $new -Leaf) -Force -ErrorAction SilentlyContinue
+
+                    # If rename failed but .cppm exists, delete .ixx
+                    if (Test-Path $old -and Test-Path $new) {
+                        Remove-Item $old -Force -ErrorAction SilentlyContinue
+                    }
                 }
             }
         }
