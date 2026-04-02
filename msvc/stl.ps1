@@ -255,9 +255,9 @@ foreach ($arch in $TARGET_ARCHES) {
     $buildDir = ".artifacts/stl/$arch"
 
     switch ($arch) {
-        "x86"   { $msvcLibDir = "i686-windows-msvc" }
-        "x64"   { $msvcLibDir = "x86_64-windows-msvc" }
-        "arm64" { $msvcLibDir = "aarch64-windows-msvc" }
+        "x86"   { $msvcLibDir = "i686-unknown-windows-msvc" }
+        "x64"   { $msvcLibDir = "x86_64-unknown-windows-msvc" }
+        "arm64" { $msvcLibDir = "aarch64-unknown-windows-msvc" }
         default { throw "Unsupported TargetArch: $arch" }
     }
 
