@@ -315,7 +315,7 @@ foreach ($arch in $TARGET_ARCHES) {
                     Rename-Item -Path $old -NewName (Split-Path $new -Leaf) -Force -ErrorAction SilentlyContinue
 
                     # If rename failed but .cppm exists, delete .ixx
-                    if (Test-Path $old -and Test-Path $new) {
+                    if ((Test-Path $old) -and (Test-Path $new)) {
                         Remove-Item $old -Force -ErrorAction SilentlyContinue
                     }
                 }
