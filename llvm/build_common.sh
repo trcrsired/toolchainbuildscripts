@@ -183,6 +183,7 @@ COPY_COMPILER_RT_USE_TRIPLET=0
 COPY_RUNTIMES_TO_TRIPLET_LIB=0
 BUILD_LLVM_HAVE_CXX_ATOMICS_WITHOUT_LIB=0
 BUILD_LLVM_HAVE_CXX_ATOMICS64_WITHOUT_LIB=0
+ADD_CXX_V1_INCLUDE=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
@@ -232,6 +233,7 @@ else
             ZLIB_PHASE=0
             BUILD_LLVM_HAVE_CXX_ATOMICS_WITHOUT_LIB=1
             BUILD_LLVM_HAVE_CXX_ATOMICS64_WITHOUT_LIB=1
+            ADD_CXX_V1_INCLUDE=1
         elif [[ "$ABI" == "musl" ]]; then
             LIBC_HEADERS_PHASE=1
             COMPILER_RT_PHASE=0
@@ -324,6 +326,12 @@ set(CMAKE_C_FLAGS_INIT "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 EOF
+
+if [[ $ADD_CXX_V1_INCLUDE -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -I\${CMAKE_FIND_ROOT_PATH}/include/c++/v1")
+EOF
+fi
 
 if [[ $USE_CMAKE_LLVM_ENABLE_LLD -eq 1 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
