@@ -354,8 +354,8 @@ fi
 if [[ $USE_LLVM_LIBS -ne 0 ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -rtlib=compiler-rt")
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -stdlib=libc++ --unwindlib=libunwind")
-set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -rtlib=compiler-rt -stdlib=libc++ --unwindlib=libunwind")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -rtlib=compiler-rt")
 EOF
 fi
 
