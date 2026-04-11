@@ -227,7 +227,6 @@ else
             COPY_COMPILER_RT_USE_TRIPLET=1
             COPY_RUNTIMES_TO_TRIPLET_LIB=1
             COMPILER_RT_PHASE=0
-            BUILTINS_PHASE=2
             ZLIB_PHASE=0
         elif [[ "$ABI" == "musl" ]]; then
             LIBC_HEADERS_PHASE=1
