@@ -179,6 +179,7 @@ LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
+COPY_COMPILER_RT_USE_TRIPLET=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
@@ -220,6 +221,9 @@ else
     elif [[ "$OS" == "linux" ]]; then
         if [[ "$ABI" == "android"* ]]; then
             COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+        elif [[ "$ABI" == "ohos" ]]; then
+            COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
+            COPY_COMPILER_RT_USE_TRIPLET=1
         elif [[ "$ABI" == "musl" ]]; then
             LIBC_HEADERS_PHASE=1
             COMPILER_RT_PHASE=0
@@ -768,8 +772,14 @@ build_project() {
                 if [ -d "${install_prefix}/lib" ]; then
                     if [ ! -f "${build_prefix}/${rt_rename_phase_file}" ]; then
                         cd "${install_prefix}/lib"
-                        mv "$OS" "${TRIPLET_WITH_UNKNOWN}"
-                        cd "${TRIPLET_WITH_UNKNOWN}"
+                        local rt_target_dir
+                        if [[ ${COPY_COMPILER_RT_USE_TRIPLET} -eq 1 ]]; then
+                            rt_target_dir="${TRIPLET}"
+                        else
+                            rt_target_dir="${TRIPLET_WITH_UNKNOWN}"
+                        fi
+                        mv "$OS" "${rt_target_dir}"
+                        cd "${rt_target_dir}"
                         for file in *-"${CPU}"*; do
                             new_name="${file//-${CPU}/}"
                             mv "$file" "$new_name"
