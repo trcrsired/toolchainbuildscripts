@@ -136,10 +136,6 @@ echo "Downloads completed successfully to $TOOLCHAINSPATH_LLVM"
 # Please ensure the script is saved as "llvmbuiltins.sh" and is executable
 ./llvmbuiltins.sh
 
-if [ "x$ISDARWIN" == "xyes" ]; then
-exit
-fi
-
 if [ -n "$TRIPLE" ]; then
     WAVM_FILES=(
     "$ARCH-windows-gnu"
