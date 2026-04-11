@@ -180,6 +180,7 @@ CPPWINRT_PHASE=0
 LLVM_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 COPY_COMPILER_RT_USE_TRIPLET=0
+COPY_RUNTIMES_TO_TRIPLET_LIB=0
 USE_EMULATED_TLS=0
 USE_RUNTIMES_RPATH=0
 USE_LLVM_LIBS=1
@@ -224,6 +225,7 @@ else
         elif [[ "$ABI" == "ohos" ]]; then
             COPY_COMPILER_RT_WITH_SPECIAL_NAME=1
             COPY_COMPILER_RT_USE_TRIPLET=1
+            COPY_RUNTIMES_TO_TRIPLET_LIB=1
         elif [[ "$ABI" == "musl" ]]; then
             LIBC_HEADERS_PHASE=1
             COMPILER_RT_PHASE=0
@@ -818,7 +820,19 @@ build_project() {
         fi
         if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
             mkdir -p "${SYSROOTPATHUSR}"
-            cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
+            if [[ "$project_name" == "runtimes" && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
+                # Copy everything except lib normally
+                for item in "$install_prefix"/*; do
+                    if [[ "$(basename "$item")" != "lib" ]]; then
+                        cp -r --preserve=links "$item" "${SYSROOTPATHUSR}"/
+                    fi
+                done
+                # Copy lib/* to lib/${TRIPLET}/
+                mkdir -p "${SYSROOTPATHUSR}/lib/${TRIPLET}"
+                cp -r --preserve=links "$install_prefix"/lib/* "${SYSROOTPATHUSR}/lib/${TRIPLET}"/
+            else
+                cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
+            fi
         fi
         if [[ "x${need_move_tmp}" == "xyes" ]]; then
             mkdir -p "${TOOLCHAINS_LLVMTRIPLETPATH}"
