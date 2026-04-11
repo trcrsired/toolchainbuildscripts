@@ -62,13 +62,31 @@ install_libc() {
             fi
             local triplet_variant=${TRIPLET}
             [[ $triplet_variant == arm64e-* ]] && triplet_variant="aarch64-${triplet_variant#arm64e-}"
-            wget --no-verbose ${base_url}/${darwinversiondate}/${triplet_variant}.tar.xz
-            if [ $? -ne 0 ]; then
-                echo "Failed to download the Darwin sysroot"
-                exit 1
+
+            local archive_name="${triplet_variant}.tar.xz"
+            local remote_url="${base_url}/${darwinversiondate}/${archive_name}"
+            local local_archive="${currentpathlibc}/downloads/${archive_name}"
+            local shared_archive="${sharedstorage}/darwin-sysroot/${archive_name}"
+
+            mkdir -p "$(dirname "$local_archive")"
+            mkdir -p "$(dirname "$shared_archive")"
+
+            # Try to reuse shared archive if available
+            if [ -f "$shared_archive" ]; then
+                echo "Using cached Darwin sysroot archive from sharedstorage"
+                cp "$shared_archive" "$local_archive"
+            else
+                echo "Downloading Darwin sysroot from $remote_url"
+                wget --no-verbose -O "$local_archive" "$remote_url"
+                if [ $? -ne 0 ]; then
+                    echo "Failed to download the Darwin sysroot"
+                    exit 1
+                fi
+                cp "$local_archive" "$shared_archive"
             fi
-            chmod 755 ${triplet_variant}.tar.xz
-            tar -xf "${triplet_variant}.tar.xz" -C "${tripletpath}"
+
+            chmod 755 "$local_archive"
+            tar -xf "$local_archive" -C "${tripletpath}"
             if [ $? -ne 0 ]; then
                 echo "Failed to extract the Darwin sysroot"
                 exit 1
