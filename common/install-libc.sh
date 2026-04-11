@@ -274,7 +274,61 @@ install_libc() {
                 exit 1
             fi
         elif [[ "$OS" == "linux" ]]; then
-            if [[ "$ABI" == "android"* ]]; then
+            if [[ "$ABI" == "ohos" ]]; then
+                cd "${currentpathlibc}"
+
+                local repo_url="https://github.com/trcrsired/ohos-sysroot.git"
+                local base_url="https://github.com/trcrsired/ohos-sysroot/releases/download"
+
+                local ohos_version_date
+                if [ -z ${OHOSVERSIONDATE+x} ]; then
+                    ohos_version_date=$(git ls-remote --tags $repo_url | tail -n 1 | sed 's/.*\///')
+                else
+                    ohos_version_date=${OHOSVERSIONDATE}
+                fi
+
+                local archive_name="${TRIPLET}.tar.xz"
+                local remote_url="${base_url}/${ohos_version_date}/${archive_name}"
+                local local_archive="${currentpathlibc}/downloads/${archive_name}"
+                local shared_archive="${sharedstorage}/ohos-sysroot/${archive_name}"
+                local decompress_dir="${currentpathlibc}/sysroot_decompress"
+
+                mkdir -p "$(dirname "$local_archive")"
+                mkdir -p "$(dirname "$shared_archive")"
+                mkdir -p "$decompress_dir"
+
+                # Step 1: Try to reuse shared archive if available
+                if [ -f "$shared_archive" ]; then
+                    echo "Using cached OHOS sysroot archive from sharedstorage"
+                    cp "$shared_archive" "$local_archive"
+                else
+                    echo "Downloading OHOS sysroot from $remote_url"
+                    wget --no-verbose -O "$local_archive" "$remote_url"
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Failed to download $archive_name for $TRIPLET"
+                        exit 1
+                    fi
+                    cp "$local_archive" "$shared_archive"
+                fi
+
+                # Step 2: Extract
+                tar -xf "$local_archive" -C "$decompress_dir"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to extract $archive_name"
+                    exit 1
+                fi
+
+                # Step 3: Add write permission for owner
+                chmod -R u+w "$decompress_dir/sysroot"
+
+                # Step 4: Install
+                mkdir -p "$installdirpath"
+                cp -a "$decompress_dir/sysroot/"* "$installdirpath/"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Copy to installdir for OHOS"
+                    exit 1
+                fi
+            elif [[ "$ABI" == "android"* ]]; then
                 if [ -z "${ANDROIDNDKVERSION}" ]; then
                     ANDROIDNDKVERSION=$(git ls-remote --tags https://github.com/android/ndk.git 2>/dev/null \
                         | grep -v '\^{}' \
