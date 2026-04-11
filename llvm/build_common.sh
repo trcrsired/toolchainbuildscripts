@@ -524,7 +524,7 @@ EOF
 fi
 
 
-if [[ "${ABI}" == "musl" ]]; then
+if [[ "${ABI}" == "musl" || "${ABI}" == "ohos" ]]; then
 cat << EOF >> $currentpath/runtimes.cmake
 set(LIBCXX_HAS_MUSL_LIBC On)
 set(LIBCXXABI_HAS_MUSL_LIBC On)
