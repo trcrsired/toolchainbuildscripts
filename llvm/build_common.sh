@@ -869,7 +869,7 @@ build_project() {
         fi
         if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
             mkdir -p "${SYSROOTPATHUSR}"
-            if [[ "$project_name" == "runtimes" && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
+            if [[ ("$project_name" == "zlib" || "$project_name" == "libxml2" || "$project_name" == "runtimes") && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
                 # Copy everything except lib normally
                 for item in "$install_prefix"/*; do
                     if [[ "$(basename "$item")" != "lib" ]]; then
