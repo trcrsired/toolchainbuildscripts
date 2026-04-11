@@ -177,6 +177,13 @@ if [ -n "$TRIPLE" ]; then
         tar -xf "$WAVM_INSTALL_PATH/${file}.tar.xz" -C "$WAVM_INSTALL_PATH"
     done
 
+    # For Darwin, copy libunwind*.dylib from llvm runtimes to wavm lib
+    if [ "x$ISDARWIN" == "xyes" ]; then
+        echo "Copying libunwind dylibs from llvm runtimes to wavm lib"
+        mkdir -p "$WAVM_INSTALL_PATH/$TRIPLE/lib"
+        cp -r --preserve=links "$TOOLCHAINSPATH_LLVM/$TRIPLE/runtimes/lib/libunwind*.dylib" "$WAVM_INSTALL_PATH/$TRIPLE/lib/" 2>/dev/null || true
+    fi
+
     echo "Downloads wavm completed successfully to $WAVM_INSTALL_PATH"
 
 
