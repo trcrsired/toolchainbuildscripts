@@ -287,7 +287,7 @@ install_libc() {
                     ohos_version_date=${OHOSVERSIONDATE}
                 fi
 
-                local archive_name="${TRIPLET}.tar.xz"
+                local archive_name="sysroot.tar.xz"
                 local remote_url="${base_url}/${ohos_version_date}/${archive_name}"
                 local local_archive="${currentpathlibc}/downloads/${archive_name}"
                 local shared_archive="${sharedstorage}/ohos-sysroot/${archive_name}"
@@ -323,7 +323,7 @@ install_libc() {
 
                 # Step 4: Install
                 mkdir -p "$installdirpath"
-                cp -a "$decompress_dir/sysroot/"* "$installdirpath/"
+                cp -a "$decompress_dir/sysroot/usr/"* "$installdirpath/"
                 if [ $? -ne 0 ]; then
                     echo "Error: Copy to installdir for OHOS"
                     exit 1
