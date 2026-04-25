@@ -1,0 +1,69 @@
+From ab8c699bb3f897ce333f372eaa093fc1897f071a Mon Sep 17 00:00:00 2001
+From: Shengdun Wang <oyzawqgcfc@gmail.com>
+Date: Sat, 25 Apr 2026 15:44:19 +0800
+Subject: [PATCH] [libsanitizer] Cherry pick from LLVM for GCC build
+
+Remove include header linux/scc.h in compiler-rt or it breaks GCC build
+See LLVM PR#194116:
+https://github.com/llvm/llvm-project/pull/194116
+---
+ .../sanitizer_platform_limits_posix.cpp       | 28 +++++++++----------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp b/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp
+index 5872e3396f0..3ea9002f5f1 100644
+--- a/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp
++++ b/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp
+@@ -152,16 +152,15 @@ typedef struct user_fpregs elf_fpregset_t;
+ #if defined(__mips64)
+ # include <sys/procfs.h>
+ #endif
+-#include <sys/user.h>
+-#include <linux/if_eql.h>
+-#include <linux/if_plip.h>
+-#include <linux/lp.h>
+-#include <linux/mroute.h>
+-#include <linux/mroute6.h>
+-#include <linux/scc.h>
+-#include <linux/serial.h>
+-#include <sys/msg.h>
+-#include <sys/ipc.h>
++#      include <linux/if_eql.h>
++#      include <linux/if_plip.h>
++#      include <linux/lp.h>
++#      include <linux/mroute.h>
++#      include <linux/mroute6.h>
++#      include <linux/serial.h>
++#      include <sys/ipc.h>
++#      include <sys/msg.h>
++#      include <sys/user.h>
+ #endif  // SANITIZER_ANDROID
+ 
+ #include <link.h>
+@@ -306,9 +305,12 @@ namespace __sanitizer {
+   unsigned struct_ustat_sz = SIZEOF_STRUCT_USTAT;
+   unsigned struct_rlimit64_sz = sizeof(struct rlimit64);
+   unsigned struct_statvfs64_sz = sizeof(struct statvfs64);
+-#endif // SANITIZER_GLIBC
++#  elif SANITIZER_MUSL
++  // On musl, rlimit64 is an alias for rlimit.
++  unsigned struct_rlimit64_sz = sizeof(struct rlimit);
++#  endif  // SANITIZER_GLIBC
+ 
+-#if SANITIZER_LINUX && !SANITIZER_ANDROID
++#  if SANITIZER_LINUX && !SANITIZER_ANDROID
+   unsigned struct_timex_sz = sizeof(struct timex);
+   unsigned struct_msqid_ds_sz = sizeof(struct msqid_ds);
+   unsigned struct_mq_attr_sz = sizeof(struct mq_attr);
+@@ -534,8 +536,6 @@ unsigned struct_ElfW_Phdr_sz = sizeof(Elf_Phdr);
+   unsigned struct_kbsentry_sz = sizeof(struct kbsentry);
+   unsigned struct_mtconfiginfo_sz = sizeof(struct mtconfiginfo);
+   unsigned struct_nr_parms_struct_sz = sizeof(struct nr_parms_struct);
+-  unsigned struct_scc_modem_sz = sizeof(struct scc_modem);
+-  unsigned struct_scc_stat_sz = sizeof(struct scc_stat);
+   unsigned struct_serial_multiport_struct_sz
+       = sizeof(struct serial_multiport_struct);
+   unsigned struct_serial_struct_sz = sizeof(struct serial_struct);
+-- 
+2.54.0
+

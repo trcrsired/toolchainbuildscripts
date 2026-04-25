@@ -69,8 +69,15 @@ fi
 cd "$GCC_DIR" || exit 1
 git apply "$SCRIPT_DIR/woafix.diff"
 if [ $? -ne 0 ]; then
-    echo "git apply $SCRIPT_DIR failed"
+    echo "git apply $SCRIPT_DIR/woafix.diff failed"
     exit 1
 fi
+
+git apply "$SCRIPT_DIR/0001-libsanitizer-Cherry-pick-from-LLVM-for-GCC-build.patch.diff"
+if [ $? -ne 0 ]; then
+    echo "git apply $SCRIPT_DIR/0001-libsanitizer-Cherry-pick-from-LLVM-for-GCC-build.patch failed"
+    exit 1
+fi
+
 
 echo "All GCC post‑pull patches applied."
