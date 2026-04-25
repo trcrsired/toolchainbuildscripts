@@ -138,7 +138,9 @@ else
     echo "⚡ No throttling — using all $TOTAL_CORES threads"
 fi
 
-LLVMPROJECTPATH=$TOOLCHAINS_BUILD/llvm-project
+if [ -z ${LLVMPROJECTPATH+x} ]; then
+	LLVMPROJECTPATH="$TOOLCHAINS_BUILD/llvm-project"
+fi
 
 mkdir -p "${currentpath}"
 cd "${currentpath}"
