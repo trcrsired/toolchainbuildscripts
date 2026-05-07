@@ -73,11 +73,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-git apply "$SCRIPT_DIR/0001-libsanitizer-Cherry-pick-from-LLVM-for-GCC-build.patch"
-if [ $? -ne 0 ]; then
-    echo "git apply $SCRIPT_DIR/0001-libsanitizer-Cherry-pick-from-LLVM-for-GCC-build.patch failed"
-    exit 1
-fi
-
-
 echo "All GCC post‑pull patches applied."
