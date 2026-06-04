@@ -417,8 +417,8 @@ if [[ "$target_os" == linux ]] || [[ "$target_os" =~ ^freebsd ]] ||
 	configures="$configures --disable-libsanitizer"
     fi
 elif [[ "$target_os" == "msdosdjgpp" ]]; then
-    # DJGPP doesn't support threads or libquadmath
-    configures="$configures --disable-threads --disable-libquadmath"
+    # DJGPP doesn't support threads, libquadmath and libssp
+    configures="$configures --disable-threads --disable-libquadmath --disable-libssp"
 else
     configures="$configures --enable-multilib"
 fi
