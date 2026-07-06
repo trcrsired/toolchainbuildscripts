@@ -216,7 +216,7 @@ if [[ "$OS" == "darwin"* ]]; then
 else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
-        CPPWINRT_PHASE=1
+        CPPWINRT_PHASE=0
         SYSROOTPATHUSR="$SYSROOTPATH"
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
@@ -419,6 +419,9 @@ cat << EOF > "$currentpath/zlib.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
 set(ZLIB_BUILD_TESTING Off)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 EOF
 
 cat << EOF > "$currentpath/libxml2.cmake"
