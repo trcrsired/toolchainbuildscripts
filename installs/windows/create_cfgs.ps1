@@ -137,6 +137,9 @@ Create-CfgFile "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOOL
 Create-CfgFile "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 Create-CfgFile "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
+# Create freestanding C++
+Create-CfgFile "x86_64-elf-freestanding.cfg" "x86_64-elf" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-elf/x86_64-elf" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_C -stdlib=libc++" "-ffreestanding"
+
 # --- FAST_IO ---
 if ($Env:CLONE_FAST_IO -eq "yes") {
 
