@@ -126,12 +126,35 @@ main() {
     done
 
     # Iterate through the triplets and trigger the build process
-    for triplet in "${TRIPLETS2[@]}"; do
-        TRIPLET=$triplet ./build_common.sh $restart_paramter
+#    for triplet in "${TRIPLETS2[@]}"; do
+#        TRIPLET=$triplet ./build_common.sh $restart_paramter
+#    done
+
+    local TRIPLETSFREESTANDING=(
+            "x86_64-elf"
+            "aarch64-elf"
+            "riscv64-elf"
+	    "loongarch64-elf"
+            "x86_64-pe"
+            "aarch64-pe"
+            "riscv64-pe"
+	    "loongarch64-pe"
+#	    "x86_64-uefi"
+#	    "aarch64-uefi"
+#	    "riscv64-uefi"
+#	    "loongarch64-uefi"
+#	    "spirv-unknown-unknown"
+	    "spirv64-unknown-unknown"
+	    "spirv32-unknown-unknown"
+        )
+
+    for triplet in "${TRIPLETSFREESTANDING[@]}"; do
+        TRIPLET=$triplet FREESTANDING_LIBCXX=1 ./build_common.sh $restart_paramter
     done
 }
 
 main
+
 cd "$llvmcurrentrealpath"
 ./wasm-sysroots.sh "$1"
 
