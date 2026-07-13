@@ -101,6 +101,9 @@ create_cfg_file "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOO
 create_cfg_file "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 create_cfg_file "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
+# Create freestanding C++
+create_cfg_file "x86_64-elf-freestanding.cfg" "x86_64-elf" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-elf/x86_64-elf" "$STANDARD_FLAGS_C -ffreestanding" "$STANDARD_FLAGS_C -stdlib=libc++ -ffreestanding" ""
+
 if [ "x$CLONE_FAST_IO" == "xyes" ]; then
 if [ ! -d "$LIBRARIES/fast_io" ]; then
 git clone --branch next https://github.com/cppfastio/fast_io.git "$LIBRARIES/fast_io"
