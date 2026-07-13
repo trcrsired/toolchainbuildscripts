@@ -195,6 +195,11 @@ USE_LLVM_LINK_DYLIB=0
 USE_CMAKE_LLVM_ENABLE_LLD=1
 USE_CMAKE_POSITION_INDEPENDENT_CODE=0
 DISABLE_LLVM_ENABLE_CURSES=0
+RUNTIMES_BUILD_CXX_STATIC=1
+
+if [[ -z "${FREESTANDING_LIBCXX+x}" ]]; then
+FREESTANDING_LIBCXX=0
+fi
 
 if [[ "$OS" == "darwin"* ]]; then
     echo "Operating System: macOS (Darwin)"
@@ -259,6 +264,19 @@ else
         USE_CMAKE_LLVM_ENABLE_LLD=0
         DISABLE_LLVM_ENABLE_CURSES=1
     fi
+fi
+
+if [[ FREESTANDING_LIBCXX -eq 1 ]]; then
+LIBC_PHASE=0
+BUILTINS_PHASE=0
+RUNTIMES_PHASE=1
+COMPILER_RT_PHASE=0
+ZLIB_PHASE=0
+LIBXML2_PHASE=0
+CPPWINRT_PHASE=0
+LLVM_PHASE=0
+USE_CMAKE_LLVM_ENABLE_LLD=0
+RUNTIMES_BUILD_CXX_STATIC=0
 fi
 
 if [[ -z "$ABI" ]]; then
@@ -730,6 +748,34 @@ fi
 
 fi
 
+if [[ FREESTANDING_LIBCXX -eq 1 ]]; then
+cat << EOF > $currentpath/runtimes.cmake
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
+set(LLVM_ENABLE_RUNTIMES libcxx)
+set(LIBCXX_FREESTANDING On)
+
+# Ensure we are setting the correct options for LIBCXXABI
+set(LIBCXXABI_ENABLE_THREADS Off)
+set(LIBCXXABI_HAS_PTHREAD_API Off)
+set(LIBCXXABI_HAS_WIN32_THREAD_API Off)
+set(LIBCXXABI_HAS_EXTERNAL_THREAD_API Off)
+
+# Ensure we are setting the correct options for LIBCXX
+set(LIBCXX_ENABLE_THREADS Off)
+set(LIBCXX_HAS_PTHREAD_API Off)
+set(LIBCXX_HAS_WIN32_THREAD_API Off)
+set(LIBCXX_HAS_EXTERNAL_THREAD_API Off)
+
+# Ensure we are setting the correct options for LIBUNWIND
+set(LIBUNWIND_ENABLE_THREADS Off)
+set(LIBUNWIND_HAS_PTHREAD_API Off)
+set(LIBUNWIND_HAS_WIN32_THREAD_API Off)
+set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off)
+EOF
+fi
+
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 exit 0
 fi
@@ -794,7 +840,7 @@ build_project() {
         if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
             cd "${build_prefix}"
             # Run Ninja to build the project
-            if [[ "$project_name" == "runtimes" ]]; then
+            if [[ ${RUNTIMES_BUILD_CXX_STATIC} -eq 1 && "$project_name" == "runtimes" ]]; then
                 ninja -C . cxx_static
                 if [ $? -ne 0 ]; then
                     echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
