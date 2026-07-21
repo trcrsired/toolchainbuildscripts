@@ -126,9 +126,9 @@ main() {
     done
 
     # Iterate through the triplets and trigger the build process
-#    for triplet in "${TRIPLETS2[@]}"; do
-#        TRIPLET=$triplet ./build_common.sh $restart_paramter
-#    done
+    for triplet in "${TRIPLETS2[@]}"; do
+        TRIPLET=$triplet ./build_common.sh $restart_paramter
+    done
 
     local TRIPLETSFREESTANDING=(
             "x86_64-elf"
