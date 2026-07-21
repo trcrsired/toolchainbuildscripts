@@ -132,20 +132,20 @@ main() {
 
     local TRIPLETSFREESTANDING=(
             "x86_64-elf"
-            "aarch64-elf"
-            "riscv64-elf"
-	    "loongarch64-elf"
-            "x86_64-pe"
-            "aarch64-pe"
-            "riscv64-pe"
-	    "loongarch64-pe"
+#            "aarch64-elf"
+#            "riscv64-elf"
+#	    "loongarch64-elf"
+#            "x86_64-pe"
+#            "aarch64-pe"
+#            "riscv64-pe"
+#	    "loongarch64-pe"
 #	    "x86_64-uefi"
 #	    "aarch64-uefi"
 #	    "riscv64-uefi"
 #	    "loongarch64-uefi"
 #	    "spirv-unknown-unknown"
-	    "spirv64-unknown-unknown"
-	    "spirv32-unknown-unknown"
+#	    "spirv64-unknown-unknown"
+#	    "spirv32-unknown-unknown"
         )
 
     for triplet in "${TRIPLETSFREESTANDING[@]}"; do
