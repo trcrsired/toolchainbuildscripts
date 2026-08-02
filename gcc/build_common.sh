@@ -437,9 +437,19 @@ local build_prefix_project="$build_prefix/$configure_project_name"
 
 mkdir -p "${build_prefix_project}"
 
+local strip_host="strip"
+if [[ "$host_triplet" != "$BUILD_GCC_TRIPLET" ]]; then
+    strip_host="${host_triplet}-strip"
+fi
+
+local strip_target="strip"
+if [[ "$target_triplet" != "$BUILD_GCC_TRIPLET" ]]; then
+    strip_target="${target_triplet}-strip"
+fi
+
 local configure_env_vars=(
-  STRIP=llvm-strip
-  ac_cv_path_STRIP_FOR_TARGET=llvm-strip
+  STRIP="$strip_host"
+  ac_cv_path_STRIP_FOR_TARGET="$strip_target"
 )
 
 if [[ "$sys_include_temp" == "yes" ]]; then
@@ -510,16 +520,24 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
         cd "$build_prefix_project"
         make install-strip-gcc
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+            echo "$configure_project_name: make install-strip-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, falling back to plain install-gcc"
+            make install-gcc
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
         echo "$(date +%s)" > "${build_prefix_project}/${install_gcc_phase_file}"
     fi
     if [ ! -f "${build_prefix_project}/${install_target_libgcc_phase_file}" ]; then
         make install-strip-target-libgcc
         if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+            echo "$configure_project_name: make install-strip-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, falling back to plain install-target-libgcc"
+            make install-target-libgcc
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install-target-libgcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
         fi
     fi
     if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
@@ -539,8 +557,12 @@ else
                 cd "$build_prefix_project"
                 make install-strip-gcc
                 if [ $? -ne 0 ]; then
-                    echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-                    exit 1
+                    echo "$configure_project_name: make install-strip-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, falling back to plain install-gcc"
+                    make install-gcc
+                    if [ $? -ne 0 ]; then
+                        echo "$configure_project_name: make install-gcc failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                        exit 1
+                    fi
                 fi
                 echo "$(date +%s)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
@@ -610,23 +632,34 @@ fi
 
 if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
     cd "$build_prefix_project"
-    make install
-    if [ $? -ne 0 ]; then
-        echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet} for the first time, retry"
-        make install
-        if [ $? -ne 0 ]; then
-            echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
-            exit 1
+    local strip_missing=""
+    command -v "$strip_host" >/dev/null 2>&1 || strip_missing="$strip_host"
+    command -v "$strip_target" >/dev/null 2>&1 || strip_missing="$strip_target"
+    local install_strip_ran="no"
+    if [ -n "$strip_missing" ]; then
+        echo "$configure_project_name: cross strip '$strip_missing' not found in PATH {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}. binutils-gdb for this host/target must be built and installed before gcc. Falling back to plain install."
+    else
+        if [[ "x$project_name" == "xbinutils-gdb" ]]; then
+            STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
+        else
+            make install-strip
+        fi
+        if [ $? -eq 0 ]; then
+            install_strip_ran="yes"
+        else
+            echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}, falling back to plain install"
         fi
     fi
-    cd "$build_prefix_project"
-    if [[ "x$project_name" == "xbinutils-gdb" ]]; then
-        STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
-    else
-        make install-strip
-    fi
-    if [ $? -ne 0 ]; then
-        echo "$configure_project_name: make install-strip failed {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+    if [[ "$install_strip_ran" == "no" ]]; then
+        make install
+        if [ $? -ne 0 ]; then
+            echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet} for the first time, retry"
+            make install
+            if [ $? -ne 0 ]; then
+                echo "$configure_project_name: make install failed build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                exit 1
+            fi
+        fi
     fi
     echo "$(date +%s)" > "${build_prefix_project}/${install_phase_file}"
 fi
