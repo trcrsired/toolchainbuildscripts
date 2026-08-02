@@ -3,7 +3,7 @@
 if [ "$DISABLE_GCC_UPDATE" = "yes" ]; then
     echo "Ignore GCC update"
     exit 1
-fi
+else
 
 GCC_DIR="$1"
 
@@ -79,3 +79,5 @@ cd "$GCC_DIR" || exit 1
 #fi
 
 echo "All GCC post‑pull patches applied."
+
+fi
