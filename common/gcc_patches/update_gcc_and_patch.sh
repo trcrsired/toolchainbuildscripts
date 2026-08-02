@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$DISABLE_GCC_UPDATE" = "yes" ]; then
+    echo "Ignore GCC update"
+    exit 1
+fi
+
 GCC_DIR="$1"
 
 if [ -z "$GCC_DIR" ]; then
