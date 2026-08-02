@@ -1,4 +1,4 @@
-HOST_TRIPLET=aarch64-w64-mingw32 TARGET_TRIPLET=aarch64-w64-mingw32 ./build_common.sh "$@"
+HOST_TRIPLET=x86_64-linux-gnu TARGET_TRIPLET=x86_64-linux-gnu ./build_common.sh "$@"
 HOST_TRIPLET=aarch64-w64-mingw32 TARGET_TRIPLET=aarch64-w64-mingw32 ./build_common.sh "$@"
 HOST_TRIPLET=aarch64-w64-mingw32 TARGET_TRIPLET=x86_64-linux-gnu ./build_common.sh "$@"
 HOST_TRIPLET=x86_64-w64-mingw32 TARGET_TRIPLET=x86_64-w64-mingw32 ./build_common.sh "$@"
