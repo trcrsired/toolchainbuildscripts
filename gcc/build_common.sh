@@ -708,6 +708,7 @@ build_toolchain() {
     build_project_gnu_cookie "binutils-gdb" $1 $2
     build_project_gnu_cookie "gcc" $1 $2
     packaging_toolchain $1 $2
+    echo "✅ build:$BUILD_TRIPLET, host:$1, target:$2"
 }
 
 
@@ -721,3 +722,4 @@ if [[ ${BUILD_GCC_TRIPLET} != ${HOST_GCC_TRIPLET} ]]; then
 fi
 
 build_toolchain $HOST_GCC_TRIPLET $TARGET_GCC_TRIPLET
+echo "✅✅✅✅"
