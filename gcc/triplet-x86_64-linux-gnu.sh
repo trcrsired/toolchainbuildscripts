@@ -33,8 +33,8 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 i686-w64-mingw32"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-linux-musl"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-musl"
-    "$gcc_build_main x86_64-w64-mingw32 x86_64-w64-mingw32"
-#    "$gcc_build_main x86_64-w64-mingw32 i686-linux-musl"
+    "$gcc_build_main aarch64-w64-mingw32 x86_64-w64-mingw32"
+#    "$gcc_build_main aarch64-w64-mingw32 i686-linux-musl"
 
 
 )
