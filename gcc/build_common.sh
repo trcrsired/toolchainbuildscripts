@@ -640,9 +640,9 @@ if [ ! -f "${build_prefix_project}/${install_phase_file}" ]; then
         echo "$configure_project_name: cross strip '$strip_missing' not found in PATH {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}. binutils-gdb for this host/target must be built and installed before gcc. Falling back to plain install."
     else
         if [[ "x$project_name" == "xbinutils-gdb" ]]; then
-            STRIP_TRANSFORM_NAME=${host_triplet}-strip make install-strip
+            STRIP_TRANSFORM_NAME=${host_triplet}-strip STRIPPROG="$strip_host" make install-strip
         else
-            make install-strip
+            STRIPPROG="$strip_host" make install-strip
         fi
         if [ $? -eq 0 ]; then
             install_strip_ran="yes"
