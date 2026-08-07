@@ -86,7 +86,7 @@ function Update-STL {
     git pull --ff-only
 
     Write-Host "Updating submodules..."
-    git submodule update --init --recursive
+    git submodule update --init --recursive boost-math
 
     Pop-Location
 }
