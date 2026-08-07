@@ -348,11 +348,19 @@ Write-Host "=== Checking commit stage ==="
 
 $commitStage = ".artifacts/stl/.commit_stage"
 
+# Environment variable controls commit/push
+$doPush = $env:PUSH_STL_SYSROOT
+
+if (-not $doPush) {
+    Write-Host "PUSH_STL_SYSROOT not set - skipping git commit/push."
+    return
+}
+
 if (Test-Path $commitStage) {
     Write-Host "Commit stage already exists - skipping git commit."
 }
 else {
-    Write-Host "=== Committing changes to STL repository ==="
+    Write-Host "=== Committing changes to STL sysroot ==="
 
     Push-Location $WINDOWSMSVCSYSROOT
 
