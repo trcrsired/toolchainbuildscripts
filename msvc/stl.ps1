@@ -82,39 +82,11 @@ function Update-STL {
 
     Push-Location $Path
 
-    git fetch origin
-    git reset --hard origin/main
+    Write-Host "Pulling latest STL..."
+    git pull --ff-only
 
+    Write-Host "Updating submodules..."
     git submodule update --init --recursive boost-math
-
-    $cmakeFile = Join-Path $Path "CMakeLists.txt"
-    if (Test-Path $cmakeFile) {
-        $lines = Get-Content $cmakeFile -Encoding UTF8
-
-        $output = New-Object System.Collections.Generic.List[string]
-        $commenting = $false
-
-        foreach ($line in $lines) {
-            if (-not $commenting -and $line -match 'if\s*\(.*CMAKE_CXX_COMPILER_VERSION') {
-                $commenting = $true
-                $output.Add("# $line")
-                continue
-            }
-
-            if ($commenting) {
-                $output.Add("# $line")
-                if ($line -match 'endif\s*\(\s*\)') {
-                    $commenting = $false
-                }
-                continue
-            }
-
-            $output.Add($line)
-        }
-
-        Write-Host "Commenting out MSVC version check block in CMakeLists.txt"
-        [System.IO.File]::WriteAllLines($cmakeFile, $output, [System.Text.Encoding]::UTF8)
-    }
 
     Pop-Location
 }
@@ -169,6 +141,32 @@ if (-not $vcvarsall) {
 
 Write-Host "Using Visual Studio installation: $vsRoot"
 Write-Host "vcvarsall.bat: $vcvarsall"
+
+# ============================================================
+# 4b. Detect MSVC toolset version (Preview first)
+# ============================================================
+
+### [PATCHED]
+$auxDir = Join-Path $vsRoot "VC\Auxiliary\Build"
+
+$previewFile = Join-Path $auxDir "Microsoft.VCToolsVersion.Preview.txt"
+$defaultFile = Join-Path $auxDir "Microsoft.VCToolsVersion.default.txt"
+
+$toolsetVersion = $null
+
+if (Test-Path $previewFile) {
+    $toolsetVersion = (Get-Content $previewFile -Raw).Trim()
+    Write-Host "Using MSVC Preview toolset: $toolsetVersion"
+}
+elseif (Test-Path $defaultFile) {
+    $toolsetVersion = (Get-Content $defaultFile -Raw).Trim()
+    Write-Host "Using MSVC Default toolset: $toolsetVersion"
+}
+else {
+    throw "ERROR: No MSVC version files found in $auxDir"
+}
+
+$env:MSVC_TOOLSET_VERSION = $toolsetVersion
 
 # ============================================================
 # 5. Auto-generate valid host/target combos
@@ -232,7 +230,7 @@ function Invoke-Build {
     $cmakeConfigure = "cmake -GNinja -S $StlDir_Q -B $buildDir_Q -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DBUILD_TESTING=Off -DCONFIGURE_TESTING=Off -DVCLIBS_SUFFIX= -DCMAKE_INSTALL_PREFIX=$Sysroot_Q"
     $cmakeBuild     = "ninja -C $buildDir_Q"
 
-    $cmdLine = $Vcvarsall_Q + " " + $vcArg + " && " + $cmakeConfigure + " && " + $cmakeBuild
+    $cmdLine = "$Vcvarsall_Q $vcArg -vcvars_ver=$env:MSVC_TOOLSET_VERSION && $cmakeConfigure && $cmakeBuild"
 
     cmd /c $cmdLine
 }
@@ -350,11 +348,19 @@ Write-Host "=== Checking commit stage ==="
 
 $commitStage = ".artifacts/stl/.commit_stage"
 
+# Environment variable controls commit/push
+$doPush = $env:PUSH_STL_SYSROOT
+
+if (-not $doPush) {
+    Write-Host "PUSH_STL_SYSROOT not set - skipping git commit/push."
+    return
+}
+
 if (Test-Path $commitStage) {
     Write-Host "Commit stage already exists - skipping git commit."
 }
 else {
-    Write-Host "=== Committing changes to STL repository ==="
+    Write-Host "=== Committing changes to STL sysroot ==="
 
     Push-Location $WINDOWSMSVCSYSROOT
 
