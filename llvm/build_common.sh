@@ -196,6 +196,7 @@ USE_CMAKE_LLVM_ENABLE_LLD=1
 USE_CMAKE_POSITION_INDEPENDENT_CODE=0
 DISABLE_LLVM_ENABLE_CURSES=0
 RUNTIMES_BUILD_CXX_STATIC=1
+WINDOWS_ALIGN_ENLARGE=0
 
 if [[ -z "${FREESTANDING_LIBCXX+x}" ]]; then
 FREESTANDING_LIBCXX=0
@@ -229,6 +230,8 @@ else
             RUNTIMES_PHASE=0
             USE_LLVM_LIBS=0
             CPPWINRT_PHASE=0
+        elif [[ "$ABI" == "gnu" ]]; then
+            WINDOWS_ALIGN_ENLARGE=1
         fi
     elif [[ "$OS" == "linux" ]]; then
         if [[ "$ABI" == "android"* ]]; then
@@ -773,6 +776,17 @@ set(LIBUNWIND_ENABLE_THREADS Off)
 set(LIBUNWIND_HAS_PTHREAD_API Off)
 set(LIBUNWIND_HAS_WIN32_THREAD_API Off)
 set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off)
+EOF
+fi
+
+if [[ WINDOWS_ALIGN_ENLARGE -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_EXE_LINKER_FLAGS "\${CMAKE_EXE_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_SHARED_LINKER_FLAGS "\${CMAKE_SHARED_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_MODULE_LINKER_FLAGS "\${CMAKE_MODULE_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
 EOF
 fi
 
