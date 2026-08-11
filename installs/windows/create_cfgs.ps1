@@ -29,6 +29,13 @@ else {
     $TOOLCHAINSPATH_LLVM = "$env:TOOLCHAINSPATH_LLVM"
 }
 
+if (-not $env:TOOLCHAINSPATH_GNU) {
+    $TOOLCHAINSPATH_GNU = "$TOOLCHAINSPATH/gnu"
+}
+else {
+    $TOOLCHAINSPATH_GNU = "$env:TOOLCHAINSPATH_GNU"
+}
+
 if (-not $env:LIBRARIESPATH) {
     $LIBRARIESPATH = "$env:HOME/libraries"
 }
@@ -62,10 +69,12 @@ function ConvertToUnixPath {
 }
 # Absolute paths
 $ABS_TOOLCHAINSPATH = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH)
+$ABS_TOOLCHAINSPATH_GNU = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH_GNU)
 $ABS_TOOLCHAINSPATH_LLVM = [System.IO.Path]::GetFullPath($TOOLCHAINSPATH_LLVM)
 $ABS_LIBRARIES = [System.IO.Path]::GetFullPath($LIBRARIESPATH)
 
 $ABS_TOOLCHAINSPATH = ConvertToUnixPath $ABS_TOOLCHAINSPATH
+$ABS_TOOLCHAINSPATH_GNU = ConvertToUnixPath $ABS_TOOLCHAINSPATH_GNU
 $ABS_TOOLCHAINSPATH_LLVM = ConvertToUnixPath $ABS_TOOLCHAINSPATH_LLVM
 $ABS_LIBRARIES = ConvertToUnixPath $ABS_LIBRARIES
 
@@ -106,6 +115,8 @@ $STANDARD_FLAGS_CPP = "$STANDARD_FLAGS_CPP_NOLIBUNWIND -lunwind"
 $FLAGS_DARWIN = "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
 
 # Create .cfg files for different triples
+Create-CfgFile "x86_64-windows-gnu.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/x86_64-w64-mingw32/x86_64-w64-mingw32" "" "" "-lntdll"
+Create-CfgFile "aarch64-windows-gnu.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/aarch64-w64-mingw32/aarch64-w64-mingw32" "" "" "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
 Create-CfgFile "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-lntdll"
 Create-CfgFile "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
 Create-CfgFile "x86_64-linux-gnu-libcxx.cfg" "x86_64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-gnu/x86_64-linux-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
