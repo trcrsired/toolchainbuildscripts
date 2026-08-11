@@ -82,7 +82,7 @@ function Create-CfgFile {
 
     # C config
     $cConfig = @"
--std=c23 --target=$target --sysroot=$sysroot $standardFlagsC $extraFlags -I$ABS_LIBRARIES/fast_io/include
+-std=c23 -fuse-ld=lld --target=$target --sysroot=$sysroot $standardFlagsC $extraFlags -I$ABS_LIBRARIES/fast_io/include
 "@
     Set-Content -Path "$CFGS/c/$cfgName" -Value $cConfig
 
@@ -107,7 +107,7 @@ $FLAGS_DARWIN = "-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
 
 # Create .cfg files for different triples
 Create-CfgFile "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-lntdll"
-Create-CfgFile "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-lntdll"
+Create-CfgFile "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
 Create-CfgFile "x86_64-linux-gnu-libcxx.cfg" "x86_64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-gnu/x86_64-linux-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
 Create-CfgFile "aarch64-linux-gnu-libcxx.cfg" "aarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-gnu/aarch64-linux-gnu" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
 Create-CfgFile "aarch64-linux-android30-libcxx.cfg" "aarch64-linux-android30" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-linux-android30/aarch64-linux-android30" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP ""
@@ -129,12 +129,12 @@ Create-CfgFile "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPA
 
 # Create msvc .cfg files
 Create-CfgFile "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"
-Create-CfgFile "aarch64-windows-msvc.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"
+Create-CfgFile "aarch64-windows-msvc.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -Wl,--section-alignment=0x10000 -Wl,/driver"
 Create-CfgFile "i686-windows-msvc.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"
 
 # Create msvc .cfg files with libcxx
 Create-CfgFile "x86_64-windows-msvc-libcxx.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
-Create-CfgFile "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
+Create-CfgFile "aarch64-windows-msvc-libcxx.cfg" "aarch64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++ -Wl,--section-alignment=0x10000 -Wl,/driver"
 Create-CfgFile "i686-windows-msvc-libcxx.cfg" "i686-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt -stdlib=libc++"
 
 # Create freestanding C++
