@@ -75,8 +75,8 @@ STANDARD_FLAGS_CPP="$STANDARD_FLAGS_CPP_NOLIBUNWIND \
 FLAGS_DARWIN="-fuse-lipo=llvm-lipo -arch x86_64 -arch arm64"
 
 # Create .cfg files for different triples
-create_cfg_file "x86_64-windows-gnu.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/x86_64-w64-mingw32/x86_64-w64-mingw32" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
-create_cfg_file "aarch64-windows-gnu.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/aarch64-w64-mingw32/aarch64-w64-mingw32" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
+create_cfg_file "x86_64-windows-gnu.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/x86_64-w64-mingw32/x86_64-w64-mingw32" "" "" "-lntdll"
+create_cfg_file "aarch64-windows-gnu.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_GNU/aarch64-w64-mingw32/aarch64-w64-mingw32" "" "" "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
 create_cfg_file "x86_64-windows-gnu-libcxx.cfg" "x86_64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-windows-gnu/x86_64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll"
 create_cfg_file "aarch64-windows-gnu-libcxx.cfg" "aarch64-windows-gnu" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-windows-gnu/aarch64-windows-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" "-lntdll -Wl,--section-alignment=0x10000 -Wl,/driver"
 create_cfg_file "x86_64-linux-gnu-libcxx.cfg" "x86_64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/x86_64-linux-gnu/x86_64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
