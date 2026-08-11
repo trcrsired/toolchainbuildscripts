@@ -230,7 +230,8 @@ else
             RUNTIMES_PHASE=0
             USE_LLVM_LIBS=0
             CPPWINRT_PHASE=0
-        elif [[ "$ABI" == "gnu" ]]; then
+        fi
+        if [[ $CPU != "x86_64" ]] && ! [[ $CPU =~ ^i[3-6]86$ ]]; then
             WINDOWS_ALIGN_ENLARGE=1
         fi
     elif [[ "$OS" == "linux" ]]; then
