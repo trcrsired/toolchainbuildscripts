@@ -324,7 +324,7 @@ fi
 if [ ! -f $currentpath/$x11pjname/.buildsuccess ]; then
 mkdir -p $currentpath/$x11pjname
 cd ${currentpath}/$x11pjname
-make -j$(nproc)
+make -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 if [ "$x11pjname" = "alsa-lib" ]; then
     rm -rf "$TOOLCHAINS_BUILD/alsa-lib"
@@ -340,7 +340,7 @@ if [ "$x11pjname" = "alsa-lib" ]; then
        git submodule update --init --recursive
     fi
     cd "$currentpath/$x11pjname"
-    make -j$(nproc)
+    make -j$(getconf _NPROCESSORS_ONLN)
     if [ $? -ne 0 ]; then
         echo "$x11pjname build failed 2nd time"
         exit 1
@@ -355,7 +355,7 @@ fi
 
 if [ ! -f $currentpath/$x11pjname/.installsuccess ]; then
 cd ${currentpath}/$x11pjname
-make install -j$(nproc)
+make install -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 echo "$x11pjname install failure, retrying..."
 rm -rf "$TOOLCHAINS_BUILD/${x11pjname}"
@@ -379,7 +379,7 @@ cd $TOOLCHAINS_BUILD/${x11pjname}
 autoreconf -i -f
 fi
 cd ${currentpath}/$x11pjname
-make install -j$(nproc)
+make install -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 echo "$x11pjname install failure"
 exit 1
@@ -490,15 +490,21 @@ cp -r $SYSROOT/usr/include/freetype2/* $SYSROOT/usr/include/
 cp -r --preserve=links $currentpath/installs/* $PREFIX/dependencies/
 fi
 
-if [[ ${BUILD} != ${HOST} ]]; then
+# Compare the build and host platforms, treating aarch64/arm64 and version
+# suffixes (e.g. darwin24.4.0 vs darwin24) as equivalent so that a native
+# Apple Silicon build is not mistaken for a cross compile.
+norm_platform() { echo "$1" | sed -E -e 's/^arm64-(.*)/aarch64-\1/' -e 's/(\.[0-9]+)+$//'; }
+if [[ "$(norm_platform $BUILD)" != "$(norm_platform $HOST)" ]]; then
 BUILDWINEDIR="$WINEARTIFACTSDIR/$BUILD/wine"
 if [ ! -d "$BUILDWINEDIR" ]; then
 echo "$BUILDWINEDIR not exists. Cannot cross compile"
 exit 1
 fi
 CROSSSETTIGNS="--with-wine-tools=$BUILDWINEDIR"
+BUILDHOSTARGS="--build=$BUILD --host=$HOST"
 else
 CROSSSETTIGNS=
+BUILDHOSTARGS="--build=$HOST --host=$HOST"
 fi
 
 if [ "$MINIMUMBUILD" == "yes" ]; then
@@ -512,7 +518,7 @@ mkdir -p ${currentwinepath}
 if [ ! -f ${currentwinepath}/Makefile ]; then
 cd $currentwinepath
 
-CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" STRIP=llvm-strip wine_cv_64bit_compare_swap="none needed" x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP LD=lld enable_wineandroid_drv=no $TOOLCHAINS_BUILD/wine/configure --build=$BUILD --host=$HOST $CROSSSETTIGNS --disable-nls --disable-werror --disable-wineandroid-drv --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
+CC="$CC_FOR_HOST" CXX="$CXX_FOR_HOST" CPP="$CPP_FOR_HOST" LDFLAGS="$LDFLAGS" STRIP=llvm-strip x86_64_CC=$CLANG i386_CC=$CLANG arm64ec_CC=$CLANG arm_CC=$CLANG aarch64_CC=$CLANG STRIP=$STRIP LD=lld enable_wineandroid_drv=no $TOOLCHAINS_BUILD/wine/configure $BUILDHOSTARGS $CROSSSETTIGNS --disable-nls --disable-werror --disable-wineandroid-drv $CONFIGUREEXTRAFLAGS --prefix=$PREFIX/wine --enable-archs=$ENABLEDARCHS
 if [ $? -ne 0 ]; then
 echo "wine configure failure"
 exit 1
@@ -521,7 +527,7 @@ fi
 
 if [ ! -f ${currentwinepath}/.buildsuccess ]; then
 cd ${currentwinepath}
-make -j$(nproc)
+make -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 echo "wine build failure"
 exit 1
@@ -531,7 +537,7 @@ fi
 
 if [ ! -f ${currentwinepath}/.nlsbuildsuccess ]; then
 cd ${currentwinepath}/nls
-make -j$(nproc)
+make -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 echo "wine build failure"
 exit 1
@@ -541,7 +547,7 @@ fi
 
 if [ ! -f ${currentwinepath}/.installsuccess ]; then
 cd ${currentwinepath}
-make install -j$(nproc)
+make install -j$(getconf _NPROCESSORS_ONLN)
 if [ $? -ne 0 ]; then
 echo "wine install failure"
 exit 1
