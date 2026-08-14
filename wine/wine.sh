@@ -217,7 +217,9 @@ git pull --quiet
 
 if [[ ${BUILD} != ${HOST} ]]; then
 if [ "$MINIMUMBUILD" != "yes" ]; then
+if [ -z ${TOOLCHAINSPATH+x} ]; then
 BUILDDEPENDENCIES=yes
+fi
 fi
 fi
 
