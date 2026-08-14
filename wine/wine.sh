@@ -530,6 +530,7 @@ IFS=: read -ra extra_paths <<< "$EXTRAPATH"
 for p in "${extra_paths[@]}"; do
     [ -n "$p" ] || continue
     if [ -d "$p/include" ]; then EXTRA_CPPFLAGS="$EXTRA_CPPFLAGS -I$p/include"; fi
+    if [ -d "$p/include/libfreetype2" ]; then EXTRA_CPPFLAGS="$EXTRA_CPPFLAGS -I$p/include/libfreetype2"; fi
     if [ -d "$p/lib" ]; then EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$p/lib"; fi
 done
 
