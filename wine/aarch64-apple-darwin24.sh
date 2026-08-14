@@ -23,5 +23,6 @@ CXX_FOR_HOST="clang++ --target=aarch64-apple-darwin24 --sysroot=$SYSROOT -mlinke
 CPP_FOR_HOST="clang-cpp --target=aarch64-apple-darwin24 --sysroot=$SYSROOT -mlinker-version=2.50"  \
 LDFLAGS="-fuse-ld=lld -mlinker-version=2.50"  \
 CONFIGUREEXTRAFLAGS="--without-x" \
+EXTRAPATH="$EXTRAPATH" \
 enable_wineandroid_drv=no CC=clang CXX=clang++ HOST=aarch64-apple-darwin24 ARCH=aarch64 NO_CREATE_LIBPTHREAD=yes BUILDDEPENDENCIES="no"  \
 ./wine.sh "$@"
