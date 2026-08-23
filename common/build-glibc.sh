@@ -159,9 +159,9 @@ build_glibc() {
 
         if [ ! -f "${currentpathlibc}/${phase_dir}/glibc/$item/.installsuccess" ]; then
             if [[ ${usellvm} == "yes" ]]; then
-                make install -j$(nproc)
+                make install
             else
-                (export -n LD_LIBRARY_PATH; make install -j$(nproc))
+                (export -n LD_LIBRARY_PATH; make install)
             fi
             if [ $? -ne 0 ]; then
                 echo "glibc ($item) install failure"
