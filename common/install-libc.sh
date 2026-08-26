@@ -152,6 +152,7 @@ install_libc() {
             elif [[ "$ABI" == "gnu" ]]; then
                 clone_or_update_dependency mingw-w64
                 local MINGWTRIPLET="${CPU}-w64-mingw32"
+                local extraflags
                 local MINGWW64COMMON
                 if [[ ${CPU} == "x86_64" ]]; then
                     if [[ "$multilibs" == "yes" ]]; then
@@ -160,7 +161,11 @@ install_libc() {
                         MINGWW64COMMON="--disable-lib32 --enable-lib64"
                     fi
                 elif [[ ${CPU} == "aarch64" ]]; then
-                    MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"
+                    MINGWW64COMMON="--disable-lib32 --disable-lib64 --disable-libarm32 --enable-libarm64"\
+                    extraflags="-Wl,--section-alignment=0x10000"
+                    if [[ "$usellvm" == "yes" ]]; then
+                        extraflags="${extraflags} -Wl,/driver"
+                    fi
                 elif [[ ${CPU} == "arm" ]]; then
                     MINGWW64COMMON="--disable-lib32 --disable-lib64 --enable-libarm32 --disable-libarm64"
                 elif [[ ${CPU} =~ i[3-6]86 ]]; then
@@ -170,8 +175,8 @@ install_libc() {
                 fi
                 MINGWW64COMMON="$MINGWW64COMMON --host=${MINGWTRIPLET} --disable-nls --disable-werror --prefix=${sysrootpathusr}"
                 local MINGWW64COMMONENV="
-                CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
-                CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\"\"
+                CC=\"clang --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\" ${extraflags}\"
+                CXX=\"clang++ --target=${TRIPLET} -fuse-ld=lld \"--sysroot=${sysrootpathusr}\" ${extraflags}\"
                 LD=lld
                 NM=llvm-nm
                 RANLIB=llvm-ranlib
