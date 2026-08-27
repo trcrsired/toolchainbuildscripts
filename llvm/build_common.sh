@@ -283,6 +283,11 @@ LLVM_PHASE=0
 LIBHERBCEPTIONS_PHASE=1
 USE_CMAKE_LLVM_ENABLE_LLD=0
 RUNTIMES_BUILD_CXX_STATIC=0
+if [[ -z "${FREESTANDING_MNO_RED_ZONE+x}" ]]; then
+if [[ $CPU == "x86_64" ]] || [[ $CPU == "x86_64apx" ]]; then
+FREESTANDING_MNO_RED_ZONE=1
+fi
+fi
 fi
 
 if [[ -z "$ABI" ]]; then
@@ -757,6 +762,14 @@ fi
 fi
 
 if [[ FREESTANDING_LIBCXX -eq 1 ]]; then
+if [[ FREESTANDING_MNO_RED_ZONE -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -mno-red-zone")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -mno-red-zone")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -mno-red-zone")
+EOF
+fi
+
 cat << EOF > $currentpath/runtimes.cmake
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
