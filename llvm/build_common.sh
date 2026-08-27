@@ -794,8 +794,9 @@ set(LIBHERBCEPTIONS_FREESTANDING On)
 set(LIBHERBCEPTIONS_HEADERS_ONLY Off)
 set(LIBHERBCEPTIONS_BUILD_SHARED OFF)
 set(LIBHERBCEPTIONS_BUILD_STATIC ON)
+set(LIBHERBCEPTIONS_ENABLE_EXCEPTIONS Off)
+set(LIBHERBCEPTIONS_ENABLE_RTTI Off)
 set(LIBCXX_FREESTANDING On)
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -nostdinc++ -isystem${currentpath}/runtimes/include/c++/v1 -isystem${LLVMPROJECTPATH}/libcxxabi/include")
 EOF
 fi
 
@@ -1012,6 +1013,9 @@ build_runtimes() {
     fi
     if [[ $to_build_runtimes -eq 1 ]]; then
         build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
+        if [[ LIBHERBCEPTIONS_PHASE -ne 0 ]]; then
+            build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
+        fi
     fi
 }
 
@@ -1095,10 +1099,6 @@ build_zlib
 build_libxml2
 
 build_cppwinrt
-
-if [[ LIBHERBCEPTIONS_PHASE -ne 0 ]]; then
-    build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
-fi
 
 build_llvm
 
