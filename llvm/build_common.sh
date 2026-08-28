@@ -306,7 +306,7 @@ fi
 if [[ FREESTANDING_LIBCXX -eq 1 ]]; then
 LIBC_PHASE=0
 BUILTINS_PHASE=0
-RUNTIMES_PHASE=2
+RUNTIMES_PHASE=1
 COMPILER_RT_PHASE=0
 ZLIB_PHASE=0
 LIBXML2_PHASE=0
@@ -964,7 +964,7 @@ build_project() {
         if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
             cd "${build_prefix}"
             # Run Ninja to build the project
-            if [[ "$project_name" == "runtimes" ]]; then
+            if [[ "$project_name" == "runtimes" ]] && [[ $FREESTANDING_LIBCXX -eq 0 ]]; then
                 ninja -C . cxx_static
                 if [ $? -ne 0 ]; then
                     echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
