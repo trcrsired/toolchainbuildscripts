@@ -250,6 +250,53 @@ cp -r --preserve=links "$RUNTIMESINSTALLPATH"/* "${SYSROOTPATH}/"
 
 fi
 
+HERBCEPTIONSINSTALLPATH="$CURRENTTRIPLEPATH/install/libherbceptions"
+
+if [ ! -d "$HERBCEPTIONSINSTALLPATH" ]; then
+
+HERBCEPTIONS_EH_FLAGS=""
+if [[ $ENABLE_EH != "On" ]]; then
+HERBCEPTIONS_EH_FLAGS="-DLIBHERBCEPTIONS_ENABLE_EXCEPTIONS=Off -DLIBHERBCEPTIONS_ENABLE_RTTI=Off"
+fi
+
+mkdir -p "$CURRENTTRIPLEPATH/build/libherbceptions"
+cd $CURRENTTRIPLEPATH/build/libherbceptions
+
+cmake $LLVMPROJECTPATH/libherbceptions \
+	-GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_ASM_COMPILER=clang \
+	-DCMAKE_SYSROOT=$SYSROOTPATH -DCMAKE_INSTALL_PREFIX=$HERBCEPTIONSINSTALLPATH \
+	-DCMAKE_C_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_CXX_COMPILER_TARGET=$TARGETTRIPLE -DCMAKE_ASM_COMPILER_TARGET=$TARGETTRIPLE \
+	-DCMAKE_C_COMPILER_WORKS=On -DCMAKE_CXX_COMPILER_WORKS=On -DCMAKE_ASM_COMPILER_WORKS=On \
+	-DCMAKE_SYSTEM_PROCESSOR=$TARGETTRIPLE_CPU \
+	-DCMAKE_SYSTEM_NAME=Generic \
+	-DLIBHERBCEPTIONS_BUILD_SHARED=Off \
+	-DLIBHERBCEPTIONS_BUILD_STATIC=On \
+	${HERBCEPTIONS_EH_FLAGS} \
+	-DLLVM_ENABLE_ASSERTIONS=Off -DLLVM_INCLUDE_EXAMPLES=Off -DLLVM_ENABLE_BACKTRACES=Off -DLLVM_INCLUDE_TESTS=Off \
+	-DCMAKE_CXX_FLAGS="-nostdinc++ -isystem$RUNTIMESINSTALLPATH/include/c++/v1"
+if [ $? -ne 0 ]; then
+echo "libherbceptions configure failure for $TARGETTRIPLE"
+rm -rf "$CURRENTTRIPLEPATH/build/libherbceptions"
+exit 1
+fi
+ninja
+if [ $? -ne 0 ]; then
+echo "libherbceptions build failure for $TARGETTRIPLE"
+exit 1
+fi
+ninja install/strip
+if [ $? -ne 0 ]; then
+echo "libherbceptions install/strip failure for $TARGETTRIPLE"
+exit 1
+fi
+
+fi
+
+mkdir -p "${SYSROOTPATH}/lib/${TARGETTRIPLE}"
+cp -r --preserve=links "$HERBCEPTIONSINSTALLPATH"/include/* "${SYSROOTPATH}/include/"
+cp -r --preserve=links "$HERBCEPTIONSINSTALLPATH"/lib/* "${SYSROOTPATH}/lib/${TARGETTRIPLE}/"
+
 fi
 
 done
