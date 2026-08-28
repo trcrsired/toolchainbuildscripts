@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ -z ${TRIPLET+x} ]; then
 echo "TRIPLET is not set. Please set the TRIPLET environment variable to the target triplet."
 exit 1
@@ -7,12 +9,16 @@ fi
 
 artifactspath="$(realpath .)/.artifacts"
 
-currentpath="${artifactspath}/llvm/${TRIPLET}"
+if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
+    currentpath="${artifactspath}/windows-msvc-sysroot/${TRIPLET}"
+else
+    currentpath="${artifactspath}/llvm/${TRIPLET}"
+fi
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
 mkdir -p "$currentpath"
-cd ../common
+cd "$SCRIPT_DIR/../common"
 source ./common.sh
 
 if [[ "x$CLONE_IN_CHINA" == "xyes" ]]; then
@@ -68,6 +74,10 @@ if [ -z ${TOOLCHAINS_LLVMTRIPLETPATH+x} ]; then
     TOOLCHAINS_LLVMTRIPLETPATH="$TOOLCHAINS_LLVMPATH/${TRIPLET}"
 fi
 
+if [ -z ${TOOLCHAINS_WINDOWSMSVCSYSROOTPATH+x} ]; then
+    TOOLCHAINS_WINDOWSMSVCSYSROOTPATH="$TOOLCHAINSPATH/windows-msvc-sysroot"
+fi
+
 if [ -z ${NO_TOOLCHAIN_DELETION+x} ]; then
 check_clang_location
 if [ $? -eq 0 ]; then
@@ -79,6 +89,9 @@ echo "NO_TOOLCHAIN_DELETION:${NO_TOOLCHAIN_DELETION}"
 
 SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
+if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
+SYSROOTPATHUSR="$TOOLCHAINS_WINDOWSMSVCSYSROOTPATH"
+fi
 if [[ $OS == "darwin"* ]]; then
     RUNTIMES_USE_RPATH=1
 else
@@ -180,7 +193,6 @@ ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
 LLVM_PHASE=1
-LIBHERBCEPTIONS_PHASE=0
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 COPY_COMPILER_RT_USE_TRIPLET=0
 COPY_RUNTIMES_TO_TRIPLET_LIB=0
@@ -196,8 +208,21 @@ USE_LLVM_LINK_DYLIB=0
 USE_CMAKE_LLVM_ENABLE_LLD=1
 USE_CMAKE_POSITION_INDEPENDENT_CODE=0
 DISABLE_LLVM_ENABLE_CURSES=0
-RUNTIMES_BUILD_CXX_STATIC=1
 WINDOWS_ALIGN_ENLARGE=0
+
+if [[ -z "${LIBHERBCEPTIONS_PHASE+x}" ]]; then
+LIBHERBCEPTIONS_PHASE=1
+fi
+
+if [[ -z "${WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBCXX_BUILD+x}" ]]; then
+WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBCXX_BUILD=0
+fi
+
+if [[ -z "${WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBHERBCEPTIONS_BUILD+x}" ]]; then
+WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBHERBCEPTIONS_BUILD=0
+fi
+
+WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD=$(( WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBCXX_BUILD | WINDOWS_MSVC_SYSROOT_RUNTIMES_LIBHERBCEPTIONS_BUILD ))
 
 if [[ -z "${FREESTANDING_LIBCXX+x}" ]]; then
 FREESTANDING_LIBCXX=0
@@ -231,6 +256,9 @@ else
             RUNTIMES_PHASE=0
             USE_LLVM_LIBS=0
             CPPWINRT_PHASE=0
+            if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
+                RUNTIMES_PHASE=1
+            fi
         fi
         if [[ $CPU != "x86_64" ]] && ! [[ $CPU =~ ^i[3-6]86$ ]]; then
             WINDOWS_ALIGN_ENLARGE=1
@@ -280,7 +308,6 @@ ZLIB_PHASE=0
 LIBXML2_PHASE=0
 CPPWINRT_PHASE=0
 LLVM_PHASE=0
-LIBHERBCEPTIONS_PHASE=1
 USE_CMAKE_LLVM_ENABLE_LLD=0
 RUNTIMES_BUILD_CXX_STATIC=0
 if [[ -z "${FREESTANDING_MNO_RED_ZONE+x}" ]]; then
@@ -474,6 +501,17 @@ include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
+EOF
+
+if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(LLVM_ENABLE_RUNTIMES libcxx)
+set(LIBCXX_CXX_ABI "vcruntime" CACHE STRING "" FORCE)
+set(LLVM_ENABLE_LTO "Thin")
+set(LLVM_ENABLE_LLD "On")
+EOF
+else
+cat << EOF >> "$currentpath/runtimes.cmake"
 set(LIBCXXABI_SILENT_TERMINATE "On")
 set(LIBCXX_CXX_ABI "libcxxabi")
 set(LIBCXX_ENABLE_SHARED "On")
@@ -482,6 +520,24 @@ set(LIBCXX_CXX_ABI_INCLUDE_PATHS "${LLVMPROJECTPATH}/libcxxabi/include")
 set(LIBCXX_ENABLE_EXCEPTIONS On)
 set(LIBCXXABI_ENABLE_EXCEPTIONS On)
 set(LIBCXX_ENABLE_RTTI On)
+set(ZLIB_BUILD_TESTING Off)
+EOF
+fi
+
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+EOF
+
+cat << EOF > "$currentpath/libxml2.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+set(LIBXML2_WITH_ICONV Off)
+set(LIBXML2_WITH_PYTHON Off)
+set(BUILD_SHARED_LIBS Off)
+set(BUILD_STATIC_LIBS On)
+set(LIBXML2_WITH_TESTS OFF)
+set(LIBXML2_WITH_CATALOG OFF)
 set(LIBCXXABI_ENABLE_RTTI On)
 set(LLVM_ENABLE_ASSERTIONS "Off")
 set(LLVM_INCLUDE_EXAMPLES "Off")
@@ -509,10 +565,17 @@ set(LLVM_ENABLE_LLD "On")
 set(C_SUPPORTS_CUSTOM_LINKER On)
 set(CXX_SUPPORTS_CUSTOM_LINKER On)
 set(ASM_SUPPORTS_CUSTOM_LINKER On)
-set(LLVM_ENABLE_RUNTIMES libunwind;libcxxabi;libcxx;libherbceptions)
+set(LLVM_ENABLE_RUNTIMES libunwind;libcxxabi;libcxx)
 set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
+EOF
+
+cat << EOF > "$currentpath/libherbceptions.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+set(CMAKE_C_COMPILER_WORKS On)
+set(CMAKE_CXX_COMPILER_WORKS On)
+set(CMAKE_ASM_COMPILER_WORKS On)
 EOF
 
 cat << EOF > "$currentpath/llvm.cmake"
@@ -632,7 +695,7 @@ if [[ "${OS}" == "linux" ]]; then
 cat << EOF >> "$currentpath/builtins.cmake"
 set(ANDROID On)
 EOF
-    fi
+fi
 elif [[ "${OS}" == "windows" ]]; then
 cat << EOF >> $currentpath/common_cmake.cmake
 set(CMAKE_C_LINKER_DEPFILE_SUPPORTED FALSE)
@@ -650,6 +713,9 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
 set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
 EOF
 cat << EOF >> "$currentpath/zlib.cmake"
 set(ZLIB_BUILD_SHARED OFF)
@@ -795,22 +861,13 @@ set(LIBUNWIND_HAS_PTHREAD_API Off)
 set(LIBUNWIND_HAS_WIN32_THREAD_API Off)
 set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off)
 EOF
-fi
 
-if [[ LIBHERBCEPTIONS_PHASE -ne 0 ]]; then
-cat << EOF > "$currentpath/libherbceptions.cmake"
-include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
-set(CMAKE_C_COMPILER_WORKS On)
-set(CMAKE_CXX_COMPILER_WORKS On)
-set(CMAKE_ASM_COMPILER_WORKS On)
+cat << EOF >> "$currentpath/libherbceptions.cmake"
 set(LIBHERBCEPTIONS_FREESTANDING On)
-set(LIBHERBCEPTIONS_HEADERS_ONLY Off)
-set(LIBHERBCEPTIONS_BUILD_SHARED OFF)
-set(LIBHERBCEPTIONS_BUILD_STATIC ON)
 set(LIBHERBCEPTIONS_ENABLE_EXCEPTIONS Off)
 set(LIBHERBCEPTIONS_ENABLE_RTTI Off)
-set(LIBCXX_FREESTANDING On)
 EOF
+
 fi
 
 if [[ WINDOWS_ALIGN_ENLARGE -eq 1 ]]; then
@@ -875,6 +932,7 @@ build_project() {
             cmake -GNinja -DCMAKE_CROSSCOMPILING=On -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
+            # We must run the cmake for twice or cmake does not use CMAKE_TOOLCHAIN_FILE correctly.
             cmake -GNinja -DCMAKE_CROSSCOMPILING=On -DCMAKE_BUILD_TYPE=Release "${source_path}" \
                 -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}" \
                 -DCMAKE_INSTALL_PREFIX="${install_prefix}"
@@ -888,7 +946,7 @@ build_project() {
         if [ ! -f "${build_prefix}/${build_phase_file}" ]; then
             cd "${build_prefix}"
             # Run Ninja to build the project
-            if [[ ${RUNTIMES_BUILD_CXX_STATIC} -eq 1 && "$project_name" == "runtimes" ]]; then
+            if [[ "$project_name" == "runtimes" ]]; then
                 ninja -C . cxx_static
                 if [ $? -ne 0 ]; then
                     echo "${project_name}: Ninja build cxx_static failed for $TRIPLET"
@@ -976,7 +1034,28 @@ build_project() {
         fi
         if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
             mkdir -p "${SYSROOTPATHUSR}"
-            if [[ ("$project_name" == "zlib" || "$project_name" == "libxml2" || "$project_name" == "runtimes") && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
+            if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
+                if [[ "$project_name" == "runtimes" ]]; then
+                    if [ -f "${install_prefix}/lib/libc++.modules.json" ]; then
+                        sed -i "s|../share/|../../share/|g" "${install_prefix}/lib/libc++.modules.json"
+                    fi
+                fi
+                if [ -d "${install_prefix}/include" ]; then
+                    cp -r --preserve=links ${install_prefix}/include/* ${SYSROOTPATHUSR}/include/
+                fi
+                if [ -d "${install_prefix}/lib" ]; then
+                    mkdir -p ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}
+                    cp -r --preserve=links ${install_prefix}/lib/* ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}/
+                fi
+                if [ -d "${install_prefix}/bin" ]; then
+                    mkdir -p ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}
+                    cp -r --preserve=links ${install_prefix}/bin/* ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}/
+                fi
+                if [ -d "${install_prefix}/share" ]; then
+                    mkdir -p ${SYSROOTPATHUSR}/share
+                    cp -r --preserve=links ${install_prefix}/share/* ${SYSROOTPATHUSR}/share/
+                fi
+            elif [[ ("$project_name" == "zlib" || "$project_name" == "libxml2" || "$project_name" == "runtimes") && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
                 # Copy everything except lib normally
                 for item in "$install_prefix"/*; do
                     if [[ "$(basename "$item")" != "lib" ]]; then
@@ -1016,19 +1095,36 @@ build_runtimes() {
     local phase=$1
     local to_build_runtimes=0
     if [[ $phase -eq 0 ]]; then
-        if [[ RUNTIMES_PHASE -eq 1 ]]; then
+        if [[ $RUNTIMES_PHASE -eq 1 ]]; then
             to_build_runtimes=1
         fi
     elif [[ $phase -eq 1 ]]; then
-        if [[ RUNTIMES_PHASE -eq 2 ]]; then
+        if [[ $RUNTIMES_PHASE -eq 2 ]]; then
             to_build_runtimes=1
         fi
     fi
     if [[ $to_build_runtimes -eq 1 ]]; then
         build_project "runtimes" "$LLVMPROJECTPATH/runtimes" "$currentpath/runtimes.cmake" "${currentpath}/runtimes" "yes"
-        if [[ LIBHERBCEPTIONS_PHASE -ne 0 ]]; then
-            build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
+    fi
+}
+
+build_libherbceptions() {
+    if [[ $LIBHERBCEPTIONS_PHASE -eq 0 ]]; then
+	    return
+    fi
+    local phase=$1
+    local to_build_runtimes=0
+    if [[ $phase -eq 0 ]]; then
+        if [[ $RUNTIMES_PHASE -eq 1 ]]; then
+            to_build_runtimes=1
         fi
+    elif [[ $phase -eq 1 ]]; then
+        if [[ $RUNTIMES_PHASE -eq 2 ]]; then
+            to_build_runtimes=1
+        fi
+    fi
+    if [[ $to_build_runtimes -eq 1 ]]; then
+        build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
     fi
 }
 
@@ -1091,6 +1187,8 @@ build_compiler_rt_or_builtins() {
 
 clone_or_update_dependency llvm-project
 
+if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
+
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
     install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
 fi
@@ -1105,6 +1203,8 @@ build_compiler_rt_or_builtins 1
 
 build_runtimes 0
 
+build_libherbceptions 0
+
 build_compiler_rt_or_builtins 2
 
 build_zlib
@@ -1117,10 +1217,20 @@ build_llvm
 
 build_runtimes 1
 
+build_libherbceptions 1
+
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
 	cd "$TOOLCHAINS_LLVMPATH"
 	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
 	chmod 755 ${TRIPLET}.tar.xz
 	echo "$(date +%s)" > "$currentpath/.packagesuccess"
+fi
+
+else
+
+build_runtimes 0
+
+build_libherbceptions 0
+
 fi
