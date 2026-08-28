@@ -798,8 +798,6 @@ if (NOT CMAKE_LIBTOOL)
 endif()
 
 # Set CMAKE_AR and CMAKE_RANLIB to use CMAKE_LIBTOOL with -static
-set(CMAKE_AR "${CMAKE_LIBTOOL};-static")
-set(CMAKE_RANLIB "${CMAKE_LIBTOOL};-static")
 EOF
 
 
@@ -1130,20 +1128,7 @@ build_libherbceptions() {
     if [[ $LIBHERBCEPTIONS_PHASE -eq 0 ]]; then
 	    return
     fi
-    local phase=$1
-    local to_build_runtimes=0
-    if [[ $phase -eq 0 ]]; then
-        if [[ $RUNTIMES_PHASE -eq 1 ]]; then
-            to_build_runtimes=1
-        fi
-    elif [[ $phase -eq 1 ]]; then
-        if [[ $RUNTIMES_PHASE -eq 2 ]]; then
-            to_build_runtimes=1
-        fi
-    fi
-    if [[ $to_build_runtimes -eq 1 ]]; then
-        build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
-    fi
+    build_project "libherbceptions" "$LLVMPROJECTPATH/libherbceptions" "$currentpath/libherbceptions.cmake" "${currentpath}/libherbceptions" "yes"
 }
 
 build_llvm() {
@@ -1221,7 +1206,7 @@ build_compiler_rt_or_builtins 1
 
 build_runtimes 0
 
-build_libherbceptions 0
+build_libherbceptions
 
 build_compiler_rt_or_builtins 2
 
@@ -1234,8 +1219,6 @@ build_cppwinrt
 build_llvm
 
 build_runtimes 1
-
-build_libherbceptions 1
 
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
