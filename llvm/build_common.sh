@@ -380,8 +380,6 @@ endif()
 set(CMAKE_RC_FLAGS "--target=\${CMAKE_C_COMPILER_TARGET} -I\${CMAKE_FIND_ROOT_PATH}/include")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE On)
-set(LLVM_ENABLE_LTO thin)
-set(LLVM_ENABLE_LLD On)
 set(CMAKE_C_FLAGS_INIT "-fuse-ld=lld -fuse-lipo=llvm-lipo -flto=thin -Wno-unused-command-line-argument")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT}")
@@ -507,8 +505,6 @@ if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
 cat << EOF >> "$currentpath/runtimes.cmake"
 set(LLVM_ENABLE_RUNTIMES libcxx)
 set(LIBCXX_CXX_ABI "vcruntime" CACHE STRING "" FORCE)
-set(LLVM_ENABLE_LTO "Thin")
-set(LLVM_ENABLE_LLD "On")
 EOF
 else
 cat << EOF >> "$currentpath/runtimes.cmake"
@@ -521,23 +517,6 @@ set(LIBCXX_ENABLE_EXCEPTIONS On)
 set(LIBCXXABI_ENABLE_EXCEPTIONS On)
 set(LIBCXX_ENABLE_RTTI On)
 set(ZLIB_BUILD_TESTING Off)
-EOF
-fi
-
-cat << EOF >> "$currentpath/runtimes.cmake"
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-EOF
-
-cat << EOF > "$currentpath/libxml2.cmake"
-include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
-set(LIBXML2_WITH_ICONV Off)
-set(LIBXML2_WITH_PYTHON Off)
-set(BUILD_SHARED_LIBS Off)
-set(BUILD_STATIC_LIBS On)
-set(LIBXML2_WITH_TESTS OFF)
-set(LIBXML2_WITH_CATALOG OFF)
 set(LIBCXXABI_ENABLE_RTTI On)
 set(LLVM_ENABLE_ASSERTIONS "Off")
 set(LLVM_INCLUDE_EXAMPLES "Off")
@@ -570,6 +549,24 @@ set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
 EOF
+fi
+
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+EOF
+
+cat << EOF > "$currentpath/libxml2.cmake"
+include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
+set(LIBXML2_WITH_ICONV Off)
+set(LIBXML2_WITH_PYTHON Off)
+set(BUILD_SHARED_LIBS Off)
+set(BUILD_STATIC_LIBS On)
+set(LIBXML2_WITH_TESTS OFF)
+set(LIBXML2_WITH_CATALOG OFF)
+EOF
+
 
 cat << EOF > "$currentpath/libherbceptions.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
@@ -713,10 +710,21 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_SYSROOT "$WINDOWSMSVCSYSROOT")
 set(CMAKE_RC_FLAGS "\${CMAKE_RC_FLAGS} -I\${CMAKE_SYSROOT}/include")
-set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
-set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -D_DLL=1 -stdlib=libc++ -lmsvcrt -lmsvcprt")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -D_DLL=1 -lmsvcrt")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -D_DLL=1 -lmsvcrt")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -D_DLL=1 -lmsvcrt")
 EOF
+
+if [[ BUILD_WINDOWS_MSVC_TARGETS_WITH_LIBCXX -eq 1 ]]; then
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -stdlib=libc++ -lc++")
+EOF
+else
+cat << EOF >> $currentpath/common_cmake.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lmsvcprt")
+EOF
+fi
+
 cat << EOF >> "$currentpath/zlib.cmake"
 set(ZLIB_BUILD_SHARED OFF)
 EOF
