@@ -69,6 +69,6 @@ done
 if [[ -z "${NO_GIT_PUSH+x}" ]]; then
 	cd "$WINDOWSSYSROOT"
 	git add -A
-	git commit -m "auto update libc++ from LLVM source"
+	git commit -m "Automated libc++ update $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 	git push
 fi

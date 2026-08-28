@@ -89,9 +89,6 @@ echo "NO_TOOLCHAIN_DELETION:${NO_TOOLCHAIN_DELETION}"
 
 SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
-if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
-SYSROOTPATHUSR="$TOOLCHAINS_WINDOWSMSVCSYSROOTPATH"
-fi
 if [[ $OS == "darwin"* ]]; then
     RUNTIMES_USE_RPATH=1
 else
@@ -209,6 +206,7 @@ USE_CMAKE_LLVM_ENABLE_LLD=1
 USE_CMAKE_POSITION_INDEPENDENT_CODE=0
 DISABLE_LLVM_ENABLE_CURSES=0
 WINDOWS_ALIGN_ENLARGE=0
+INSTALL_INTO_SYSROOT=0
 
 if [[ -z "${LIBHERBCEPTIONS_PHASE+x}" ]]; then
 LIBHERBCEPTIONS_PHASE=1
@@ -249,7 +247,6 @@ else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
         CPPWINRT_PHASE=0
-        SYSROOTPATHUSR="$SYSROOTPATH"
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
@@ -258,6 +255,8 @@ else
             CPPWINRT_PHASE=0
             if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
                 RUNTIMES_PHASE=1
+                INSTALL_INTO_SYSROOT=1
+                SYSROOTPATHUSR="$TOOLCHAINS_WINDOWSMSVCSYSROOTPATH"
             fi
         fi
         if [[ $CPU != "x86_64" ]] && ! [[ $CPU =~ ^i[3-6]86$ ]]; then
@@ -906,6 +905,7 @@ build_project() {
     local build_phase_file=".${project_name}_phase_build"
     local install_phase_file=".${project_name}_phase_install"
     local copy_phase_file=".${project_name}_phase_copy"
+    local sysroot_copy_phase_file=".${project_name}_phase_sysroot_copy"
     local rt_rename_phase_file=".${project_name}_phase_rt_rename_phase_file"
     local need_move_tmp
     local project_name_alternative="${project_name}"
@@ -915,6 +915,9 @@ build_project() {
         fi
     fi
     local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
+    if [[ $INSTALL_INTO_SYSROOT -ne 0 ]]; then
+        install_prefix="${currentpath}/installs/${project_name}"
+    fi
     if [[ "$project_name" == "runtimes" || "$project_name" == "llvm" ]]; then
         if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
             install_prefix="${install_prefix}_tmp"
@@ -1040,43 +1043,6 @@ build_project() {
                 echo "$(date +%s)" > "${build_prefix}/${copy_phase_file}"
             fi
         fi
-        if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
-            mkdir -p "${SYSROOTPATHUSR}"
-            if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
-                if [[ "$project_name" == "runtimes" ]]; then
-                    if [ -f "${install_prefix}/lib/libc++.modules.json" ]; then
-                        sed -i "s|../share/|../../share/|g" "${install_prefix}/lib/libc++.modules.json"
-                    fi
-                fi
-                if [ -d "${install_prefix}/include" ]; then
-                    cp -r --preserve=links ${install_prefix}/include/* ${SYSROOTPATHUSR}/include/
-                fi
-                if [ -d "${install_prefix}/lib" ]; then
-                    mkdir -p ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}
-                    cp -r --preserve=links ${install_prefix}/lib/* ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}/
-                fi
-                if [ -d "${install_prefix}/bin" ]; then
-                    mkdir -p ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}
-                    cp -r --preserve=links ${install_prefix}/bin/* ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}/
-                fi
-                if [ -d "${install_prefix}/share" ]; then
-                    mkdir -p ${SYSROOTPATHUSR}/share
-                    cp -r --preserve=links ${install_prefix}/share/* ${SYSROOTPATHUSR}/share/
-                fi
-            elif [[ ("$project_name" == "zlib" || "$project_name" == "libxml2" || "$project_name" == "runtimes") && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
-                # Copy everything except lib normally
-                for item in "$install_prefix"/*; do
-                    if [[ "$(basename "$item")" != "lib" ]]; then
-                        cp -r --preserve=links "$item" "${SYSROOTPATHUSR}"/
-                    fi
-                done
-                # Copy lib/* to lib/${TRIPLET}/
-                mkdir -p "${SYSROOTPATHUSR}/lib/${TRIPLET}"
-                cp -r --preserve=links "$install_prefix"/lib/* "${SYSROOTPATHUSR}/lib/${TRIPLET}"/
-            else
-                cp -r --preserve=links "$install_prefix"/* "${SYSROOTPATHUSR}"/
-            fi
-        fi
         if [[ "x${need_move_tmp}" == "xyes" ]]; then
             mkdir -p "${TOOLCHAINS_LLVMTRIPLETPATH}"
             if [[ -d "${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}_tmp" ]]; then
@@ -1086,6 +1052,32 @@ build_project() {
             fi
         fi
         echo "$(date +%s)" > "${build_prefix}/${current_phase_file}"
+    fi
+    if [[ $INSTALL_INTO_SYSROOT -ne 0 && "x$copy_to_sysroot_usr" == "xyes" ]]; then
+        if [ ! -f "${build_prefix}/${sysroot_copy_phase_file}" ]; then
+            mkdir -p "${SYSROOTPATHUSR}"
+            if [[ "$project_name" == "runtimes" ]]; then
+                if [ -f "${install_prefix}/lib/libc++.modules.json" ]; then
+                    sed -i "s|../share/|../../share/|g" "${install_prefix}/lib/libc++.modules.json"
+                fi
+            fi
+            if [ -d "${install_prefix}/include" ]; then
+                cp -r --preserve=links ${install_prefix}/include/* ${SYSROOTPATHUSR}/include/
+            fi
+            if [ -d "${install_prefix}/lib" ]; then
+                mkdir -p ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}
+                cp -r --preserve=links ${install_prefix}/lib/* ${SYSROOTPATHUSR}/lib/${TRIPLET_WITH_UNKNOWN}/
+            fi
+            if [ -d "${install_prefix}/bin" ]; then
+                mkdir -p ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}
+                cp -r --preserve=links ${install_prefix}/bin/* ${SYSROOTPATHUSR}/bin/${TRIPLET_WITH_UNKNOWN}/
+            fi
+            if [ -d "${install_prefix}/share" ]; then
+                mkdir -p ${SYSROOTPATHUSR}/share
+                cp -r --preserve=links ${install_prefix}/share/* ${SYSROOTPATHUSR}/share/
+            fi
+            echo "$(date +%s)" > "${build_prefix}/${sysroot_copy_phase_file}"
+        fi
     fi
 }
 
