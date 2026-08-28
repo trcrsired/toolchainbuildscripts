@@ -428,12 +428,6 @@ set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -femulated-tls")
 EOF
 fi
 
-if [[ $LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
-cat << EOF >> $currentpath/libherbceptions.cmake
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
-EOF
-fi
-
 # Initialize CMAKE_SIZEOF_VOID_P with default value
 CMAKE_SIZEOF_VOID_P=4
 
@@ -583,6 +577,13 @@ set(CMAKE_C_COMPILER_WORKS On)
 set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 EOF
+
+
+if [[ $LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
+cat << EOF >> $currentpath/libherbceptions.cmake
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+fi
 
 cat << EOF > "$currentpath/llvm.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
