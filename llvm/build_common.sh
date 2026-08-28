@@ -1053,7 +1053,7 @@ build_project() {
         fi
         echo "$(date +%s)" > "${build_prefix}/${current_phase_file}"
     fi
-    if [[ $INSTALL_INTO_SYSROOT -ne 0 && "x$copy_to_sysroot_usr" == "xyes" ]]; then
+    if [[ "x$copy_to_sysroot_usr" == "xyes" ]]; then
         if [ ! -f "${build_prefix}/${sysroot_copy_phase_file}" ]; then
             mkdir -p "${SYSROOTPATHUSR}"
             if [[ "$project_name" == "runtimes" ]]; then
