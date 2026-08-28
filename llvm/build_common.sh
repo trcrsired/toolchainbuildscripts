@@ -247,6 +247,7 @@ else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
         CPPWINRT_PHASE=0
+        SYSROOTPATHUSR="$SYSROOTPATH"
         if [[ "$ABI" == "msvc" ]]; then
             BUILTINS_PHASE=0
             COMPILER_RT_PHASE=0
