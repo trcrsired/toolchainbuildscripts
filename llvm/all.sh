@@ -43,7 +43,7 @@ main() {
         "x86_64-linux-gnu"
         "x86_64-linux-musl"
         "x86_64-windows-gnu"
-#        "x86_64-freebsd14"
+        "x86_64-freebsd14"
     )
 
 #    if [ "${ENABLE_RISCV_SUPPORT}" == "1" ]; then
@@ -51,6 +51,7 @@ main() {
             "riscv64-linux-android35"
             "riscv64-linux-gnu"
             "riscv64-linux-musl"
+	    "aarch64-linux-ohos"
         )
 #    fi
 
