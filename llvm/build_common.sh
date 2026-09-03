@@ -243,7 +243,6 @@ if [[ "$OS" == "darwin"* ]]; then
     RUNTIMES_PHASE=2
     if [[ "$CPU" == "aarch64" ]]; then
         DARWINARCHITECTURES="arm64;x86_64"
-        REDUCE_JOBS_BY_HALF=1
     else
         DARWINARCHITECTURES="$CPU"
     fi
@@ -981,7 +980,7 @@ build_project() {
                 touch "${toolchain_file}"
             fi
             if [[ -n "$JOBS" ]]; then
-                ninja -j "$JOBS"
+                ninja -l "$JOBS"
             else
                 ninja
             fi
