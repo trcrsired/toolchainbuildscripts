@@ -31,6 +31,10 @@ parse_triplet() {
         VENDOR_VAR=""                              # Clear TRIPLET_VENDOR as 'linux' is part of TRIPLET_OS
         OS_VAR="linux"                             # Shift TRIPLET_OS from TRIPLET_REMAINDER
         ABI_VAR=${TRIPLET_REMAINDER#*-}            # Extract 'abi' from TRIPLET_REMAINDER
+	elif [[ "${VENDOR_VAR}" == "wasi"* ]]; then
+		OS_VAR=${VENDOR_VAR}
+		ABI_VAR=${TRIPLET_REMAINDER%%-*}
+		VENDOR_VAR=""
     else
         # Normal behavior for non-'linux' TRIPLET_VENDOR
         if [[ "$TRIPLET_REMAINDER" == *-* ]]; then
