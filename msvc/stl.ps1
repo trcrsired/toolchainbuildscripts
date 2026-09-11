@@ -273,10 +273,10 @@ foreach ($arch in $TARGET_ARCHES) {
 
     if (-not $HeadersInstalled) {
         $incSrc = Join-Path $buildDir "out\inc"
-        $incDst = Join-Path $WINDOWSMSVCSYSROOT "include\c++\msstl"
+        $incDst = Join-Path $WINDOWSMSVCSYSROOT "include\c++\msvcstl"
 
         if (Test-Path $incDst) {
-            Write-Host "Removing old msstl headers"
+            Write-Host "Removing old msvcstl headers"
             Remove-Item $incDst -Recurse -Force
         }
 
@@ -332,7 +332,7 @@ foreach ($arch in $TARGET_ARCHES) {
             }
         }
 
-        $modulesDst = Join-Path $WINDOWSMSVCSYSROOT "share\msstl"
+        $modulesDst = Join-Path $WINDOWSMSVCSYSROOT "share\msvcstl"
         Write-Host "Copying modules to $modulesDst"
         New-Item -ItemType Directory -Force -Path $modulesDst | Out-Null
         if (Test-Path $modulesDir) {
