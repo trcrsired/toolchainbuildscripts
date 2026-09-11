@@ -619,7 +619,7 @@ set(LIBCXX_ENABLE_RTTI Off)
 set(LIBCXXABI_ENABLE_RTTI Off)
 set(LLVM_ENABLE_RUNTIMES libcxxabi;libcxx)
 EOF
-elif [[ "$OS" == "wasi"* ]]; then
+elif [[ "${CPU}" == "wasm"* ]]; then
 cat << EOF >> "$currentpath/runtimes.cmake"
 set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -fwasm-exceptions")
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -fwasm-exceptions")
