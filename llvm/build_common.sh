@@ -194,6 +194,7 @@ COMPILER_RT_PHASE=1
 ZLIB_PHASE=1
 LIBXML2_PHASE=1
 CPPWINRT_PHASE=0
+PACKAGE_PHASE=1
 COPY_COMPILER_RT_WITH_SPECIAL_NAME=0
 COPY_COMPILER_RT_USE_TRIPLET=0
 COPY_RUNTIMES_TO_TRIPLET_LIB=0
@@ -309,12 +310,17 @@ else
         DISABLE_LLVM_ENABLE_CURSES=1
     elif [[ "$OS" == "wasi"* ]]; then
 		LIBC_HEADERS_PHASE=1
-		WASI_RUNTIMES_BUILD=1
         BUILTINS_PHASE=2
         SYSROOTPATHUSR="${SYSROOTPATH}"
         USE_CMAKE_LLVM_ENABLE_LLD=0
         BUILD_RUNTIMES_ENABLE_THREADS=0
         BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=1
+        COMPILER_RT_PHASE=0
+        ZLIB_PHASE=0
+        LIBXML2_PHASE=0
+        CPPWINRT_PHASE=0
+        LLVM_PHASE=0
+        PACKAGE_PHASE=0
     fi
 fi
 
@@ -1269,23 +1275,7 @@ build_compiler_rt_or_builtins() {
 
 clone_or_update_dependency llvm-project
 
-if [[ WASI_RUNTIMES_BUILD -eq 1 ]]; then
-
-if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
-fi
-
-build_compiler_rt_or_builtins 0
-
-if [[ LIBC_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
-fi
-
-build_runtimes 0
-
-build_libherbceptions
-
-elif [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
+if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
 
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
     install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
@@ -1315,12 +1305,14 @@ build_llvm
 
 build_runtimes 1
 
+if [[ PACKAGE_PHASE -ne 0 ]]; then
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
 	cd "$TOOLCHAINS_LLVMPATH"
 	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
 	chmod 755 ${TRIPLET}.tar.xz
 	echo "$(date +%s)" > "$currentpath/.packagesuccess"
+fi
 fi
 
 else
