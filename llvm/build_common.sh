@@ -180,7 +180,10 @@ if [ -z ${SYSTEMNAME+x} ]; then
         SYSTEMNAME=OpenBSD
     elif [[ "${SYSTEMNAME}" == "Openvms" ]]; then
         SYSTEMNAME=OpenVMS
+    elif [[ "${SYSTEMNAME}" == "Wasi"* ]]; then
+        SYSTEMNAME="WASI"
     fi
+
 fi
 
 LIBC_HEADERS_PHASE=0
@@ -209,6 +212,8 @@ DISABLE_LLVM_ENABLE_CURSES=0
 WINDOWS_ALIGN_ENLARGE=0
 LIBHERBCEPTIONS_LINK_LIBCXXABI=1
 REDUCE_JOBS_BY_HALF=0
+BUILD_RUNTIMES_ENABLE_THREADS=1
+BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=0
 
 if [[ -z "${LLVM_PHASE+x}" ]]; then
 LLVM_PHASE=1
@@ -227,6 +232,10 @@ fi
 
 if [[ -z "${FREESTANDING_LIBCXX+x}" ]]; then
 FREESTANDING_LIBCXX=0
+fi
+
+if [[ -z "${BUILD_RUNTIMES_ENABLE_EXCEPTIONS+x}" ]]; then
+BUILD_RUNTIMES_ENABLE_EXCEPTIONS=1
 fi
 
 if [[ "$OS" == "darwin"* ]]; then
@@ -303,6 +312,9 @@ else
 		WASI_RUNTIMES_BUILD=1
         BUILTINS_PHASE=2
         SYSROOTPATHUSR="${SYSROOTPATH}"
+        USE_CMAKE_LLVM_ENABLE_LLD=0
+        BUILD_RUNTIMES_ENABLE_THREADS=0
+        BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=1
     fi
 fi
 
@@ -574,6 +586,50 @@ set(LLVM_ENABLE_RUNTIMES libunwind;libcxxabi;libcxx)
 set(LIBCXX_ENABLE_THREADS On)
 set(LIBCXXABI_ENABLE_THREADS On)
 set(LIBUNWIND_ENABLE_THREADS On)
+EOF
+fi
+
+if [[ BUILD_RUNTIMES_ENABLE_THREADS -eq 0 ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+# Ensure we are setting the correct options for LIBCXXABI
+set(LIBCXXABI_ENABLE_THREADS Off)
+set(LIBCXXABI_HAS_PTHREAD_API Off)
+set(LIBCXXABI_HAS_WIN32_THREAD_API Off)
+set(LIBCXXABI_HAS_EXTERNAL_THREAD_API Off)
+
+# Ensure we are setting the correct options for LIBCXX
+set(LIBCXX_ENABLE_THREADS Off)
+set(LIBCXX_HAS_PTHREAD_API Off)
+set(LIBCXX_HAS_WIN32_THREAD_API Off)
+set(LIBCXX_HAS_EXTERNAL_THREAD_API Off)
+
+# Ensure we are setting the correct options for LIBUNWIND
+set(LIBUNWIND_ENABLE_THREADS Off)
+set(LIBUNWIND_HAS_PTHREAD_API Off)
+set(LIBUNWIND_HAS_WIN32_THREAD_API Off)
+set(LIBUNWIND_HAS_EXTERNAL_THREAD_API Off)
+EOF
+fi
+
+if [[ BUILD_RUNTIMES_ENABLE_EXCEPTIONS -eq 0 ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(LIBCXX_ENABLE_EXCEPTIONS Off)
+set(LIBCXXABI_ENABLE_EXCEPTIONS Off)
+set(LIBCXX_ENABLE_RTTI Off)
+set(LIBCXXABI_ENABLE_RTTI Off)
+set(LLVM_ENABLE_RUNTIMES libcxxabi;libcxx)
+EOF
+elif [[ "$OS" == "wasi"* ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -fwasm-exceptions")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -fwasm-exceptions")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -fwasm-exceptions")
+EOF
+fi
+
+if [[ BUILD_RUNTIMES_SYSTEM_NAME_GENERIC -eq 1 ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(CMAKE_SYSTEM_NAME Generic)
 EOF
 fi
 
