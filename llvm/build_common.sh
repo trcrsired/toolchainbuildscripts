@@ -663,8 +663,12 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 EOF
 
-
-if [[ $LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
+if [[ BUILD_RUNTIMES_ENABLE_EXCEPTIONS -eq 0 ]]; then
+cat << EOF >> "$currentpath/libherbceptions.cmake"
+set(LIBHERBCEPTIONS_ENABLE_EXCEPTIONS Off)
+set(LIBHERBCEPTIONS_ENABLE_RTTI Off)
+EOF
+elif [[ LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
 cat << EOF >> $currentpath/libherbceptions.cmake
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
