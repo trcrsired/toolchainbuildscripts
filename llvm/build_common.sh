@@ -298,6 +298,11 @@ else
     elif [[ "$OS" == "freebsd"* ]]; then
         USE_CMAKE_LLVM_ENABLE_LLD=0
         DISABLE_LLVM_ENABLE_CURSES=1
+    elif [[ "$OS" == "wasi"* ]]; then
+		LIBC_HEADERS_PHASE=1
+		WASI_RUNTIMES_BUILD=1
+        BUILTINS_PHASE=2
+        SYSROOTPATHUSR="${SYSROOTPATH}"
     fi
 fi
 
@@ -481,6 +486,15 @@ cat << EOF >> "$currentpath/builtins.cmake"
 set(COMPILER_RT_BAREMETAL_BUILD On)
 EOF
 fi
+
+if [[ "$OS" == "wasi"* ]]; then
+cat << EOF >> "$currentpath/builtins.cmake"
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_MMAN")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_MMAN")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_MMAN")
+EOF
+fi
+
 cat << EOF > "$currentpath/zlib.cmake"
 include("\${CMAKE_CURRENT_LIST_DIR}/common_cmake.cmake")
 
@@ -1199,7 +1213,23 @@ build_compiler_rt_or_builtins() {
 
 clone_or_update_dependency llvm-project
 
-if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
+if [[ WASI_RUNTIMES_BUILD -eq 1 ]]; then
+
+if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
+fi
+
+build_compiler_rt_or_builtins 0
+
+if [[ LIBC_PHASE -ne 0 ]]; then
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
+fi
+
+build_runtimes 0
+
+build_libherbceptions
+
+elif [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
 
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
     install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"

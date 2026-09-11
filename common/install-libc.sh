@@ -519,6 +519,40 @@ install_libc() {
 
             cp -a "${local_djgpp_root}"/include "${sysrootpathusr}/"
             cp -a "${local_djgpp_root}"/lib "${sysrootpathusr}/"
+        elif [[ "$OS" == "wasi"* ]]; then
+            local wasibuildpath
+            local buildshared
+            if [[ $buildheadersonly == "yes" ]]; then
+                wasibuildpath="${currentpathlibc}/wasi-libc-phase1"
+                buildshared=Off
+            else
+                wasibuildpath="${currentpathlibc}/wasi-libc-phase2"
+                buildshared=On
+            fi
+            mkdir -p "${wasibuildpath}"
+            cd "${wasibuildpath}"
+            echo "tripletpath: $tripletpath"
+			cmake -GNinja $TOOLCHAINS_BUILD/wasi-libc \
+			-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+			-DCMAKE_ASM_COMPILER=clang -DBUILD_SHARED=$buildshared \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_SYSTEM_PROCESSOR=Wasm -DTARGET_TRIPLE=$TRIPLET \
+			"-DCMAKE_INSTALL_PREFIX=${installdirpath}" \
+            -DCMAKE_CROSSCOMPILING=On "-DBUILTINS_LIB=${tripletpath}/builtins/lib/wasip/libclang_rt.builtins-${CPU}.a"
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to configure wasi"
+                exit 1
+            fi
+            ninja
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to build wasi"
+                exit 1
+            fi
+            ninja install/strip
+            if [ $? -ne 0 ]; then
+                echo "Error: Failed to install wasi"
+                exit 1
+            fi
         fi
         echo "$(date +%s)" > "${currentpathlibc}/${phase_file}"
     fi
