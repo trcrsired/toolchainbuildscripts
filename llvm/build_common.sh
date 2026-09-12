@@ -220,6 +220,7 @@ REDUCE_JOBS_BY_HALF=0
 BUILD_RUNTIMES_ENABLE_THREADS=1
 BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=0
 WASILIBC_MEMTAG=0
+DISABLE_LIBHERBCEPTIONS_SHARED=0
 
 if [[ -z "${LLVM_PHASE+x}" ]]; then
 LLVM_PHASE=1
@@ -327,6 +328,7 @@ else
         CPPWINRT_PHASE=0
         LLVM_PHASE=0
         PACKAGE_PHASE=0
+        DISABLE_LIBHERBCEPTIONS_SHARED=1
     fi
 fi
 
@@ -673,10 +675,9 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 EOF
 
-if [[ "$OS" == "wasi"* ]]; then
+if [[ DISABLE_LIBHERBCEPTIONS_SHARED -eq 1 ]]; then
 cat << EOF >> "$currentpath/libherbceptions.cmake"
 set(LIBHERBCEPTIONS_BUILD_SHARED Off)
-set(LIBHERBCEPTIONS_FREESTANDING On)
 EOF
 fi
 
@@ -1140,6 +1141,13 @@ build_project() {
                         fi
                         echo "$(date +%s)" > "${build_prefix}/${rt_rename_phase_file}"
                     fi
+                fi
+            fi
+            if [[ "$OS" == "wasi"* ]]; then
+                # compiler-rt installs builtins under lib/wasi but clang looks
+                # them up under lib/<wasipN> for these triplets
+                if [ -d "${install_prefix}/lib/wasi" ]; then
+                    mv "${install_prefix}/lib/wasi" "${install_prefix}/lib/${OS}"
                 fi
             fi
             if [ ! -f "${build_prefix}/${copy_phase_file}" ]; then
