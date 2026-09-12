@@ -12,7 +12,11 @@ artifactspath="$(realpath .)/.artifacts"
 if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
     currentpath="${artifactspath}/windows-msvc-sysroot/${TRIPLET}"
 else
-    currentpath="${artifactspath}/llvm/${TRIPLET}"
+    if [[ -n "$WASI_SYSROOT_VARIANT" ]]; then
+        currentpath="${artifactspath}/wasm-sysroots/${WASI_SYSROOT_VARIANT}/${TRIPLET}"
+    else
+        currentpath="${artifactspath}/llvm/${TRIPLET}"
+    fi
 fi
 
 if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
@@ -68,7 +72,11 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 fi
 
 if [ -z ${TOOLCHAINS_LLVMPATH+x} ]; then
-    TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
+    if [[ -n "$WASI_SYSROOT_VARIANT" ]]; then
+        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm/wasm-sysroots/${WASI_SYSROOT_VARIANT}"
+    else
+        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
+    fi
 fi
 
 if [ -z ${TOOLCHAINS_LLVMTRIPLETPATH+x} ]; then
@@ -215,6 +223,7 @@ LIBHERBCEPTIONS_LINK_LIBCXXABI=1
 REDUCE_JOBS_BY_HALF=0
 BUILD_RUNTIMES_ENABLE_THREADS=1
 BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=0
+WASILIBC_MEMTAG=0
 
 if [[ -z "${LLVM_PHASE+x}" ]]; then
 LLVM_PHASE=1
@@ -623,6 +632,10 @@ set(LIBCXX_ENABLE_EXCEPTIONS Off)
 set(LIBCXXABI_ENABLE_EXCEPTIONS Off)
 set(LIBCXX_ENABLE_RTTI Off)
 set(LIBCXXABI_ENABLE_RTTI Off)
+set(LIBCXX_ENABLE_RTTI Off)
+set(LIBCXXABI_ENABLE_RTTI Off)
+set(LIBCXX_USE_LLVM_UNWINDER Off)
+set(LIBCXXABI_USE_LLVM_UNWINDER Off)
 set(LLVM_ENABLE_RUNTIMES libcxxabi;libcxx)
 EOF
 elif [[ "${CPU}" == "wasm"* ]]; then

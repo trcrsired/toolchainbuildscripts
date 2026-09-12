@@ -532,13 +532,21 @@ install_libc() {
             mkdir -p "${wasibuildpath}"
             cd "${wasibuildpath}"
             echo "tripletpath: $tripletpath"
+            local memtag_flags=""
+            if [[ "x${ENABLE_WASILIBC_MEMTAG}" == "xyes" || "x${ENABLE_WASILIBC_MEMTAG}" == "x1" ]]; then
+                memtag_flags="-DENABLE_MEMTAG=On"
+            fi
+            if [[ "x${ENABLE_WASILIBC_MEMTAG_NOVERBOSE}" == "xyes" || "x${ENABLE_WASILIBC_MEMTAG_NOVERBOSE}" == "x1" ]]; then
+                memtag_flags="$memtag_flags -DMEMTAG_NOVERBOSE=On"
+            fi
 			cmake -GNinja $TOOLCHAINS_BUILD/wasi-libc \
 			-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
 			-DCMAKE_ASM_COMPILER=clang -DBUILD_SHARED=$buildshared \
 			-DCMAKE_BUILD_TYPE=Release \
 			-DCMAKE_SYSTEM_PROCESSOR=Wasm -DTARGET_TRIPLE=$TRIPLET \
 			"-DCMAKE_INSTALL_PREFIX=${installdirpath}" \
-            -DCMAKE_CROSSCOMPILING=On "-DBUILTINS_LIB=${tripletpath}/builtins/lib/wasi/libclang_rt.builtins-${CPU}.a"
+            -DCMAKE_CROSSCOMPILING=On "-DBUILTINS_LIB=${tripletpath}/builtins/lib/wasi/libclang_rt.builtins-${CPU}.a" \
+			${memtag_flags}
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to configure wasi"
                 exit 1
