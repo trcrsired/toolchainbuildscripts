@@ -544,7 +544,7 @@ install_libc() {
 			-DCMAKE_BUILD_TYPE=Release \
 			-DCMAKE_SYSTEM_PROCESSOR=Wasm -DTARGET_TRIPLE=$TRIPLET \
 			"-DCMAKE_INSTALL_PREFIX=${installdirpath}" \
-            -DCMAKE_CROSSCOMPILING=On "-DBUILTINS_LIB=${tripletpath}/builtins/lib/wasi/libclang_rt.builtins-${CPU}.a" \
+            -DCMAKE_CROSSCOMPILING=On "-DBUILTINS_LIB=${tripletpath}/builtins/lib/${OS}/libclang_rt.builtins-${CPU}.a" \
 			${memtag_flags}
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to configure wasi"
