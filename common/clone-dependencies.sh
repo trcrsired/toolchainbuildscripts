@@ -60,6 +60,10 @@ get_git_urls() {
             GIT_URL="https://github.com/microsoft/cppwinrt.git"
             GIT_CHINA_DOWNSTREAM_URL="https://gitee.com/qabeowjbtkwb/cppwinrt.git"
             ;;
+        "wasi-libc")
+            GIT_URL="https://github.com/trcrsired/wasi-libc.git"
+            GIT_CHINA_DOWNSTREAM_URL="${GIT_URL}"
+            ;;
         *)
             echo "Unknown dependency: $DEPENDENCY_NAME"
             exit 1

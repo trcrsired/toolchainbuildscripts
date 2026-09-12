@@ -639,6 +639,13 @@ set(CMAKE_SYSTEM_NAME Generic)
 EOF
 fi
 
+if [[ "$OS" == "wasi"* ]]; then
+cat << EOF >> "$currentpath/runtimes.cmake"
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -D_LIBCPP_PROVIDES_DEFAULT_RUNE_TABLE")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -D_LIBCPP_PROVIDES_DEFAULT_RUNE_TABLE")
+EOF
+fi
+
 cat << EOF >> "$currentpath/runtimes.cmake"
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
@@ -663,13 +670,20 @@ set(CMAKE_CXX_COMPILER_WORKS On)
 set(CMAKE_ASM_COMPILER_WORKS On)
 EOF
 
+if [[ "$OS" == "wasi"* ]]; then
+cat << EOF >> "$currentpath/libherbceptions.cmake"
+set(LIBHERBCEPTIONS_BUILD_SHARED Off)
+set(LIBHERBCEPTIONS_FREESTANDING On)
+EOF
+fi
+
 if [[ BUILD_RUNTIMES_ENABLE_EXCEPTIONS -eq 0 ]]; then
 cat << EOF >> "$currentpath/libherbceptions.cmake"
 set(LIBHERBCEPTIONS_ENABLE_EXCEPTIONS Off)
 set(LIBHERBCEPTIONS_ENABLE_RTTI Off)
 EOF
 elif [[ LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
-cat << EOF >> $currentpath/libherbceptions.cmake
+cat << EOF >> "$currentpath/libherbceptions.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
 EOF
 fi
