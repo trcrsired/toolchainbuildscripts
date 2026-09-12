@@ -129,14 +129,17 @@ Create-CfgFile "riscv64-linux-gnu-libcxx.cfg" "riscv64-linux-gnu" "$ABS_TOOLCHAI
 Create-CfgFile "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "" "" $FLAGS_DARWIN
 
 # Create wasm .cfg files
-Create-CfgFile "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm64-wasip1/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
-Create-CfgFile "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-memtag-sysroot/wasm32-wasip1/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
-Create-CfgFile "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm64-wasip1/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag -fno-exceptions"
-Create-CfgFile "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-memtag-sysroot/wasm32-wasip1/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag -fno-exceptions"
-Create-CfgFile "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot/wasm64-wasip1/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
-Create-CfgFile "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot/wasm32-wasip1/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
-Create-CfgFile "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-sysroot/wasm64-wasip1/wasm64-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fno-exceptions"
-Create-CfgFile "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-noeh-sysroot/wasm32-wasip1/wasm32-wasip1" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fno-exceptions"
+# Each variant dir under wasm-sysroots/ is a shared sysroot containing
+# include/<triplet>, lib/<triplet> and share; clang locates the per-triplet
+# pieces via --target.
+Create-CfgFile "wasm64-wasip1.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-mtg" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
+Create-CfgFile "wasm32-wasip1.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-mtg" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fsanitize=memtag -fwasm-exceptions"
+Create-CfgFile "wasm64-wasip1-noeh.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-noeh-mtg" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag -fno-exceptions"
+Create-CfgFile "wasm32-wasip1-noeh.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-noeh-mtg" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fsanitize=memtag -fno-exceptions"
+Create-CfgFile "wasm64-wasip1-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
+Create-CfgFile "wasm32-wasip1-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP "-fwasm-exceptions"
+Create-CfgFile "wasm64-wasip1-noeh-nomtg.cfg" "wasm64-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-noeh" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fno-exceptions"
+Create-CfgFile "wasm32-wasip1-noeh-nomtg.cfg" "wasm32-wasip1" "$ABS_TOOLCHAINSPATH_LLVM/wasm-sysroots/wasm-sysroot-noeh" $STANDARD_FLAGS_C $STANDARD_FLAGS_CPP_NOLIBUNWIND "-fno-exceptions"
 
 # Create msvc .cfg files
 Create-CfgFile "x86_64-windows-msvc.cfg" "x86_64-windows-msvc" "$ABS_TOOLCHAINSPATH/windows-msvc-sysroot" "" "" "-D_DLL=1 -lmsvcrt"

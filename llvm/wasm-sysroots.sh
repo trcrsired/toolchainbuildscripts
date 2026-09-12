@@ -21,15 +21,31 @@ fi
 TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
 TOOLCHAINS_LLVMSYSROOTSPATH="$TOOLCHAINS_LLVMPATH/wasm-sysroots"
 
+# Define all WASI sysroot variants
+WASI_VARIANTS=(
+	"wasm-sysroot"
+	"wasm-sysroot-mtg"
+	"wasm-sysroot-noeh"
+	"wasm-sysroot-noeh-mtg"
+)
+
+# Define all WASI targets
+WASI_TARGETS=(
+	"wasm32-wasip1"
+	"wasm32-wasip2"
+	"wasm32-wasip3"
+	"wasm32-wasip1-threads"
+	"wasm64-wasip1"
+	"wasm64-wasip2"
+	"wasm64-wasip3"
+	"wasm64-wasip1-threads"
+)
+
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "$(realpath .)/.artifacts/wasm-sysroots"
 	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
-	rm "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
-	# Also clean individual triplet dirs
-	for triplet in wasm32-wasip1 wasm32-wasip2 wasm32-wasip1-threads wasm32-wasip2-threads wasm32-wasip3 wasm64-wasip1 wasm64-wasip2 wasm64-wasip1-threads; do
-		rm -rf "${TOOLCHAINSPATH}/llvm/wasm-sysroots/${triplet}"
-	done
+	rm -f "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
 	echo "restart done"
 fi
 
@@ -47,38 +63,34 @@ clone_or_update_dependency wasi-libc
 
 cd "$SCRIPT_DIR"
 
-# Define all WASI targets
-WASI_TARGETS=(
-	"wasm32-wasip1"
-	"wasm32-wasip2"
-	"wasm32-wasip3"
-	"wasm32-wasip1-threads"
-	"wasm64-wasip1"
-	"wasm64-wasip2"
-	"wasm64-wasip3"
-	"wasm64-wasip1-threads"
-)
-
-for triplet in "${WASI_TARGETS[@]}"; do
-	echo "===== Building $triplet ====="
+for variant in "${WASI_VARIANTS[@]}"; do
+	echo "===== Building variant $variant ====="
 
 	local_memtag=0
 	local_eh=1
-	if [[ "$triplet" == *threads ]]; then
+	if [[ "$variant" == *mtg* ]]; then
 		local_memtag=1
 	fi
-
-	TRIPLET=$triplet \
-	WASI_FLAT_SYSROOTS=1 \
-	ENABLE_WASILIBC_MEMTAG="$local_memtag" \
-	BUILD_RUNTIMES_ENABLE_EXCEPTIONS=$local_eh \
-	./build_common.sh "$1"
-
-	if [ $? -ne 0 ]; then
-		echo "❌ build_common.sh failed for $triplet"
-		exit 1
+	if [[ "$variant" == *noeh* ]]; then
+		local_eh=0
 	fi
-	echo "✔ Build succeeded for $triplet"
+
+	for triplet in "${WASI_TARGETS[@]}"; do
+		echo "===== Building $variant / $triplet ====="
+
+		TRIPLET=$triplet \
+		WASI_SYSROOT_VARIANT=$variant \
+		WASI_FLAT_SYSROOTS=1 \
+		ENABLE_WASILIBC_MEMTAG="$local_memtag" \
+		BUILD_RUNTIMES_ENABLE_EXCEPTIONS=$local_eh \
+		./build_common.sh "$1"
+
+		if [ $? -ne 0 ]; then
+			echo "❌ build_common.sh failed for $variant / $triplet"
+			exit 1
+		fi
+		echo "✔ Build succeeded for $variant / $triplet"
+	done
 done
 
 echo "🎉 All WASI builds completed successfully"
