@@ -26,9 +26,9 @@ if [[ $1 == "restart" ]]; then
 	rm -rf "$(realpath .)/.artifacts/wasm-sysroots"
 	rm -rf "${TOOLCHAINS_LLVMSYSROOTSPATH}"
 	rm "${TOOLCHAINS_LLVMSYSROOTSPATH}.tar.xz"
-	# Also clean individual variant dirs
-	for variant in wasm-sysroot wasm-memtag-sysroot wasm-noeh-sysroot wasm-noeh-memtag-sysroot; do
-		rm -rf "${TOOLCHAINSPATH}/llvm/wasm-sysroots/${variant}"
+	# Also clean individual triplet dirs
+	for triplet in wasm32-wasip1 wasm32-wasip2 wasm32-wasip1-threads wasm32-wasip2-threads wasm32-wasip3 wasm64-wasip1 wasm64-wasip2 wasm64-wasip1-threads; do
+		rm -rf "${TOOLCHAINSPATH}/llvm/wasm-sysroots/${triplet}"
 	done
 	echo "restart done"
 fi
@@ -59,39 +59,26 @@ WASI_TARGETS=(
 	"wasm64-wasip1-threads"
 )
 
-# Build all variants via build_common.sh
-# Variants: <name> <enable_eh> <enable_memtag>
-WASI_VARIANTS=(
-	"wasm-sysroot 1 0"
-	"wasm-memtag-sysroot 1 1"
-	"wasm-noeh-sysroot 0 0"
-	"wasm-noeh-memtag-sysroot 0 1"
-)
+for triplet in "${WASI_TARGETS[@]}"; do
+	echo "===== Building $triplet ====="
 
-for variant_spec in "${WASI_VARIANTS[@]}"; do
-	read -r VARIANT ENABLE_EH ENABLE_MEMTAG <<< "$variant_spec"
-	echo "===== Building variant: $VARIANT (EH=$ENABLE_EH, MEMTAG=$ENABLE_MEMTAG) ====="
+	local_memtag=0
+	local_eh=1
+	if [[ "$triplet" == *threads ]]; then
+		local_memtag=1
+	fi
 
-	for triplet in "${WASI_TARGETS[@]}"; do
-		echo "  --- Building $triplet ---"
+	TRIPLET=$triplet \
+	WASI_FLAT_SYSROOTS=1 \
+	ENABLE_WASILIBC_MEMTAG="$local_memtag" \
+	BUILD_RUNTIMES_ENABLE_EXCEPTIONS=$local_eh \
+	./build_common.sh "$1"
 
-		local_memtag=0
-		if [[ "$ENABLE_MEMTAG" == "1" ]]; then
-			local_memtag=1
-		fi
-#		MEMTAG_NOVERBOSE="yes"
-		TRIPLET=$triplet \
-		WASI_SYSROOT_VARIANT="$VARIANT" \
-		ENABLE_WASILIBC_MEMTAG="$local_memtag" \
-		BUILD_RUNTIMES_ENABLE_EXCEPTIONS=$ENABLE_EH \
-		./build_common.sh "$1"
-
-		if [ $? -ne 0 ]; then
-			echo "❌ build_common.sh failed for $triplet (variant: $VARIANT)"
-			exit 1
-		fi
-		echo "✔ Build succeeded for $triplet (variant: $VARIANT)"
-	done
+	if [ $? -ne 0 ]; then
+		echo "❌ build_common.sh failed for $triplet"
+		exit 1
+	fi
+	echo "✔ Build succeeded for $triplet"
 done
 
 echo "🎉 All WASI builds completed successfully"

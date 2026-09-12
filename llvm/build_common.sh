@@ -74,6 +74,8 @@ fi
 if [ -z ${TOOLCHAINS_LLVMPATH+x} ]; then
     if [[ -n "$WASI_SYSROOT_VARIANT" ]]; then
         TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm/wasm-sysroots/${WASI_SYSROOT_VARIANT}"
+    elif [[ "$OS" == "wasi"* ]]; then
+        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm/wasm-sysroots"
     else
         TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
     fi
@@ -224,6 +226,7 @@ REDUCE_JOBS_BY_HALF=0
 BUILD_RUNTIMES_ENABLE_THREADS=1
 BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=0
 WASILIBC_MEMTAG=0
+WASI_FLAT_SYSROOTS=0
 
 if [[ -z "${LLVM_PHASE+x}" ]]; then
 LLVM_PHASE=1
@@ -331,6 +334,9 @@ else
         CPPWINRT_PHASE=0
         LLVM_PHASE=0
         PACKAGE_PHASE=0
+        if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
+            LIBHERBCEPTIONS_PHASE=0
+        fi
     fi
 fi
 
@@ -1314,9 +1320,13 @@ fi
 
 build_compiler_rt_or_builtins 1
 
-build_runtimes 0
-
-build_libherbceptions
+if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
+    # Skip per-triplet runtimes/libherbceptions for flat sysroot layout
+    : # no-op
+else
+    build_runtimes 0
+    build_libherbceptions
+fi
 
 build_compiler_rt_or_builtins 2
 
@@ -1328,22 +1338,32 @@ build_cppwinrt
 
 build_llvm
 
-build_runtimes 1
+if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
+    build_runtimes 1
+fi
 
 if [[ PACKAGE_PHASE -ne 0 ]]; then
 if [ ! -f "$currentpath/.packagesuccess" ]; then
-	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
-	cd "$TOOLCHAINS_LLVMPATH"
-	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
-	chmod 755 ${TRIPLET}.tar.xz
-	echo "$(date +%s)" > "$currentpath/.packagesuccess"
+    if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
+        # Package all triplets into a single tarball for flat sysroot
+        cd "$TOOLCHAINS_LLVMPATH"
+        XZ_OPT=-e9T0 tar cJf wasm-sysroots.tar.xz wasm-sysroots
+        chmod 755 wasm-sysroots.tar.xz
+    else
+        rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
+        cd "$TOOLCHAINS_LLVMPATH"
+        XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
+        chmod 755 ${TRIPLET}.tar.xz
+    fi
+    echo "$(date +%s)" > "$currentpath/.packagesuccess"
 fi
 fi
 
 else
 
-build_runtimes 0
-
-build_libherbceptions 0
+if [[ "$WASI_FLAT_SYSROOTS" -eq 0 ]]; then
+    build_runtimes 0
+    build_libherbceptions 0
+fi
 
 fi
