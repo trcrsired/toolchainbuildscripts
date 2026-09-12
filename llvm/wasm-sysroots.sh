@@ -53,14 +53,10 @@ WASI_TARGETS=(
 	"wasm32-wasip2"
 	"wasm32-wasip3"
 	"wasm32-wasip1-threads"
-	"wasm32-wasip2-threads"
-	"wasm32-wasip3-threads"
 	"wasm64-wasip1"
 	"wasm64-wasip2"
 	"wasm64-wasip3"
 	"wasm64-wasip1-threads"
-	"wasm64-wasip2-threads"
-	"wasm64-wasip3-threads"
 )
 
 # Build all variants via build_common.sh

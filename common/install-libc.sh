@@ -531,7 +531,6 @@ install_libc() {
             fi
             mkdir -p "${wasibuildpath}"
             cd "${wasibuildpath}"
-            echo "tripletpath: $tripletpath"
             local memtag_flags=""
             if [[ "x${ENABLE_WASILIBC_MEMTAG}" == "xyes" || "x${ENABLE_WASILIBC_MEMTAG}" == "x1" ]]; then
                 memtag_flags="-DENABLE_MEMTAG=On"

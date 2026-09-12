@@ -319,6 +319,7 @@ else
         DISABLE_LLVM_ENABLE_CURSES=1
     elif [[ "$OS" == "wasi"* ]]; then
 		LIBC_HEADERS_PHASE=1
+        LIBC_PHASE=0
         BUILTINS_PHASE=2
         SYSROOTPATHUSR="${SYSROOTPATH}"
         USE_CMAKE_LLVM_ENABLE_LLD=0
