@@ -7,12 +7,6 @@ echo "TRIPLET is not set. Please set the TRIPLET environment variable to the tar
 exit 1
 fi
 
-if [ -z ${WASI_FLAT_SYSROOTS+x} ]; then
-# Collapse runtimes/libherbceptions into a flat sysroot layout and install
-# builtins into the shared ${TOOLCHAINS_LLVMPATH}/builtins directory.
-WASI_FLAT_SYSROOTS=0
-fi
-
 artifactspath="$(realpath .)/.artifacts"
 
 if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -ne 0 ]]; then
@@ -78,13 +72,7 @@ if [ -z ${TOOLCHAINSPATH+x} ]; then
 fi
 
 if [ -z ${TOOLCHAINS_LLVMPATH+x} ]; then
-    if [[ -n "$WASI_SYSROOT_VARIANT" ]]; then
-        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm/wasm-sysroots/${WASI_SYSROOT_VARIANT}"
-    elif [[ "$OS" == "wasi"* ]]; then
-        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm/wasm-sysroots"
-    else
-        TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
-    fi
+    TOOLCHAINS_LLVMPATH="$TOOLCHAINSPATH/llvm"
 fi
 
 if [ -z ${TOOLCHAINS_LLVMTRIPLETPATH+x} ]; then
@@ -104,19 +92,7 @@ fi
 
 echo "NO_TOOLCHAIN_DELETION:${NO_TOOLCHAIN_DELETION}"
 
-if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-# The variant directory itself is the sysroot, shared by all triplets.
-# wasi-libc installs into include/${TRIPLET} and lib/${TRIPLET} underneath it.
-SYSROOTPATH="$TOOLCHAINS_LLVMPATH"
-# Builtins and other shared pieces live at the wasm-sysroots root.
-if [[ -n "$WASI_SYSROOT_VARIANT" ]]; then
-WASM_SYSROOTS_ROOT="$(dirname "$TOOLCHAINS_LLVMPATH")"
-else
-WASM_SYSROOTS_ROOT="$TOOLCHAINS_LLVMPATH"
-fi
-else
 SYSROOTPATH="$TOOLCHAINS_LLVMTRIPLETPATH/${TRIPLET}"
-fi
 SYSROOTPATHUSR="${SYSROOTPATH}/usr"
 
 if [[ $OS == "darwin"* ]]; then
@@ -133,10 +109,7 @@ TOOLCHAINS_LLVMTRIPLETPATH_RUNTIMES="${TOOLCHAINS_LLVMTRIPLETPATH}/runtimes"
 if [[ $1 == "restart" ]]; then
 	echo "restarting"
 	rm -rf "${currentpath}"
-    if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-        rm -rf "${SYSROOTPATH}/lib/${TRIPLET}"
-        rm -rf "${SYSROOTPATH}/include/${TRIPLET}"
-    elif [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
+    if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
         find "${TOOLCHAINS_LLVMTRIPLETPATH}" -mindepth 1 -maxdepth 1 -type d ! -name "llvm" ! -name "runtimes" -exec rm -rf {} +
     else
         rm -rf "${TOOLCHAINS_LLVMTRIPLETPATH}"
@@ -189,11 +162,7 @@ mkdir -p "${currentpath}"
 cd "${currentpath}"
 mkdir -p $TOOLCHAINSPATH
 mkdir -p $TOOLCHAINS_LLVMPATH
-if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-mkdir -p "$SYSROOTPATH"
-else
 mkdir -p $TOOLCHAINS_LLVMTRIPLETPATH
-fi
 
 capitalize() {
     echo "$1" | sed 's/.*/\L&/; s/[a-z]*/\u&/g'
@@ -1060,15 +1029,7 @@ build_project() {
         fi
     fi
     local install_prefix="${TOOLCHAINS_LLVMTRIPLETPATH}/${project_name_alternative}"
-    if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-        if [[ "$project_name" == "builtins" || "$project_name" == "compiler-rt" ]]; then
-            install_prefix="${WASM_SYSROOTS_ROOT}/builtins"
-        else
-            # Pseudo install prefix inside the build directory; contents get
-            # merged into the flat sysroot afterwards.
-            install_prefix="${build_prefix}/install"
-        fi
-    elif [[ "$project_name" == "runtimes" || "$project_name" == "llvm" ]]; then
+    if [[ "$project_name" == "runtimes" || "$project_name" == "llvm" ]]; then
         if [[ "x$NO_TOOLCHAIN_DELETION" == "xyes" ]]; then
             install_prefix="${install_prefix}_tmp"
             need_move_tmp=yes
@@ -1216,23 +1177,6 @@ build_project() {
                     mkdir -p ${SYSROOTPATHUSR}/share
                     cp -r --preserve=links ${install_prefix}/share/* ${SYSROOTPATHUSR}/share/
                 fi
-            elif [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-                # Merge everything into the shared sysroot; libraries go under
-                # lib/${TRIPLET} so all triplets can coexist in one sysroot.
-                if [[ "$project_name" == "runtimes" ]]; then
-                    if [ -f "${install_prefix}/lib/libc++.modules.json" ]; then
-                        sed -i "s|../share/|../../share/|g" "${install_prefix}/lib/libc++.modules.json"
-                    fi
-                fi
-                for item in "$install_prefix"/*; do
-                    if [[ "$(basename "$item")" != "lib" ]]; then
-                        cp -r --preserve=links "$item" "${SYSROOTPATHUSR}"/
-                    fi
-                done
-                if [ -d "${install_prefix}/lib" ]; then
-                    mkdir -p "${SYSROOTPATHUSR}/lib/${TRIPLET}"
-                    cp -r --preserve=links "$install_prefix"/lib/* "${SYSROOTPATHUSR}/lib/${TRIPLET}"/
-                fi
             elif [[ ("$project_name" == "zlib" || "$project_name" == "libxml2" || "$project_name" == "runtimes") && ${COPY_RUNTIMES_TO_TRIPLET_LIB} -eq 1 ]]; then
                 # Copy everything except lib normally
                 for item in "$install_prefix"/*; do
@@ -1354,33 +1298,20 @@ clone_or_update_dependency llvm-project
 
 if [[ $WINDOWS_MSVC_SYSROOT_RUNTIMES_BUILD -eq 0 ]]; then
 
-# In flat sysroot mode builtins install into the shared
-# ${TOOLCHAINS_LLVMPATH}/builtins directory, which libc build refers to via
-# -DBUILTINS_LIB, so they must be installed before libc.
-if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-    build_compiler_rt_or_builtins 0
-fi
-
-libc_tripletpath="${TOOLCHAINS_LLVMTRIPLETPATH}"
-if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-    libc_tripletpath="${WASM_SYSROOTS_ROOT}"
-fi
-
 if [[ LIBC_HEADERS_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${libc_tripletpath}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "yes"
 fi
 
-if [[ "$WASI_FLAT_SYSROOTS" -eq 0 ]]; then
-    build_compiler_rt_or_builtins 0
-fi
+build_compiler_rt_or_builtins 0
 
 if [[ LIBC_PHASE -ne 0 ]]; then
-    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${libc_tripletpath}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
+    install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" "" $TRIPLET "${currentpath}/libc" "${TOOLCHAINS_LLVMTRIPLETPATH}" "${SYSROOTPATHUSR}" "${BUILD_LIBC_WITH_LLVM}" "no"
 fi
 
 build_compiler_rt_or_builtins 1
 
 build_runtimes 0
+
 build_libherbceptions
 
 build_compiler_rt_or_builtins 2
@@ -1395,26 +1326,18 @@ build_llvm
 
 if [[ PACKAGE_PHASE -ne 0 ]]; then
 if [ ! -f "$currentpath/.packagesuccess" ]; then
-    if [[ "$WASI_FLAT_SYSROOTS" -eq 1 ]]; then
-        # Package all variants into a single tarball for flat sysroot
-        cd "$(dirname "$WASM_SYSROOTS_ROOT")"
-        XZ_OPT=-e9T0 tar cJf wasm-sysroots.tar.xz wasm-sysroots
-        chmod 755 wasm-sysroots.tar.xz
-    else
-        rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
-        cd "$TOOLCHAINS_LLVMPATH"
-        XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
-        chmod 755 ${TRIPLET}.tar.xz
-    fi
+	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
+	cd "$TOOLCHAINS_LLVMPATH"
+	XZ_OPT=-e9T0 tar cJf ${TRIPLET}.tar.xz ${TRIPLET}
+	chmod 755 ${TRIPLET}.tar.xz
     echo "$(date +%s)" > "$currentpath/.packagesuccess"
 fi
 fi
 
 else
 
-if [[ "$WASI_FLAT_SYSROOTS" -eq 0 ]]; then
-    build_runtimes 0
-    build_libherbceptions 0
-fi
+build_runtimes 0
+
+build_libherbceptions 0
 
 fi
