@@ -1332,6 +1332,8 @@ build_cppwinrt
 
 build_llvm
 
+build_runtimes 1
+
 if [[ PACKAGE_PHASE -ne 0 ]]; then
 if [ ! -f "$currentpath/.packagesuccess" ]; then
 	rm -f "${TOOLCHAINS_LLVMTRIPLETPATH}.tar.xz"
