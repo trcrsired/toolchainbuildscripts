@@ -99,6 +99,14 @@ SYSROOT_SETTING="-DCMAKE_SYSROOT=${SYSROOTPATH} \
 		SYSTEMNAME=Linux
 	elif [[ ${SYSTEMNAME} == "Darwin" ]]; then
 		SYSROOT_SETTINGS="$SYSROOT_SETTINGS -DCMAKE_CURRENT_OSX_VERSION=10.5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"
+		# On Darwin the unwinder must be the system libunwind: the personality routines in
+		# libc++abi call back into the system libunwind, so linking the toolchain libunwind
+		# would split a single unwind across two incompatible implementations.
+		EXTRACFLAGS="${EXTRACFLAGS//--unwindlib=libunwind/}"
+		EXTRACFLAGS="${EXTRACFLAGS//-lunwind/}"
+		EXTRACXXFLAGS="${EXTRACXXFLAGS//--unwindlib=libunwind/}"
+		EXTRACXXFLAGS="${EXTRACXXFLAGS//-lunwind/}"
+		EXTRAASMFLAGS=$EXTRACFLAGS
 	fi
 fi
 
