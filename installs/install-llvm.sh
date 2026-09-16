@@ -69,12 +69,12 @@ if [ "$DOWNLOAD_ALL" == "yes" ]; then
         "x86_64-linux-android30"
         "loongarch64-linux-gnu"
         "loongarch64-linux-musl"
-        "riscv64-linux-android35"
+        #"riscv64-linux-android35"
         "riscv64-linux-gnu"
-        "riscv64-linux-musl"
+        #"riscv64-linux-musl"
         "wasm-sysroots"
-	"i686-windows-gnu"
-	"i686-windows-musl"
+	#"i686-windows-gnu"
+	#"i686-windows-musl"
     )
 else
     if [ -z "$TRIPLE" ]; then
