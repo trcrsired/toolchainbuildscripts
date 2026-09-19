@@ -24,10 +24,10 @@ ARTIFACTS_ROOT="$(realpath "$SCRIPT_DIR")/.artifacts"
 
 # Define all WASI sysroot variants
 WASI_VARIANTS=(
-	"wasm-sysroot"
-	"wasm-sysroot-mtg"
-	"wasm-sysroot-noeh"
 	"wasm-sysroot-noeh-mtg"
+	"wasm-sysroot-noeh"
+	"wasm-sysroot-mtg"
+	"wasm-sysroot"
 )
 
 # Define all WASI targets
