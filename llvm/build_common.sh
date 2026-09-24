@@ -994,13 +994,19 @@ EOF
 fi
 
 if [[ WINDOWS_ALIGN_ENLARGE -eq 1 ]]; then
+if [[ "${ABI}" == "msvc" ]]; then
+# lld-link (MSVC driver mode) uses /align; --section-alignment is the GNU spelling
+WINDOWS_SECTION_ALIGNMENT_FLAG="/align:0x10000"
+else
+WINDOWS_SECTION_ALIGNMENT_FLAG="--section-alignment=0x10000"
+fi
 cat << EOF >> $currentpath/common_cmake.cmake
-set(CMAKE_EXE_LINKER_FLAGS "\${CMAKE_EXE_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
-set(CMAKE_SHARED_LINKER_FLAGS "\${CMAKE_SHARED_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
-set(CMAKE_MODULE_LINKER_FLAGS "\${CMAKE_MODULE_LINKER_FLAGS} -Wl,--section-alignment=0x10000 -Wl,/driver")
-set(CMAKE_C_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
-set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -Wl,--section-alignment=0x10000 -Wl,/driver")
+set(CMAKE_EXE_LINKER_FLAGS "\${CMAKE_EXE_LINKER_FLAGS} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
+set(CMAKE_SHARED_LINKER_FLAGS "\${CMAKE_SHARED_LINKER_FLAGS} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
+set(CMAKE_MODULE_LINKER_FLAGS "\${CMAKE_MODULE_LINKER_FLAGS} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -Wl,${WINDOWS_SECTION_ALIGNMENT_FLAG} -Wl,/driver")
 EOF
 fi
 
