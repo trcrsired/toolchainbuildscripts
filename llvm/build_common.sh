@@ -386,6 +386,11 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM "NEVER")
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY "ONLY")
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE "ONLY")
 
+# pkg-config is not sysroot-aware: restrict it to the sysroot's .pc files so
+# host private deps (e.g. -licuuc from the host libxml-2.0.pc) cannot leak in.
+set(ENV{PKG_CONFIG_LIBDIR} "\${CMAKE_FIND_ROOT_PATH}/lib/pkgconfig:\${CMAKE_FIND_ROOT_PATH}/share/pkgconfig:\${CMAKE_FIND_ROOT_PATH}/lib/${TRIPLET}/pkgconfig")
+set(ENV{PKG_CONFIG_PATH} "")
+
 find_program(CMAKE_LIPO llvm-lipo)
 if (NOT CMAKE_LIPO)
     message(FATAL_ERROR "llvm-lipo not found")
