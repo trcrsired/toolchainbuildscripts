@@ -30,19 +30,19 @@ cd "$llvmcurrentrealpath"
 main() {
     # Define an array with TRIPLET values, each on a new line
     local TRIPLETS2=(
-        "aarch64-apple-darwin24"
+        "x86_64-linux-gnu"
+        "x86_64-windows-gnu"
+        "aarch64-windows-gnu"
         "aarch64-linux-android30"
+        "aarch64-apple-darwin24"
         "aarch64-linux-gnu"
         "aarch64-linux-musl"
-        "aarch64-windows-gnu"
 #        "i686-windows-gnu"
 #        "i686-linux-musl"
         "loongarch64-linux-gnu"
         "loongarch64-linux-musl"
         "x86_64-linux-android30"
-        "x86_64-linux-gnu"
         "x86_64-linux-musl"
-        "x86_64-windows-gnu"
 #        "x86_64-freebsd14"
     )
 
