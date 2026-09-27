@@ -86,7 +86,8 @@ create_cfg_file "x86_64-linux-android30-libcxx.cfg" "x86_64-linux-android30" "$A
 create_cfg_file "loongarch64-linux-gnu-libcxx.cfg" "loongarch64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/loongarch64-linux-gnu/loongarch64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 create_cfg_file "riscv64-linux-gnu-libcxx.cfg" "riscv64-linux-gnu" "$ABS_TOOLCHAINSPATH_LLVM/riscv64-linux-gnu/riscv64-linux-gnu" "$STANDARD_FLAGS_C" "$STANDARD_FLAGS_CPP" ""
 
-create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "" "" "$FLAGS_DARWIN"
+create_cfg_file "aarch64-apple-darwin24.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "" "" "-fuse-lipo=llvm-lipo"
+create_cfg_file "aarch64-apple-darwin24-universal.cfg" "aarch64-apple-darwin24" "$ABS_TOOLCHAINSPATH_LLVM/aarch64-apple-darwin24/aarch64-apple-darwin24" "" "" "$FLAGS_DARWIN"
 
 # Create wasm .cfg files
 # Each variant dir under wasm-sysroots/ is a shared sysroot containing
