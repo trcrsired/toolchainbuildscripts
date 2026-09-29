@@ -643,10 +643,11 @@ set(LIBCXXABI_USE_LLVM_UNWINDER Off)
 set(LLVM_ENABLE_RUNTIMES libcxxabi;libcxx)
 EOF
 elif [[ "${CPU}" == "wasm"* ]]; then
-cat << EOF >> "$currentpath/runtimes.cmake"
-set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} -fwasm-exceptions -mllvm --wasm-use-legacy-eh=false")
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -fwasm-exceptions -mllvm --wasm-use-legacy-eh=false")
-set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} -fwasm-exceptions -mllvm --wasm-use-legacy-eh=false")
+cat << EOF >> "$currentpath/common_cmake.cmake"
+set(WASM_EH_FLAGS "-fwasm-exceptions -mllvm --wasm-use-legacy-eh=false -Wl,-mllvm,-wasm-use-legacy-eh=false -Wl,-mllvm,-exception-model=wasm")
+set(CMAKE_C_FLAGS_INIT "\${CMAKE_C_FLAGS_INIT} \${WASM_EH_FLAGS}")
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} \${WASM_EH_FLAGS}")
+set(CMAKE_ASM_FLAGS_INIT "\${CMAKE_ASM_FLAGS_INIT} \${WASM_EH_FLAGS}")
 EOF
 fi
 
