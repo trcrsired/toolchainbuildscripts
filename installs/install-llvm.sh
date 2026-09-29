@@ -219,7 +219,7 @@ fi
 fi
 
 # Add environment variables to .bashrc if SETLLVMENV is set to yes (skip for Darwin)
-if [[ "$SETLLVMENV" == "yes" && "x$ISDARWIN" != "xyes" ]]; then
+if [[ "$SETLLVMENV" == "yes" ]]; then
     # Set WINEDEBUG if not set
     if ! grep -q "export WINEDEBUG=" ~/.bashrc; then
         echo "export WINEDEBUG=-all" >> ~/.bashrc
