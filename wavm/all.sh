@@ -1,29 +1,39 @@
-./x86_64-windows-gnu.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM x86_64-windows-gnu failed"
-exit 1
+if [[ "$SIMPLE_MODE" == "yes" ]]; then
+echo "SIMPLE_MODE is enabled, only local triplets will be built for WAVM"
 fi
-./aarch64-windows-gnu.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM aarch64-windows-gnu failed"
+
+# Must match the triplets built by llvm/all.sh, WAVM relies on the LLVM toolchains
+TRIPLETS=(
+    "x86_64-linux-gnu"
+    "x86_64-windows-gnu"
+    "aarch64-windows-gnu"
+    "aarch64-linux-android30"
+    "aarch64-apple-darwin24"
+)
+
+if [[ "$SIMPLE_MODE" != "yes" ]]; then
+    TRIPLETS+=(
+        "aarch64-linux-gnu"
+        "aarch64-linux-musl"
+        "loongarch64-linux-gnu"
+        "loongarch64-linux-musl"
+        "x86_64-linux-android30"
+        "x86_64-linux-musl"
+        "riscv64-linux-gnu"
+    )
 fi
-./aarch64-linux-android30.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM aarch64-linux-android30 failed"
-fi
-./x86_64-linux-android30.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM x86_64-linux-android30 failed"
-fi
-./riscv64-linux-android35.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM riscv64-linux-android35 failed"
-fi
-./all-linux.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM all-linux failed"
-fi
-./aarch64-apple-darwin24.sh "$@"
-if [ $? -ne 0 ]; then
-echo "WAVM aarch64-apple-darwin24 failed"
-fi
+
+for host in "${TRIPLETS[@]}"; do
+    if [[ "$host" == *-linux-gnu || "$host" == *-linux-musl ]]; then
+        # Despite the name, this script is generic and handles all linux triples
+        HOST="$host" ./loongarch64-linux-gnu.sh "$@"
+    else
+        ./${host}.sh "$@"
+    fi
+    if [ $? -ne 0 ]; then
+        echo "WAVM $host failed"
+        if [[ "$host" == "x86_64-windows-gnu" ]]; then
+            exit 1
+        fi
+    fi
+done

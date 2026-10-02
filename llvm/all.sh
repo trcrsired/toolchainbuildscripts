@@ -10,6 +10,12 @@ else
     echo "UPLOAD_LLVM is not set to yes, skipping upload"
 fi
 
+if [[ "$SIMPLE_MODE" == "yes" ]]; then
+    echo "SIMPLE_MODE is enabled, only local triplets will be built"
+else
+    echo "SIMPLE_MODE is not enabled, all triplets will be built"
+fi
+
 llvmcurrentrealpath="$(realpath .)"
 
 if [[ $restart_paramter == "restart" ]]; then
@@ -35,6 +41,10 @@ main() {
         "aarch64-windows-gnu"
         "aarch64-linux-android30"
         "aarch64-apple-darwin24"
+    )
+     
+    if [[ "$SIMPLE_MODE" != "yes" ]]; then
+    TRIPLETS2+=(
         "aarch64-linux-gnu"
         "aarch64-linux-musl"
 #        "i686-windows-gnu"
@@ -44,16 +54,12 @@ main() {
         "x86_64-linux-android30"
         "x86_64-linux-musl"
 #        "x86_64-freebsd14"
-    )
-
-#    if [ "${ENABLE_RISCV_SUPPORT}" == "1" ]; then
-        TRIPLETS2+=(
 #            "riscv64-linux-android35"
             "riscv64-linux-gnu"
 #            "riscv64-linux-musl"
 #	    "aarch64-linux-ohos"
         )
-#    fi
+    fi
 
     echo "TRIPLETS total count: ${#TRIPLETS2[@]}"
 
