@@ -397,12 +397,12 @@ if [[ "$target_os" =~ ^mingw ]] || [[ "$target_os" == "elf" ]] || [[ "$target_os
 fi
 
 if [[ $is_freestanding_or_two_phase_build == "yes" ]];then
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libatomic --disable-libsanitizer"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --disable-hosted-libstdcxx --without-headers --disable-threads --disable-shared --disable-libssp --disable-libquadmath --disable-libatomic --disable-libsanitizer --enable-libherbceptions"
 if [[ $is_two_phase_build == "yes" ]]; then
 configure_project_name="${configure_project_name}_phase1"
 fi
 else
-configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0"
+configures="$configures --disable-libstdcxx-verbose --enable-languages=c,c++ --disable-sjlj-exceptions --with-libstdcxx-eh-pool-obj-count=0 --enable-libherbceptions"
 fi
 
 if [[ "$target_os" == linux ]] || [[ "$target_os" =~ ^freebsd ]] ||
