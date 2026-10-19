@@ -39,7 +39,7 @@ GCCTRIPLETS=(
 
 )
 
-if [[ "x$GCC_BUILD_WOA_HOST" == "xyes" ]]; then
+#if [[ "x$GCC_BUILD_WOA_HOST" == "xyes" ]]; then
 GCCTRIPLETS+=(
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-linux-gnu"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-gnu"
@@ -53,7 +53,7 @@ GCCTRIPLETS+=(
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-w64-mingw32"
 #    "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-linux-musl"
 )
-fi
+#fi
 
 GCC_EXTRA_HOSTS=(
     # aarch64-linux-gnu hosts
