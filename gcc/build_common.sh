@@ -18,6 +18,12 @@ if [[ "x${GENERATE_CMAKE_ONLY}" == "xyes" ]]; then
 SKIP_DEPENDENCY_CHECK=yes
 fi
 
+if [[ $1 == "restart" ]]; then
+    echo "restarting"
+    rm -rf "$currentpath"
+    echo "restart done"
+fi
+
 mkdir -p "$currentpath"
 
 cd ../common
