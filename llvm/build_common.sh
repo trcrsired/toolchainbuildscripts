@@ -506,7 +506,9 @@ set(CMAKE_ASM_COMPILER_WORKS On)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION On)
 set(COMPILER_RT_USE_LIBCXX On)
 set(COMPILER_RT_BUILD_BUILTINS On)
-set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -stdlib=libc++")
+# compiler-rt strips -stdlib= from sanitizer C++ flags, so point at the
+# libc++ headers explicitly or asan_new_delete.cpp cannot find <new>.
+set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -stdlib=libc++ -isystem ${SYSROOTPATHUSR}/include/c++/v1")
 EOF
 
 cat << EOF > "$currentpath/builtins.cmake"
