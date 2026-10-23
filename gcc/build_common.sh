@@ -620,11 +620,19 @@ if [ ! -f "${build_prefix_project}/${build_phase_file}" ]; then
                             exit 1
                         fi
                     fi
-                    make_okay="yes"
                 fi
 
-                # Return to GCC build root
+                # Return to GCC build root and resume the top-level build: the
+                # first make aborted at libstdc++ before other target libraries
+                # (e.g. libherbceptions) were configured and built.
                 cd "$build_prefix_project"
+                echo "Resuming top-level build after standalone libstdc++ build..."
+                make -j "${JOBS}"
+                if [ $? -ne 0 ]; then
+                    echo "$configure_project_name: top-level make failed again after standalone libstdc++ build {build:$BUILD_TRIPLET, host:$host_triplet, target:$target_triplet}"
+                    exit 1
+                fi
+                make_okay="yes"
             fi
         fi
         if [[ "x${make_okay}" != "xyes" ]]; then
