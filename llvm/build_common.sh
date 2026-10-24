@@ -221,6 +221,7 @@ BUILD_RUNTIMES_ENABLE_THREADS=1
 BUILD_RUNTIMES_SYSTEM_NAME_GENERIC=0
 WASILIBC_MEMTAG=0
 DISABLE_LIBHERBCEPTIONS_SHARED=0
+ENABLE_LIBHERBCEPTIONS_ITANIUM_DOMAIN=0
 
 if [[ -z "${LLVM_PHASE+x}" ]]; then
 LLVM_PHASE=1
@@ -262,6 +263,7 @@ if [[ "$OS" == "darwin"* ]]; then
     else
         DARWINARCHITECTURES="$CPU"
     fi
+    ENABLE_LIBHERBCEPTIONS_ITANIUM_DOMAIN=1
 else
     echo "Operating System: $OS with ABI: $ABI"
     if [[ "$OS" == "windows" ]]; then
@@ -698,6 +700,11 @@ EOF
 elif [[ LIBHERBCEPTIONS_LINK_LIBCXXABI -ne 0 ]]; then
 cat << EOF >> "$currentpath/libherbceptions.cmake"
 set(CMAKE_CXX_FLAGS_INIT "\${CMAKE_CXX_FLAGS_INIT} -lc++abi")
+EOF
+fi
+if [[ ENABLE_LIBHERBCEPTIONS_ITANIUM_DOMAIN -eq 1 && FREESTANDING_LIBCXX -eq 0 ]]; then
+cat << EOF >> "$currentpath/libherbceptions.cmake"
+set(LIBHERBCEPTIONS_ENABLE_ITANIUM_EXCEPTION_PTR_DOMAIN On)
 EOF
 fi
 
