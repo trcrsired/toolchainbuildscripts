@@ -54,10 +54,10 @@ main() {
     # Define an array with TRIPLET values, each on a new line
     local TRIPLETS2=(
         "x86_64-linux-gnu"
-        "x86_64-windows-gnu"
+	"aarch64-apple-darwin24"
         "aarch64-windows-gnu"
         "aarch64-linux-android30"
-        "aarch64-apple-darwin24"
+	"x86_64-windows-gnu"
     )
      
     if [[ "$SIMPLE_MODE" != "yes" ]]; then
