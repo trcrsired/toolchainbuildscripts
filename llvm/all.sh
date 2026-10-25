@@ -25,6 +25,23 @@ if [[ $restart_paramter == "restart" ]]; then
 	rm -rf "$llvmcurrentrealpath/../wavm/.wavmartifacts"
 	rm -rf "$llvmcurrentrealpath/../wine/.wineartifacts"
 	echo "restart done"
+elif [[ $restart_paramter == "restartignorepack" ]]; then
+	echo "restarting, skipping already packaged triplets"
+	# Keep .artifacts/llvm/<triplet>/.packagesuccess intact so packaged triplets
+	# can be detected and skipped. build_common.sh removes the rest per triplet.
+	rm -rf "$llvmcurrentrealpath/.llvmwasmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wavm/.wavmartifacts"
+	rm -rf "$llvmcurrentrealpath/../wine/.wineartifacts"
+	echo "restart done"
+fi
+
+# build_common.sh only understands "restart". Everything else is fast to
+# rebuild, so it keeps the full restart behavior.
+build_restart_paramter=$restart_paramter
+forwarded_args=("$@")
+if [[ $restart_paramter == "restartignorepack" ]]; then
+	build_restart_paramter="restart"
+	forwarded_args[0]="restart"
 fi
 
 cd ../common
@@ -134,7 +151,11 @@ main() {
 
     # Iterate through the triplets and trigger the build process
     for triplet in "${TRIPLETS2[@]}"; do
-        TRIPLET=$triplet ./build_common.sh $restart_paramter
+        if [[ $restart_paramter == "restartignorepack" ]] && [[ -f "$llvmcurrentrealpath/.artifacts/llvm/$triplet/.packagesuccess" ]]; then
+            echo "Skipping already packaged triplet: $triplet"
+            continue
+        fi
+        TRIPLET=$triplet ./build_common.sh $build_restart_paramter
     done
 
     local TRIPLETSFREESTANDING=(
@@ -156,23 +177,27 @@ main() {
         )
 
     for triplet in "${TRIPLETSFREESTANDING[@]}"; do
-        TRIPLET=$triplet FREESTANDING_LIBCXX=1 ./build_common.sh $restart_paramter
+        if [[ $restart_paramter == "restartignorepack" ]] && [[ -f "$llvmcurrentrealpath/.artifacts/llvm/$triplet/.packagesuccess" ]]; then
+            echo "Skipping already packaged triplet: $triplet"
+            continue
+        fi
+        TRIPLET=$triplet FREESTANDING_LIBCXX=1 ./build_common.sh $build_restart_paramter
     done
 }
 
 main
 
 cd "$llvmcurrentrealpath"
-./wasm-sysroots.sh "$1"
+./wasm-sysroots.sh "${forwarded_args[0]}"
 
 if [[ $NO_BUILD_WAVM != "yes" ]]; then
 cd "$llvmcurrentrealpath/../wavm"
-./all.sh "$@"
+./all.sh "${forwarded_args[@]}"
 fi
 
 if [[ $BUILD_WINE == "yes" ]]; then
 cd "$llvmcurrentrealpath/../wine"
-./all-min.sh "$@"
+./all-min.sh "${forwarded_args[@]}"
 fi
 
 if [[ "$UPLOAD_LLVM" == "yes" ]]; then
