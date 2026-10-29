@@ -439,6 +439,17 @@ install_libc() {
                         echo "Error: Copy to installdir for Android (gcc)"
                         exit 1
                     fi
+                    # A GCC toolchain must not pick up the NDK's LLVM headers
+                    # in these cases: libgcc supplies <unwind.h> with the
+                    # internal _Unwind_Ptr/_uleb128_t types libstdc++ needs,
+                    # and bionic's <stdatomic.h>/<atomics.h> use Clang's
+                    # __c11_atomic_* builtins, which GCC does not implement.
+                    # The compiler's own headers are the correct ones here.
+                    rm -f "${installdirpath}/include/atomics.h" \
+                          "${installdirpath}/include/stdatomic.h" \
+                          "${installdirpath}/include/unwind.h" \
+                          "${installdirpath}/include/unwind_arm_ehabi.h" \
+                          "${installdirpath}/include/unwind_itanium.h"
                     # An Android-host binutils is normally built without zstd
                     # and cannot read the zstd-compressed debug sections that
                     # NDK stub libraries carry.  The debug info is of no use
