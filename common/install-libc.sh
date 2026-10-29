@@ -420,12 +420,17 @@ install_libc() {
                     # caller hands us <prefix>/<target> for a cross compiler
                     # and <prefix> itself for a native one.  Copy the
                     # directory contents so nothing ends up nested under an
-                    # extra usr/ or API-level directory, and include the
-                    # static libc archives so -static can work.
+                    # extra usr/ or API-level directory.  The per-ABI
+                    # directory is the base layer, minus its API-level
+                    # subdirectories, and the API level selected by the
+                    # triple is overlaid on top; newer NDKs keep
+                    # crtbegin_static.o and the static archives in the base
+                    # layer rather than under the API level.
                     mkdir -p "${installdirpath}/include" "${installdirpath}/lib"
                     cp -a "${ndk_sysroot}/usr/include/." "${installdirpath}/include/"
+                    find "${ndk_sysroot}/usr/lib/${CPU}-linux-android" -mindepth 1 -maxdepth 1 ! -type d \
+                        -exec cp -a {} "${installdirpath}/lib/" \;
                     cp -a "${ndk_sysroot}/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION}/." "${installdirpath}/lib/"
-                    cp -a "${ndk_sysroot}/usr/lib/${CPU}-linux-android/"*.a "${installdirpath}/lib/"
                     cp -a "${installdirpath}/include/${CPU}-linux-android/asm" "${installdirpath}/include/"
                     if [ $? -ne 0 ]; then
                         echo "Error: Copy to installdir for Android (gcc)"

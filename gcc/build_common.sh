@@ -419,7 +419,12 @@ if [[ "$target_os" == linux ]] || [[ "$target_os" =~ ^freebsd ]] ||
     if [[ "$target_os" =~ ^mingw ]]; then
         configures="$configures --disable-threads"
     fi
-    if [[ "$target_os" == "linux" ]] && [[ "$target_cpu" =~ i[3-6]86 ]]; then
+    # 32-bit x86 Linux has no usable libsanitizer build.  Android is never
+    # freestanding and bionic provides the pthread interfaces in libc, so do
+    # not drop libsanitizer for android* (neither as target nor as host);
+    # libsanitizer's own configure probes whether -lpthread exists.
+    if [[ "$target_os" == "linux" ]] && [[ "$target_cpu" =~ i[3-6]86 ]] &&
+        [[ "$target_abi" != android* ]] && [[ "$host_triplet" != *android* ]]; then
 	configures="$configures --disable-libsanitizer"
     fi
 elif [[ "$target_os" == "msdosdjgpp" ]]; then
