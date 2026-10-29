@@ -427,6 +427,9 @@ install_libc() {
                     # crtbegin_static.o and the static archives in the base
                     # layer rather than under the API level.
                     mkdir -p "${installdirpath}/include" "${installdirpath}/lib"
+                    # An earlier (non-gcc) layout may have left the API level
+                    # as a subdirectory of lib; the gcc layout is flat.
+                    rm -rf "${installdirpath}/lib/${ANDROIDAPIVERSION}"
                     cp -a "${ndk_sysroot}/usr/include/." "${installdirpath}/include/"
                     find "${ndk_sysroot}/usr/lib/${CPU}-linux-android" -mindepth 1 -maxdepth 1 ! -type d \
                         -exec cp -a {} "${installdirpath}/lib/" \;
@@ -435,6 +438,15 @@ install_libc() {
                     if [ $? -ne 0 ]; then
                         echo "Error: Copy to installdir for Android (gcc)"
                         exit 1
+                    fi
+                    # An Android-host binutils is normally built without zstd
+                    # and cannot read the zstd-compressed debug sections that
+                    # NDK stub libraries carry.  The debug info is of no use
+                    # inside the toolchain sysroot, so drop it.
+                    local llvm_strip="${ndk_sysroot%/sysroot}/bin/llvm-strip"
+                    if [ -x "${llvm_strip}" ]; then
+                        find "${installdirpath}/lib" -maxdepth 1 -type f \
+                            -exec "${llvm_strip}" --strip-debug {} + 2>/dev/null || true
                     fi
                 else
                     cp -r --preserve=links ${ndk_sysroot}/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${installdirpath}/lib
