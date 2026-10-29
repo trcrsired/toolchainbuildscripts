@@ -413,9 +413,29 @@ install_libc() {
                 # Record download completion timestamp
                 echo "$(date +%s)" > "${NDK_DONE_FILE}"
                 mkdir -p "${installdirpath}"
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${installdirpath}/lib
-                cp -r --preserve=links ${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include ${installdirpath}/
-                cp -r --preserve=links ${installdirpath}/include/${CPU}-linux-android/asm ${installdirpath}/include/
+                local ndk_sysroot="${currentpathlibc}/${ANDROIDNDKVERSIONSHORTNAME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+                if [[ "$isgcccrossing" == "yes" ]]; then
+                    # A gcc toolchain carries the bionic headers and libraries
+                    # in its own installation instead of a sysroot, so the
+                    # caller hands us <prefix>/<target> for a cross compiler
+                    # and <prefix> itself for a native one.  Copy the
+                    # directory contents so nothing ends up nested under an
+                    # extra usr/ or API-level directory, and include the
+                    # static libc archives so -static can work.
+                    mkdir -p "${installdirpath}/include" "${installdirpath}/lib"
+                    cp -a "${ndk_sysroot}/usr/include/." "${installdirpath}/include/"
+                    cp -a "${ndk_sysroot}/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION}/." "${installdirpath}/lib/"
+                    cp -a "${ndk_sysroot}/usr/lib/${CPU}-linux-android/"*.a "${installdirpath}/lib/"
+                    cp -a "${installdirpath}/include/${CPU}-linux-android/asm" "${installdirpath}/include/"
+                    if [ $? -ne 0 ]; then
+                        echo "Error: Copy to installdir for Android (gcc)"
+                        exit 1
+                    fi
+                else
+                    cp -r --preserve=links ${ndk_sysroot}/usr/lib/${CPU}-linux-android/${ANDROIDAPIVERSION} ${installdirpath}/lib
+                    cp -r --preserve=links ${ndk_sysroot}/usr/include ${installdirpath}/
+                    cp -r --preserve=links ${installdirpath}/include/${CPU}-linux-android/asm ${installdirpath}/include/
+                fi
             else
                 clone_or_update_dependency linux
                 if [ $? -ne 0 ]; then
