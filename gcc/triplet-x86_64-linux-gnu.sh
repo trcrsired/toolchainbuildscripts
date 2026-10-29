@@ -2,6 +2,7 @@ GCC_BUILD_MAIN="x86_64-linux-gnu"
 GCCTRIPLETS=(
     "$GCC_BUILD_MAIN x86_64-linux-gnu x86_64-linux-gnu"
 
+    "$GCC_BUILD_MAIN aarch64-linux-android30 aarch64-linux-android30"
     "$GCC_BUILD_MAIN aarch64-linux-gnu aarch64-linux-gnu"
     "$GCC_BUILD_MAIN loongarch64-linux-gnu loongarch64-linux-gnu"
     "$GCC_BUILD_MAIN riscv64-linux-gnu riscv64-linux-gnu"
@@ -13,6 +14,7 @@ GCCTRIPLETS=(
 #    "$GCC_BUILD_MAIN i686-linux-musl i686-linux-musl"
 
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 x86_64-linux-gnu"
+    "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-linux-android30"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 aarch64-linux-gnu"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 loongarch64-linux-gnu"
     "$GCC_BUILD_MAIN x86_64-w64-mingw32 riscv64-linux-gnu"
@@ -25,6 +27,7 @@ GCCTRIPLETS=(
 #    "$GCC_BUILD_MAIN x86_64-w64-mingw32 i686-linux-musl"
 
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-linux-gnu"
+    "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-android30"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 aarch64-linux-gnu"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 loongarch64-linux-gnu"
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 riscv64-linux-gnu"
@@ -36,7 +39,7 @@ GCCTRIPLETS=(
     "$GCC_BUILD_MAIN aarch64-w64-mingw32 x86_64-w64-mingw32"
 #    "$GCC_BUILD_MAIN aarch64-w64-mingw32 i686-linux-musl"
 
-
+    "$GCC_BUILD_MAIN aarch64-linux-android30 aarch64-w64-mingw32"
 )
 
 if [[ "x$GCC_BUILD_WOA_HOST" == "xyes" ]]; then
