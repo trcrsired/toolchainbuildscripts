@@ -399,7 +399,10 @@ if [[ "$target_os" == "msdosdjgpp" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" 
 fi
 
 if [[ "x$project_name" == "xgcc" ]] && [[ "$BUILD_TRIPLET" != "$host_triplet" ]]; then
-   if [[ "$target_os" == "linux" ]]; then
+   # Android canadians use the installed libc include directory given to
+   # the target compiler through CFLAGS_FOR_TARGET; do not create a
+   # sys-include symlink inside the toolchain for them.
+   if [[ "$target_os" == "linux" && "$target_abi" != android* ]]; then
        sys_include_temp="yes"
    fi
    if [[ "$target_cpu" == "i686" ]] && [[ $target_os == mingw* ]]; then
@@ -502,6 +505,17 @@ local configure_env_vars=(
   STRIP="$strip_host"
   ac_cv_path_STRIP_FOR_TARGET="$strip_target"
 )
+
+# A Canadian Android build cannot use the default $(build_tooldir)/include
+# path (it expands to <prefix>/<target>, which is not where the libc was
+# installed) and we do not want a sys-include symlink in the toolchain.
+# Point the target compilers directly at the installed libc headers.
+if [[ "$target_os" == "linux" && "$target_abi" == android* && "$BUILD_TRIPLET" != "$host_triplet" ]]; then
+  configure_env_vars+=(
+    CFLAGS_FOR_TARGET="-O2 -g -isystem ${libc_install_prefix}/include"
+    CXXFLAGS_FOR_TARGET="-O2 -g -isystem ${libc_install_prefix}/include"
+  )
+fi
 
 if [[ "$sys_include_temp" == "yes" ]]; then
     if [ ! -f "${build_prefix_project}/.${project_name}_sys_include_temp_create_phase" ]; then
