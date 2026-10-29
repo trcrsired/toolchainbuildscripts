@@ -392,7 +392,7 @@ elif [[ $target_os == "elf" ]]; then
     is_freestanding_or_two_phase_build="${is_freestanding_build}"
 else
 if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
-install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
+install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
 fi
 fi
 
@@ -561,7 +561,7 @@ if [[ "x$project_name" == "xgcc" && "x$is_freestanding_or_two_phase_build" == "x
         fi
     fi
     if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
     fi
     cd "$build_prefix_project"
     if [[ "${is_two_phase_build}" == "yes" ]]; then
@@ -587,7 +587,7 @@ else
                 echo "$(date +%s)" > "${build_prefix_project}/${install_gcc_phase_file}"
             fi
             if [[ "${is_to_build_install_libc}" == "yes" && "x$is_native_cross" == "xyes" ]]; then
-                install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
+                install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
             fi
         fi
         if [ ! -f "${build_prefix_project}/${generate_gcc_limits_phase_file}" ]; then
@@ -702,10 +702,10 @@ if [[ "x${project_name}" == "xgcc" ]]; then
     fi
 
     if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
-        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
+        install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
     elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
         if [[ "x${is_native_cross}" != "xyes" ]]; then
-            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "${is_native_cross}" "yes"
+            install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
         fi
         if [[ "x${is_duplicating_runtime}" == "xyes" ]]; then
             duplicating_runtimes "${project_name}" "${build_prefix_project}" "${target_triplet}" "${libc_install_prefix}"
