@@ -319,7 +319,7 @@ duplicating_runtimes()
 normalize_gcc_android_sysroot() {
     local libdir="$1"
     local api="$2"
-    local ndk_strip="$3"
+    local llvm_strip="${3:-}"
 
     [ -d "$libdir" ] || return 0
 
@@ -330,13 +330,13 @@ normalize_gcc_android_sysroot() {
     # Drop API-level directories left behind by an older layout.
     find "$libdir" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*'         -exec rm -rf {} + 2>/dev/null || true
 
-    if [ ! -x "$ndk_strip" ]; then
-        ndk_strip="$(command -v llvm-strip 2>/dev/null || true)"
+    if [ -z "$llvm_strip" ]; then
+        llvm_strip="$(command -v llvm-strip 2>/dev/null || true)"
     fi
-    if [ -n "$ndk_strip" ] && [ -x "$ndk_strip" ]; then
+    if [ -n "$llvm_strip" ] && [ -x "$llvm_strip" ]; then
         find "$libdir" -maxdepth 1 -type f \
             \( -name '*.so' -o -name '*.so.*' \) \
-            -exec "$ndk_strip" --strip-debug {} + 2>/dev/null || true
+            -exec "$llvm_strip" --strip-debug {} + 2>/dev/null || true
     fi
 }
 
@@ -735,9 +735,7 @@ if [[ "x${project_name}" == "xgcc" ]]; then
     if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
         install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
         if [[ "$target_os" == "linux" && "$target_abi" == android* ]]; then
-            local ndk_strip
-            ndk_strip="$(find "${build_prefix}/libc" -path '*/toolchains/llvm/prebuilt/*/bin/llvm-strip' -type f 2>/dev/null | head -n 1)"
-            normalize_gcc_android_sysroot "${libc_install_prefix}/lib" "${target_abi#android}" "$ndk_strip"
+            normalize_gcc_android_sysroot "${libc_install_prefix}/lib" "${target_abi#android}"
         fi
     elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
         if [[ "x${is_native_cross}" != "xyes" ]]; then

@@ -453,9 +453,13 @@ install_libc() {
                     # An Android-host binutils is normally built without zstd
                     # and cannot read the zstd-compressed debug sections that
                     # NDK stub libraries carry.  The debug info is of no use
-                    # inside the toolchain sysroot, so drop it.
-                    local llvm_strip="${ndk_sysroot%/sysroot}/bin/llvm-strip"
-                    if [ -x "${llvm_strip}" ]; then
+                    # inside the toolchain sysroot, so drop it.  Use the host
+                    # llvm-strip (checked by dependencycheck) rather than the
+                    # NDK's prebuilt linux-x86_64 tool, which cannot run on
+                    # other build hosts.
+                    local llvm_strip
+                    llvm_strip="$(command -v llvm-strip 2>/dev/null || true)"
+                    if [ -n "${llvm_strip}" ]; then
                         find "${installdirpath}/lib" -maxdepth 1 -type f \
                             -exec "${llvm_strip}" --strip-debug {} + 2>/dev/null || true
                     fi
