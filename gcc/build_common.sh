@@ -309,6 +309,37 @@ duplicating_runtimes()
     }
 }
 
+# Android's NDK sysroot keeps the shared libraries under an API-level
+# subdirectory and its stub libraries carry zstd-compressed .debug_info.
+# A GCC toolchain installs the libraries flat in lib/ and GNU ld cannot read
+# the zstd debug sections (BFD is normally built without zstd support), so
+# normalise any sysroot that was produced by an older/partial installation.
+# This also covers libm.so explicitly, which is the usual first casualty when
+# linking with -lm.
+normalize_gcc_android_sysroot() {
+    local libdir="$1"
+    local api="$2"
+    local ndk_strip="$3"
+
+    [ -d "$libdir" ] || return 0
+
+    if [ -d "$libdir/$api" ]; then
+        cp -a "$libdir/$api/." "$libdir/"
+        rm -rf "$libdir/$api"
+    fi
+    # Drop API-level directories left behind by an older layout.
+    find "$libdir" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*'         -exec rm -rf {} + 2>/dev/null || true
+
+    if [ ! -x "$ndk_strip" ]; then
+        ndk_strip="$(command -v llvm-strip 2>/dev/null || true)"
+    fi
+    if [ -n "$ndk_strip" ] && [ -x "$ndk_strip" ]; then
+        find "$libdir" -maxdepth 1 -type f \
+            \( -name '*.so' -o -name '*.so.*' \) \
+            -exec "$ndk_strip" --strip-debug {} + 2>/dev/null || true
+    fi
+}
+
 build_project_gnu_cookie() {
 local project_name=$1
 local host_triplet=$2
@@ -703,6 +734,11 @@ if [[ "x${project_name}" == "xgcc" ]]; then
 
     if [[ "x$not_having_fenv_fix" != "xyes" ]]; then
         install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
+        if [[ "$target_os" == "linux" && "$target_abi" == android* ]]; then
+            local ndk_strip
+            ndk_strip="$(find "${build_prefix}/libc" -path '*/toolchains/llvm/prebuilt/*/bin/llvm-strip' -type f 2>/dev/null | head -n 1)"
+            normalize_gcc_android_sysroot "${libc_install_prefix}/lib" "${target_abi#android}" "$ndk_strip"
+        fi
     elif [[ "x${is_to_build_install_libc}" == "xyes" ]]; then
         if [[ "x${is_native_cross}" != "xyes" ]]; then
             install_libc "${TOOLCHAINS_BUILD_SHARED_STORAGE}" $host_triplet $target_triplet "${build_prefix}/libc" "${build_prefix}/install/libc" "${libc_install_prefix}" "no" "no" "${multilibsettings}" "yes" "yes"
