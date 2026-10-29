@@ -441,6 +441,12 @@ elif [[ "x$project_name" == "xbinutils-gdb" ]]; then
 configures="$configures --disable-tui --without-debuginfod"
 fi
 
+# The bundled gettext module is a host library; it is not buildable for an
+# Android/bionic host, and --disable-nls means it is not needed there.
+if [[ "$host_triplet" == *android* ]]; then
+configures="$configures --disable-gettext"
+fi
+
 local is_to_build_install_libc="no"
 
 if [[ "x$project_name" == "xgcc" && "${is_freestanding_build}" != "yes" ]]; then
