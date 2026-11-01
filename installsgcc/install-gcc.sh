@@ -16,10 +16,12 @@
 #        aarch64-linux-gnu.aarch64-w64-mingw32
 #
 # Usage:
-#   ./install-gcc.sh                 # native GCC + Windows GCC (default)
+#   ./install-gcc.sh                 # native GCC + Windows GCC, env in ~/.bashrc
+#   SETGCCENV=no ./install-gcc.sh        # do not touch ~/.bashrc
 #   DOWNLOAD_ALL=yes ./install-gcc.sh    # every toolchain of the release
-#   SETGCCENV=yes ./install-gcc.sh       # also export PATH/LD_LIBRARY_PATH/WINEPATH
 #   DRYRUN=yes ./install-gcc.sh          # print what would be installed
+#
+# On Windows use install-gcc.ps1 instead (same layout, PowerShell, mingw hosts).
 #
 # Environment variables:
 #   TOOLCHAINSPATH            default: $HOME/toolchains
@@ -32,8 +34,11 @@
 #   GCC_TARGETS               space separated targets to install for the host
 #                             instead of the default native + Windows pair
 #   DOWNLOAD_ALL              yes: install every toolchain of the release
-#   SETGCCENV                 yes: append PATH/WINEPATH (and a libc-free
-#                             LD_LIBRARY_PATH) to ~/.bashrc
+#   FORCEDOWNLOAD             yes: download even when the .tar.xz is already
+#                             cached in $TOOLCHAINSPATH_GNU/<host>/
+#   SETGCCENV                 default yes: append PATH/WINEPATH (and a
+#                             libc-free LD_LIBRARY_PATH) to ~/.bashrc;
+#                             set to no to leave the shell config alone
 #   DRYRUN                    yes: only print the toolchains that would be installed
 #
 
@@ -47,8 +52,9 @@ TOOLCHAINSPATH="${TOOLCHAINSPATH:-$HOME/toolchains}"
 TOOLCHAINSPATH_GNU="${TOOLCHAINSPATH_GNU:-$TOOLCHAINSPATH/gnu}"
 
 DOWNLOAD_ALL="${DOWNLOAD_ALL:-no}"
-SETGCCENV="${SETGCCENV:-no}"
+SETGCCENV="${SETGCCENV:-yes}"
 DRYRUN="${DRYRUN:-no}"
+FORCEDOWNLOAD="${FORCEDOWNLOAD:-no}"
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -219,21 +225,39 @@ install_toolchain() {
     fi
 
     mkdir -p "$host_dir"
-    rm -rf "${host_dir:?}/$target" "$archive" "${archive}.part"
+    rm -rf "${host_dir:?}/$target"
 
-    info "    downloading $url"
-    if ! download_file "$url" "$archive"; then
+    local reused=no
+    if [[ -s "$archive" && "$FORCEDOWNLOAD" != "yes" ]]; then
+        info "    reusing existing $archive (set FORCEDOWNLOAD=yes to download again)"
+        reused=yes
+    fi
+
+    if [[ "$reused" != "yes" ]]; then
         rm -f "$archive" "${archive}.part"
-        if [[ "$strict" == "yes" ]]; then
-            die "failed to download $url"
+        info "    downloading $url"
+        if ! download_file "$url" "$archive"; then
+            rm -f "$archive" "${archive}.part"
+            if [[ "$strict" == "yes" ]]; then
+                die "failed to download $url"
+            fi
+            warn "$name is not available in release $GCC_RELEASE_VERSION, skipping"
+            return 0
         fi
-        warn "$name is not available in release $GCC_RELEASE_VERSION, skipping"
-        return 0
     fi
 
     info "    extracting to $host_dir"
-    tar -xf "$archive" -C "$host_dir" ||
-        die "failed to extract $archive"
+    if ! tar -xf "$archive" -C "$host_dir"; then
+        if [[ "$reused" == "yes" ]]; then
+            # the cached archive is broken: fetch it again and retry once
+            info "    cached archive is broken, downloading again"
+            rm -f "$archive"
+            download_file "$url" "$archive" || die "failed to download $url"
+            tar -xf "$archive" -C "$host_dir" || die "failed to extract $archive"
+        else
+            die "failed to extract $archive"
+        fi
+    fi
 
     [[ -d "$host_dir/$target/bin" ]] ||
         die "$archive does not contain $target/bin"
@@ -342,6 +366,66 @@ setup_env() {
         "export WINEPATH=\"$prefix/bin;$prefix/lib\${WINEPATH+;\$WINEPATH}\""
 }
 
+# Sanity check: run the installed toolchain (only possible when it is built for
+# this very platform). The Linux-hosted GCC binaries link against the *system*
+# libisl/libgmp/libzstd (no RPATH, nothing bundled), so without those the
+# compiler exists but cannot start - report it instead of leaving the user with
+# a "g++ does not work" mystery.
+check_toolchain() {
+    local host=$1
+    local target=$2
+    local prefix="$TOOLCHAINSPATH_GNU/$host/$target"
+    local driver
+
+    # a Windows hosted toolchain can only run under wine
+    [[ "$host" == "$PLATFORM_TRIPLET" ]] || return 0
+
+    if [[ -x "$prefix/bin/$target-g++" ]]; then
+        driver="$prefix/bin/$target-g++"
+    elif [[ -x "$prefix/bin/g++" ]]; then
+        driver="$prefix/bin/g++"
+    else
+        warn "no g++ driver found in $prefix/bin"
+        return 0
+    fi
+
+    local output
+    if output="$("$driver" --version 2>&1)"; then
+        info "    $driver -> ${output%%$'\n'*}"
+        return 0
+    fi
+
+    warn "$driver fails to run:"
+    local line
+    while IFS= read -r line; do
+        warn "  $line"
+    done <<<"$output"
+
+    local missing=""
+    if command -v ldd >/dev/null 2>&1; then
+        local cc1
+        missing="$(
+            {
+                ldd "$driver" 2>/dev/null || true
+                for cc1 in "$prefix"/libexec/gcc/*/*/cc1plus; do
+                    [[ -f "$cc1" ]] && ldd "$cc1" 2>/dev/null || true
+                done
+            } | awk '/not found/ { print $1 }' | sort -u | tr '\n' ' '
+        )"
+    fi
+    if [[ -n "$missing" ]]; then
+        warn "missing shared libraries: $missing"
+        info "    the Linux-hosted toolchains do not bundle isl/gmp/mpfr/mpc/zstd,"
+        info "    they use the system ones. Install them, e.g.:"
+        case "$(awk -F= '/^ID=/{gsub(/"/,"",$2); print $2}' /etc/os-release 2>/dev/null)" in
+        arch | manjaro | endeavouros) info "      sudo pacman -S --needed isl gmp mpfr mpc zstd" ;;
+        debian | ubuntu | linuxmint | pop) info "      sudo apt install libisl23 libgmp10 libmpfr6 libmpc3 libzstd1" ;;
+        fedora | rhel | centos | rocky | almalinux) info "      sudo dnf install isl gmp mpfr libmpc libzstd" ;;
+        *) info "      install your distribution packages for isl, gmp, mpfr, mpc and zstd" ;;
+        esac
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -359,6 +443,8 @@ main() {
     local -a hosts=()
     local -a targets=()
     local -a strictness=()
+
+    PLATFORM_TRIPLET="$platform"
 
     if [[ "$DOWNLOAD_ALL" == "yes" ]]; then
         info "DOWNLOAD_ALL=yes: installing every toolchain of the release"
@@ -405,8 +491,11 @@ main() {
     local i
     for i in "${!hosts[@]}"; do
         install_toolchain "${hosts[$i]}" "${targets[$i]}" "${strictness[$i]}"
-        if [[ "$SETGCCENV" == "yes" && "$DRYRUN" != "yes" ]]; then
-            setup_env "${hosts[$i]}" "${targets[$i]}"
+        if [[ "$DRYRUN" != "yes" ]]; then
+            check_toolchain "${hosts[$i]}" "${targets[$i]}"
+            if [[ "$SETGCCENV" == "yes" ]]; then
+                setup_env "${hosts[$i]}" "${targets[$i]}"
+            fi
         fi
     done
 
@@ -422,10 +511,14 @@ main() {
             info "  $TOOLCHAINSPATH_GNU/${hosts[$i]}/${targets[$i]}"
     done
 
-    if [[ "$SETGCCENV" != "yes" ]]; then
+    if [[ "$SETGCCENV" == "yes" ]]; then
+        info ""
+        info "PATH/LD_LIBRARY_PATH/WINEPATH for the installed toolchains are in $HOME/.bashrc."
+        info "Open a new shell, or run: source ~/.bashrc"
+    else
         local prefix="$TOOLCHAINSPATH_GNU/${hosts[0]}/${targets[0]}"
         info ""
-        info "Add the toolchain to your environment (or rerun with SETGCCENV=yes):"
+        info "SETGCCENV=no, nothing was written to ~/.bashrc. Add manually:"
         info "  export PATH=\"$prefix/bin:\$PATH\""
         info "  export LD_LIBRARY_PATH=\"$prefix/lib64:\$LD_LIBRARY_PATH\"  # only when it holds no libc/ld.so"
         info "  export WINEPATH=\"$prefix/bin;$prefix/lib;\$WINEPATH\""
