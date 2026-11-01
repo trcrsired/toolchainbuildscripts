@@ -41,6 +41,8 @@ GCCTRIPLETS=(
 
     "$GCC_BUILD_MAIN aarch64-linux-android30 aarch64-w64-mingw32"
     "$GCC_BUILD_MAIN aarch64-linux-android30 x86_64-w64-mingw32"
+
+    "$GCC_BUILD_MAIN aarch64-linux-gnu aarch64-w64-mingw32"
 )
 
 if [[ "x$GCC_BUILD_WOA_HOST" == "xyes" ]]; then
